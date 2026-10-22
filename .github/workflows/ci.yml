@@ -20,7 +20,6 @@ jobs:
     outputs:
       changed: ${{ steps.version.outputs.changed }}
       tag: ${{ steps.version.outputs.tag }}
-      docs_changed: ${{ steps.version.outputs.docs_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -40,7 +39,6 @@ jobs:
             const tag = `v${version}`;
             core.setOutput('tag', tag);
             core.setOutput('changed', 'false');
-            core.setOutput('docs_changed', 'false');
             if (context.eventName !== 'push' || context.ref !== 'refs/heads/main') {
               return;
             }
@@ -100,13 +98,6 @@ jobs:
               return;
             }
 
-            const before = context.payload.before;
-            const changed = /^0+$/.test(before)
-              ? await git('ls-tree', '-r', '--name-only', context.sha)
-              : await git('diff', '--name-only', before, context.sha);
-            core.setOutput('docs_changed', changed.split('\n').some(path =>
-              /^(docs\/|mkdocs\.yml$|requirements-docs\.txt$|\.github\/workflows\/(ci|docs)\.yml$)/.test(path)));
-
   build:
     name: Build and test (${{ matrix.os }})
     needs: version
@@ -127,7 +118,7 @@ jobs:
 
   docs:
     needs: version
-    if: needs.version.outputs.changed != 'true' && needs.version.outputs.docs_changed == 'true'
+    if: needs.version.outputs.changed != 'true'
     permissions:
       contents: read
       pages: write
