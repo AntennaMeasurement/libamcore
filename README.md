@@ -63,8 +63,9 @@ linking through the CMake target receive the matching import/export settings.
 ## Far-field distance
 
 `amcore_far_field_distance(frequency_hz, aperture_length_m, &distance_m)`
-calculates the minimum far-field distance according to IEEE 149-2021,
-section 7.1.2:
+calculates the minimum far-field distance according to *IEEE Std 149-2021,
+IEEE Recommended Practice for Antenna Measurements*, section 7.1.2 (see
+[`ieee1492021`](#references)):
 
 $$
 R_{\mathrm{ff}} = \max\left(5D,\;1.6\lambda,\;\frac{2D^2}{\lambda}\right),
@@ -112,6 +113,12 @@ cmake --build build-tests --config Release
 ctest --test-dir build-tests -C Release --output-on-failure
 ```
 
+## AI-assisted development
+
+Repository-specific guidance for AI coding agents is in
+[`doc/LLM_CONTEXT.md`](doc/LLM_CONTEXT.md), with the reusable development
+workflow in [`.github/skills/amcore-development/SKILL.md`](.github/skills/amcore-development/SKILL.md).
+
 For an embedded toolchain, pass its CMake toolchain file when configuring:
 
 ```sh
@@ -155,3 +162,19 @@ cmake -S . -B build \
 CPack packages the installed library, headers, CMake package configuration,
 and CLI when enabled. Run `cpack` from the configured build directory to create
 a ZIP archive on Windows or a tarball on other platforms.
+
+## References
+
+The project reference copy of this standard is available at
+[`doc/standards/IEEE 149-2021 Recommended Practice for Antenna Measurements.pdf`](doc/standards/IEEE%20149-2021%20Recommended%20Practice%20for%20Antenna%20Measurements.pdf).
+
+```bibtex
+@manual{ieee1492021,
+  author       = {{IEEE}},
+  title        = {{IEEE Recommended Practice for Antenna Measurements}},
+  organization = {IEEE},
+  number       = {IEEE Std 149-2021},
+  year         = {2021},
+  url          = {https://ieeexplore.ieee.org/document/9597348}
+}
+```
