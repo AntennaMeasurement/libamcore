@@ -2,8 +2,7 @@
 # libamcore
 
 `libamcore` is a portable C library for core computational routines used in
-antenna measurements. The API provides free-space wavelength and far-field
-distance calculations. It builds as a static library by default for embedded use, can
+antenna measurements. It builds as a static library by default for embedded use, can
 also be built as a shared library, performs no dynamic allocation, and has no
 operating-system or platform-specific dependencies.
 
@@ -16,7 +15,19 @@ operating-system or platform-specific dependencies.
 | `utility`  | `amcore_free_space_wavelength` | Computes the free-space wavelength for a given frequency                          |
 | `farfield` | `amcore_far_field_distance`    | Computes the minimum far-field distance for a given frequency and aperture length |
 
-## Build and test
+## Programming API
+
+The public API is available through `<amcore/amcore.h>`, which includes the
+utility module's `<amcore/utility.h>` API and the far-field module's
+`<amcore/farfield.h>` API. The utility module exports
+`speed_of_light_m_per_s` as a shared constant and provides
+`amcore_free_space_wavelength`. `AMCORE_API` exports symbols from shared builds
+on Windows and platforms with GCC-compatible visibility attributes. Consumers
+linking through the CMake target receive the matching import/export settings.
+
+
+
+## Building
 
 Requirements: CMake 3.15 or newer and a C99-capable C compiler.
 
@@ -33,6 +44,18 @@ cmake -S . -B build-shared -DBUILD_SHARED_LIBS=ON
 cmake --build build-shared --config Release
 ```
 
+## Testing
+
+To run the tests, first configure and build the test target with CMake, then use CTest to execute them. Tests are opt-in so cross-compiling firmware does not also try to build or run a host test executable:
+
+```sh
+cmake -S . -B build-tests -DBUILD_TESTING=ON
+cmake --build build-tests --config Release
+ctest --test-dir build-tests -C Release --output-on-failure
+```
+
+## Command-line interface
+
 The `amcore` command-line tool is built by default. Use `-DAMCORE_BUILD_CLI=OFF`
 to omit it, for example in a firmware cross-build. Calculations are grouped
 under their associated module, using lowercase command names and positional
@@ -46,24 +69,6 @@ build/amcore farfield distance 1e9 1
 build/amcore utility --help
 build/amcore farfield distance --help
 ```
-
-Available calculation commands:
-
-Frequency is in hertz and aperture length is in metres; all inputs must be
-positive finite numbers. Scientific notation such as `1e9` is accepted.
-Successful calculations print only the numeric result in metres to standard
-output. Invalid arguments and out-of-range calculations print a diagnostic to
-standard error and exit with a nonzero status. Running a module without a
-subcommand displays its help; modules and calculation commands also accept
-`help`, `-h`, and `--help`.
-
-The public API is available through `<amcore/amcore.h>`, which includes the
-utility module's `<amcore/utility.h>` API and the far-field module's
-`<amcore/farfield.h>` API. The utility module exports
-`speed_of_light_m_per_s` as a shared constant and provides
-`amcore_free_space_wavelength`. `AMCORE_API` exports symbols from shared builds
-on Windows and platforms with GCC-compatible visibility attributes. Consumers
-linking through the CMake target receive the matching import/export settings.
 
 
 
@@ -86,20 +91,14 @@ entry point. Both functions retain the C API: their final argument is a pointer
 into WebAssembly linear memory where the result is written. The module is installed to the library
 directory when `AMCORE_BUILD_WASM` is enabled.
 
-Tests are opt-in so cross-compiling firmware does not also try to build or run
-a host test executable:
-
-```sh
-cmake -S . -B build-tests -DBUILD_TESTING=ON
-cmake --build build-tests --config Release
-ctest --test-dir build-tests -C Release --output-on-failure
-```
 
 ## AI-assisted development
 
 Repository-specific guidance for AI coding agents is in
 [`doc/LLM_CONTEXT.md`](doc/LLM_CONTEXT.md), with the reusable development
 workflow in [`.github/skills/amcore-development/SKILL.md`](.github/skills/amcore-development/SKILL.md).
+
+## Embedded toolchain
 
 For an embedded toolchain, pass its CMake toolchain file when configuring:
 

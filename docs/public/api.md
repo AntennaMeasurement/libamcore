@@ -49,7 +49,7 @@ amcore_status amcore_free_space_wavelength(
 `amcore_far_field_distance` calculates the minimum distance using IEEE Std
 149-2021, section 7.1.2:
 
-`R_ff = max(5D, 1.6 lambda, 2D^2/lambda)`
+$$R_{ff} = \max(5D, 1.6 \lambda, 2D^2/\lambda)$$
 
 `D` is the largest antenna aperture length in metres. The wavelength is
 calculated from the provided frequency.
