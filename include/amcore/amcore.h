@@ -6,6 +6,22 @@
  * @brief Public API for core antenna-measurement computations.
  */
 
+#if defined(AMCORE_SHARED)
+#if defined(_WIN32) || defined(__CYGWIN__)
+#if defined(AMCORE_BUILDING_LIBRARY)
+#define AMCORE_API __declspec(dllexport)
+#else
+#define AMCORE_API __declspec(dllimport)
+#endif
+#elif defined(__GNUC__) && __GNUC__ >= 4
+#define AMCORE_API __attribute__((visibility("default")))
+#else
+#define AMCORE_API
+#endif
+#else
+#define AMCORE_API
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -28,8 +44,9 @@ typedef enum amcore_status {
  *         result is not representable as a positive finite double, returns an
  *         error status and leaves @p wavelength_m unchanged.
  */
-amcore_status amcore_free_space_wavelength(double frequency_hz,
-                                           double *wavelength_m);
+AMCORE_API amcore_status amcore_free_space_wavelength(
+    double frequency_hz,
+    double *wavelength_m);
 
 #ifdef __cplusplus
 }

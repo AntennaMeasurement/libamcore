@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.15)
 
 project(libamcore
     VERSION 0.1.0
@@ -6,26 +6,45 @@ project(libamcore
     LANGUAGES C
 )
 
+option(BUILD_SHARED_LIBS "Build amcore as a shared library" OFF)
+option(BUILD_TESTING "Build the amcore test executable" OFF)
+option(AMCORE_BUILD_CLI "Build the amcore command-line tool" ON)
 include(CTest)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
-
-option(AMCORE_BUILD_DOCS "Build the HTML API documentation" OFF)
 
 add_library(amcore src/amcore.c)
 add_library(amcore::amcore ALIAS amcore)
 set_target_properties(amcore PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
-    WINDOWS_EXPORT_ALL_SYMBOLS ON
+    C_EXTENSIONS OFF
 )
 
-target_compile_features(amcore PUBLIC c_std_99)
+target_compile_features(amcore PRIVATE c_std_99)
+if(BUILD_SHARED_LIBS)
+    target_compile_definitions(amcore
+        PUBLIC AMCORE_SHARED
+        PRIVATE AMCORE_BUILDING_LIBRARY
+    )
+    set_target_properties(amcore PROPERTIES
+        C_VISIBILITY_PRESET hidden
+    )
+endif()
 target_include_directories(amcore
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
+
+if(AMCORE_BUILD_CLI)
+    add_executable(amcore_cli cli/main.c)
+    set_target_properties(amcore_cli PROPERTIES OUTPUT_NAME amcore)
+    target_compile_definitions(amcore_cli
+        PRIVATE AMCORE_VERSION="${PROJECT_VERSION}"
+    )
+    target_link_libraries(amcore_cli PRIVATE amcore::amcore)
+endif()
 
 install(TARGETS amcore
     EXPORT amcoreTargets
@@ -33,6 +52,11 @@ install(TARGETS amcore
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+if(AMCORE_BUILD_CLI)
+    install(TARGETS amcore_cli
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+endif()
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(EXPORT amcoreTargets
     FILE amcoreTargets.cmake
@@ -60,18 +84,33 @@ if(BUILD_TESTING)
     add_executable(amcore_tests tests/test_amcore.c)
     target_link_libraries(amcore_tests PRIVATE amcore::amcore)
     add_test(NAME amcore_tests COMMAND amcore_tests)
-endif()
 
-if(AMCORE_BUILD_DOCS)
-    find_package(Doxygen REQUIRED)
-    set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/docs")
-    configure_file(docs/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
-    add_custom_target(docs
-        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        COMMENT "Generating HTML API documentation"
-        VERBATIM
-    )
+    if(AMCORE_BUILD_CLI)
+        add_test(NAME amcore_cli_default_help COMMAND amcore_cli)
+        set_tests_properties(amcore_cli_default_help PROPERTIES
+            PASS_REGULAR_EXPRESSION "Subcommands:"
+        )
+        add_test(NAME amcore_cli_help COMMAND amcore_cli help)
+        set_tests_properties(amcore_cli_help PROPERTIES
+            PASS_REGULAR_EXPRESSION "Subcommands:"
+        )
+        add_test(NAME amcore_cli_help_option COMMAND amcore_cli --help)
+        set_tests_properties(amcore_cli_help_option PROPERTIES
+            PASS_REGULAR_EXPRESSION "Subcommands:"
+        )
+        add_test(NAME amcore_cli_version COMMAND amcore_cli version)
+        set_tests_properties(amcore_cli_version PROPERTIES
+            PASS_REGULAR_EXPRESSION "amcore ${PROJECT_VERSION}"
+        )
+        add_test(NAME amcore_cli_version_option COMMAND amcore_cli --version)
+        set_tests_properties(amcore_cli_version_option PROPERTIES
+            PASS_REGULAR_EXPRESSION "amcore ${PROJECT_VERSION}"
+        )
+        add_test(NAME amcore_cli_unknown_subcommand COMMAND amcore_cli unknown)
+        set_tests_properties(amcore_cli_unknown_subcommand PROPERTIES
+            WILL_FAIL TRUE
+        )
+    endif()
 endif()
 
 set(CPACK_PACKAGE_VENDOR "AntennaMeasurement")

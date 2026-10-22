@@ -20,15 +20,3 @@ jobs:
         run: cmake --build build --config Release
       - name: Test
         run: ctest --test-dir build -C Release --output-on-failure
-
-  documentation:
-    name: Build HTML documentation
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Doxygen
-        run: sudo apt-get update && sudo apt-get install --yes doxygen
-      - name: Configure documentation
-        run: cmake -S . -B build -DAMCORE_BUILD_DOCS=ON -DBUILD_TESTING=OFF
-      - name: Generate documentation
-        run: cmake --build build --target docs
