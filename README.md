@@ -1,3 +1,4 @@
+<!-- Last content update tag: v0.1.0 -->
 # libamcore
 
 `libamcore` is a portable C library for core computational routines used in

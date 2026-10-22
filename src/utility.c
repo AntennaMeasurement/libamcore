@@ -1,3 +1,4 @@
+/* Last content update tag: v0.1.0 */
 #include <amcore/utility.h>
 
 #include <math.h>

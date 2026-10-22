@@ -1,4 +1,5 @@
 ---
+# Last content update tag: v0.1.0
 name: amcore-development
 description: "Develop and document libamcore, the portable C antenna-measurement library. Use for C API changes, computational modules, CLI behavior, CMake builds, tests, or project documentation."
 ---

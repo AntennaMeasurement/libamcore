@@ -1,3 +1,4 @@
+# Last content update tag: v0.1.0
 cmake_minimum_required(VERSION 3.15)
 
 project(libamcore

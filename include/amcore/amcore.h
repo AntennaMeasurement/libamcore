@@ -1,3 +1,4 @@
+/* Last content update tag: v0.1.0 */
 #ifndef AMCORE_AMCORE_H
 #define AMCORE_AMCORE_H
 

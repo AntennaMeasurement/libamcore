@@ -1,3 +1,4 @@
+<!-- Last content update tag: v0.1.0 -->
 # libamcore: LLM Project Context
 
 This document is a compact, source-grounded orientation for AI coding agents

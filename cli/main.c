@@ -1,3 +1,4 @@
+/* Last content update tag: v0.1.0 */
 #include <amcore/amcore.h>
 
 #include <errno.h>

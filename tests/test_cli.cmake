@@ -1,3 +1,4 @@
+# Last content update tag: v0.1.0
 if(NOT DEFINED AMCORE_CLI)
     message(FATAL_ERROR "AMCORE_CLI must identify the CLI executable")
 endif()
