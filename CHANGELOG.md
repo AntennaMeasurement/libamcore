@@ -2,6 +2,17 @@
 
 All notable changes for each release are documented here.
 
+## [v0.1.1] - 2026-10-22
+
+### Changes
+
+- Bump version to 0.1.1 in CMakeLists.txt for testing workflow.
+- Enhance CI/CD workflows: add version check, changelog update, and documentation deployment steps
+- Enhance documentation and CI: update .gitignore, add mkdocs configuration, and create public documentation files
+- Update documentation and add changelog for v0.1.0 release; include last content update tags across multiple files
+- Enhance documentation: clarify far-field distance calculation formula in farfield.h
+- Add VSCode extensions recommendations for C++ and CMake development
+
 ## [v0.1.0] - 2026-10-22
 
 ### Added
