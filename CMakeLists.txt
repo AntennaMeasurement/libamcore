@@ -14,7 +14,7 @@ include(CTest)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-add_library(amcore src/utility.c)
+add_library(amcore src/utility.c src/farfield.c)
 add_library(amcore::amcore ALIAS amcore)
 set_target_properties(amcore PROPERTIES
     VERSION ${PROJECT_VERSION}
@@ -44,7 +44,7 @@ if(AMCORE_BUILD_WASM)
             "AMCORE_BUILD_WASM requires configuring with the Emscripten toolchain")
     endif()
 
-    add_executable(amcore_wasm src/utility.c)
+    add_executable(amcore_wasm src/utility.c src/farfield.c)
     set_target_properties(amcore_wasm PROPERTIES
         OUTPUT_NAME amcore
         SUFFIX ".wasm"
@@ -56,13 +56,14 @@ if(AMCORE_BUILD_WASM)
     target_link_options(amcore_wasm PRIVATE
         "-Wl,--no-entry"
         "-sSTANDALONE_WASM=1"
-        "-sEXPORTED_FUNCTIONS=_amcore_free_space_wavelength"
+        "-sEXPORTED_FUNCTIONS=_amcore_free_space_wavelength,_amcore_far_field_distance"
         "-sEXPORTED_GLOBALS=_speed_of_light_m_per_s"
     )
 endif()
 
 if(AMCORE_BUILD_CLI)
     add_executable(amcore_cli cli/main.c)
+    target_compile_features(amcore_cli PRIVATE c_std_99)
     set_target_properties(amcore_cli PROPERTIES OUTPUT_NAME amcore)
     target_compile_definitions(amcore_cli
         PRIVATE AMCORE_VERSION="${PROJECT_VERSION}"
@@ -115,6 +116,11 @@ if(BUILD_TESTING)
     add_test(NAME amcore_tests COMMAND amcore_tests)
 
     if(AMCORE_BUILD_CLI)
+        add_test(NAME amcore_cli_calculations
+            COMMAND ${CMAKE_COMMAND}
+                "-DAMCORE_CLI=$<TARGET_FILE:amcore_cli>"
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_cli.cmake
+        )
         add_test(NAME amcore_cli_default_help COMMAND amcore_cli)
         set_tests_properties(amcore_cli_default_help PROPERTIES
             PASS_REGULAR_EXPRESSION "Subcommands:"

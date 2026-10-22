@@ -7,5 +7,6 @@
  */
 
 #include <amcore/utility.h>
+#include <amcore/farfield.h>
 
 #endif

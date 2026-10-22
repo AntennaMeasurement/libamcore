@@ -1,8 +1,8 @@
 # libamcore
 
 `libamcore` is a portable C library for core computational routines used in
-antenna measurements. The initial API provides free-space wavelength
-calculation. It builds as a static library by default for embedded use, can
+antenna measurements. The API provides free-space wavelength and far-field
+distance calculations. It builds as a static library by default for embedded use, can
 also be built as a shared library, performs no dynamic allocation, and has no
 operating-system or platform-specific dependencies.
 
@@ -24,20 +24,65 @@ cmake --build build-shared --config Release
 ```
 
 The `amcore` command-line tool is built by default. Use `-DAMCORE_BUILD_CLI=OFF`
-to omit it, for example in a firmware cross-build. The tool currently provides
-`help` and `version` subcommands:
+to omit it, for example in a firmware cross-build. Calculations are grouped
+under their associated module, using lowercase command names and positional
+arguments:
 
 ```sh
 build/amcore help
 build/amcore version
+build/amcore utility wavelength 1e9
+build/amcore farfield distance 1e9 1
+build/amcore utility --help
+build/amcore farfield distance --help
 ```
 
+Available calculation commands:
+
+| Command | Positional arguments | Result |
+| --- | --- | --- |
+| `utility wavelength` | `<frequency_hz>` | Free-space wavelength in metres |
+| `farfield distance` | `<frequency_hz> <aperture_length_m>` | Minimum far-field distance in metres |
+
+Frequency is in hertz and aperture length is in metres; all inputs must be
+positive finite numbers. Scientific notation such as `1e9` is accepted.
+Successful calculations print only the numeric result in metres to standard
+output. Invalid arguments and out-of-range calculations print a diagnostic to
+standard error and exit with a nonzero status. Running a module without a
+subcommand displays its help; modules and calculation commands also accept
+`help`, `-h`, and `--help`.
+
 The public API is available through `<amcore/amcore.h>`, which includes the
-utility module's `<amcore/utility.h>` API. The utility module exports
+utility module's `<amcore/utility.h>` API and the far-field module's
+`<amcore/farfield.h>` API. The utility module exports
 `speed_of_light_m_per_s` as a shared constant and provides
 `amcore_free_space_wavelength`. `AMCORE_API` exports symbols from shared builds
 on Windows and platforms with GCC-compatible visibility attributes. Consumers
 linking through the CMake target receive the matching import/export settings.
+
+## Far-field distance
+
+`amcore_far_field_distance(frequency_hz, aperture_length_m, &distance_m)`
+calculates the minimum far-field distance according to IEEE 149-2021,
+section 7.1.2:
+
+$$
+R_{\mathrm{ff}} = \max\left(5D,\;1.6\lambda,\;\frac{2D^2}{\lambda}\right),
+\qquad \lambda = \frac{c}{f}
+$$
+
+Frequency is in hertz, and the largest antenna aperture length and returned
+distance are in metres. Both inputs must be finite and greater than zero.
+The function returns an `amcore_status` and writes the distance only on success;
+invalid arguments or unrepresentable results leave the output unchanged.
+
+```c
+#include <amcore/amcore.h>
+
+double distance_m;
+amcore_status status = amcore_far_field_distance(1.0e9, 1.0, &distance_m);
+/* On success, distance_m is approximately 6.671281904 metres. */
+```
 
 ## WebAssembly
 
@@ -53,9 +98,9 @@ cmake --build build-wasm --target amcore_wasm
 ```
 
 This produces `build-wasm/amcore.wasm`, exporting
-`amcore_free_space_wavelength` without a `main` entry point. The function
-retains the C API: its second argument is a pointer into WebAssembly linear
-memory where the result is written. The module is installed to the library
+`amcore_free_space_wavelength` and `amcore_far_field_distance` without a `main`
+entry point. Both functions retain the C API: their final argument is a pointer
+into WebAssembly linear memory where the result is written. The module is installed to the library
 directory when `AMCORE_BUILD_WASM` is enabled.
 
 Tests are opt-in so cross-compiling firmware does not also try to build or run

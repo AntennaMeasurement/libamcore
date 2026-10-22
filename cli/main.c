@@ -1,3 +1,7 @@
+#include <amcore/amcore.h>
+
+#include <errno.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,11 +20,169 @@ typedef struct command {
 
 static int show_help(int argc, char **argv);
 static int show_version(int argc, char **argv);
+static int run_utility(int argc, char **argv);
+static int run_farfield(int argc, char **argv);
+static int calculate_wavelength(int argc, char **argv);
+static int calculate_distance(int argc, char **argv);
 
 static const command commands[] = {
     {"help", "Show this help message", show_help},
     {"version", "Show the program version", show_version},
+    {"utility", "Utility calculations", run_utility},
+    {"farfield", "Far-field calculations", run_farfield},
 };
+
+static const command utility_commands[] = {
+    {"wavelength", "Calculate free-space wavelength in metres",
+     calculate_wavelength},
+};
+
+static const command farfield_commands[] = {
+    {"distance", "Calculate minimum far-field distance in metres",
+     calculate_distance},
+};
+
+static int is_help(const char *argument)
+{
+    return strcmp(argument, "help") == 0 || strcmp(argument, "-h") == 0 ||
+           strcmp(argument, "--help") == 0;
+}
+
+static int run_module(const char *module, const command *subcommands,
+                      size_t count, int argc, char **argv)
+{
+    size_t i;
+
+    if (argc == 0 || (argc == 1 && is_help(argv[0]))) {
+        printf("Usage: amcore %s <subcommand> [arguments]\n\n", module);
+        puts("Subcommands:");
+        for (i = 0; i < count; ++i) {
+            printf("  %-10s %s\n", subcommands[i].name,
+                   subcommands[i].description);
+        }
+        printf("\nRun 'amcore %s <subcommand> --help' for arguments.\n", module);
+        return EXIT_SUCCESS;
+    }
+
+    for (i = 0; i < count; ++i) {
+        if (strcmp(argv[0], subcommands[i].name) == 0) {
+            return subcommands[i].handler(argc - 1, argv + 1);
+        }
+    }
+
+    fprintf(stderr, "amcore %s: unknown subcommand '%s'\n", module, argv[0]);
+    fprintf(stderr, "Run 'amcore %s --help' to see available subcommands.\n",
+            module);
+    return EXIT_FAILURE;
+}
+
+static int run_utility(int argc, char **argv)
+{
+    return run_module("utility", utility_commands,
+                      sizeof(utility_commands) / sizeof(utility_commands[0]),
+                      argc, argv);
+}
+
+static int run_farfield(int argc, char **argv)
+{
+    return run_module("farfield", farfield_commands,
+                      sizeof(farfield_commands) / sizeof(farfield_commands[0]),
+                      argc, argv);
+}
+
+static int parse_positive_double(const char *text, const char *name,
+                                 double *value)
+{
+    char *end;
+    double parsed;
+
+    errno = 0;
+    parsed = strtod(text, &end);
+    if (end == text || *end != '\0' || errno == ERANGE ||
+        !isfinite(parsed) || parsed <= 0.0) {
+        fprintf(stderr, "amcore: %s must be a positive finite number "
+                        "representable as a double; got '%s'\n", name, text);
+        return EXIT_FAILURE;
+    }
+
+    *value = parsed;
+    return EXIT_SUCCESS;
+}
+
+static int print_result(amcore_status status, double result)
+{
+    switch (status) {
+    case AMCORE_STATUS_SUCCESS:
+        printf("%.17g\n", result);
+        return EXIT_SUCCESS;
+    case AMCORE_STATUS_INVALID_ARGUMENT:
+        fputs("amcore: invalid calculation arguments\n", stderr);
+        return EXIT_FAILURE;
+    case AMCORE_STATUS_OUT_OF_RANGE:
+        fputs("amcore: calculation out of range for a positive finite double\n",
+              stderr);
+        return EXIT_FAILURE;
+    default:
+        fprintf(stderr, "amcore: unexpected calculation status %d\n",
+                (int)status);
+        return EXIT_FAILURE;
+    }
+}
+
+static int calculate_wavelength(int argc, char **argv)
+{
+    double frequency;
+    double wavelength = 0.0;
+    amcore_status status;
+
+    if (argc == 1 && is_help(argv[0])) {
+        puts("Usage: amcore utility wavelength <frequency_hz>");
+        puts("Calculate free-space wavelength. Frequency must be positive and finite.");
+        puts("Output: one numeric value in metres.");
+        return EXIT_SUCCESS;
+    }
+    if (argc != 1) {
+        fputs("Usage: amcore utility wavelength <frequency_hz>\n", stderr);
+        return EXIT_FAILURE;
+    }
+    if (parse_positive_double(argv[0], "frequency_hz", &frequency) !=
+        EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    status = amcore_free_space_wavelength(frequency, &wavelength);
+    return print_result(status, wavelength);
+}
+
+static int calculate_distance(int argc, char **argv)
+{
+    double frequency;
+    double aperture;
+    double distance = 0.0;
+    amcore_status status;
+
+    if (argc == 1 && is_help(argv[0])) {
+        puts("Usage: amcore farfield distance <frequency_hz> <aperture_length_m>");
+        puts("Calculate minimum far-field distance per IEEE 149-2021, 7.1.2.");
+        puts("Frequency (Hz) and largest aperture length (m) must be positive and finite.");
+        puts("Output: one numeric value in metres.");
+        return EXIT_SUCCESS;
+    }
+    if (argc != 2) {
+        fputs("Usage: amcore farfield distance <frequency_hz> "
+              "<aperture_length_m>\n", stderr);
+        return EXIT_FAILURE;
+    }
+    if (parse_positive_double(argv[0], "frequency_hz", &frequency) !=
+            EXIT_SUCCESS ||
+        parse_positive_double(argv[1], "aperture_length_m", &aperture) !=
+            EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    status = amcore_far_field_distance(frequency, aperture, &distance);
+    return print_result(status, distance);
+}
 
 static int show_help(int argc, char **argv)
 {
@@ -37,6 +199,10 @@ static int show_help(int argc, char **argv)
     puts("");
     puts("Subcommands:");
     for (i = 0; i < sizeof(commands) / sizeof(commands[0]); ++i) {
+        if (commands[i].handler == show_help ||
+            commands[i].handler == show_version) {
+            continue;
+        }
         printf("  %-10s %s\n", commands[i].name, commands[i].description);
     }
     puts("");
