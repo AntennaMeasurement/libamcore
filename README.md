@@ -6,6 +6,15 @@ distance calculations. It builds as a static library by default for embedded use
 also be built as a shared library, performs no dynamic allocation, and has no
 operating-system or platform-specific dependencies.
 
+## Modules and Functions
+
+<!-- Modules and Functions table -->
+
+| Module     | Function                       | Description                                                                       |
+| ---------- | ------------------------------ | --------------------------------------------------------------------------------- |
+| `utility`  | `amcore_free_space_wavelength` | Computes the free-space wavelength for a given frequency                          |
+| `farfield` | `amcore_far_field_distance`    | Computes the minimum far-field distance for a given frequency and aperture length |
+
 ## Build and test
 
 Requirements: CMake 3.15 or newer and a C99-capable C compiler.
@@ -39,11 +48,6 @@ build/amcore farfield distance --help
 
 Available calculation commands:
 
-| Command | Positional arguments | Result |
-| --- | --- | --- |
-| `utility wavelength` | `<frequency_hz>` | Free-space wavelength in metres |
-| `farfield distance` | `<frequency_hz> <aperture_length_m>` | Minimum far-field distance in metres |
-
 Frequency is in hertz and aperture length is in metres; all inputs must be
 positive finite numbers. Scientific notation such as `1e9` is accepted.
 Successful calculations print only the numeric result in metres to standard
@@ -60,30 +64,7 @@ utility module's `<amcore/utility.h>` API and the far-field module's
 on Windows and platforms with GCC-compatible visibility attributes. Consumers
 linking through the CMake target receive the matching import/export settings.
 
-## Far-field distance
 
-`amcore_far_field_distance(frequency_hz, aperture_length_m, &distance_m)`
-calculates the minimum far-field distance according to *IEEE Std 149-2021,
-IEEE Recommended Practice for Antenna Measurements*, section 7.1.2 (see
-[`ieee1492021`](#references)):
-
-$$
-R_{\mathrm{ff}} = \max\left(5D,\;1.6\lambda,\;\frac{2D^2}{\lambda}\right),
-\qquad \lambda = \frac{c}{f}
-$$
-
-Frequency is in hertz, and the largest antenna aperture length and returned
-distance are in metres. Both inputs must be finite and greater than zero.
-The function returns an `amcore_status` and writes the distance only on success;
-invalid arguments or unrepresentable results leave the output unchanged.
-
-```c
-#include <amcore/amcore.h>
-
-double distance_m;
-amcore_status status = amcore_far_field_distance(1.0e9, 1.0, &distance_m);
-/* On success, distance_m is approximately 6.671281904 metres. */
-```
 
 ## WebAssembly
 
@@ -165,16 +146,4 @@ a ZIP archive on Windows or a tarball on other platforms.
 
 ## References
 
-The project reference copy of this standard is available at
-[`doc/standards/IEEE 149-2021 Recommended Practice for Antenna Measurements.pdf`](doc/standards/IEEE%20149-2021%20Recommended%20Practice%20for%20Antenna%20Measurements.pdf).
-
-```bibtex
-@manual{ieee1492021,
-  author       = {{IEEE}},
-  title        = {{IEEE Recommended Practice for Antenna Measurements}},
-  organization = {IEEE},
-  number       = {IEEE Std 149-2021},
-  year         = {2021},
-  url          = {https://ieeexplore.ieee.org/document/9597348}
-}
-```
+[1] [IEEE Std 149-2021, IEEE Recommended Practice for Antenna Measurements](https://ieeexplore.ieee.org/document/9714428)
