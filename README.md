@@ -36,6 +36,25 @@ The public API uses `AMCORE_API` to export symbols from shared builds on
 Windows and platforms with GCC-compatible visibility attributes. Consumers
 linking through the CMake target receive the matching import/export settings.
 
+## WebAssembly
+
+With the Emscripten SDK installed and activated, configure and build the
+standalone WebAssembly module:
+
+```sh
+emcmake cmake -S . -B build-wasm \
+  -DAMCORE_BUILD_WASM=ON \
+  -DAMCORE_BUILD_CLI=OFF \
+  -DBUILD_TESTING=OFF
+cmake --build build-wasm --target amcore_wasm
+```
+
+This produces `build-wasm/amcore.wasm`, exporting
+`amcore_free_space_wavelength` without a `main` entry point. The function
+retains the C API: its second argument is a pointer into WebAssembly linear
+memory where the result is written. The module is installed to the library
+directory when `AMCORE_BUILD_WASM` is enabled.
+
 Tests are opt-in so cross-compiling firmware does not also try to build or run
 a host test executable:
 

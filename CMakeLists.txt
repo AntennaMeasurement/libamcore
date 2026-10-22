@@ -9,6 +9,7 @@ project(libamcore
 option(BUILD_SHARED_LIBS "Build amcore as a shared library" OFF)
 option(BUILD_TESTING "Build the amcore test executable" OFF)
 option(AMCORE_BUILD_CLI "Build the amcore command-line tool" ON)
+option(AMCORE_BUILD_WASM "Build a standalone WebAssembly module with Emscripten" OFF)
 include(CTest)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -37,6 +38,28 @@ target_include_directories(amcore
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
+if(AMCORE_BUILD_WASM)
+    if(NOT EMSCRIPTEN)
+        message(FATAL_ERROR
+            "AMCORE_BUILD_WASM requires configuring with the Emscripten toolchain")
+    endif()
+
+    add_executable(amcore_wasm src/amcore.c)
+    set_target_properties(amcore_wasm PROPERTIES
+        OUTPUT_NAME amcore
+        SUFFIX ".wasm"
+    )
+    target_compile_features(amcore_wasm PRIVATE c_std_99)
+    target_include_directories(amcore_wasm
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
+    target_link_options(amcore_wasm PRIVATE
+        "-Wl,--no-entry"
+        "-sSTANDALONE_WASM=1"
+        "-sEXPORTED_FUNCTIONS=_amcore_free_space_wavelength"
+    )
+endif()
+
 if(AMCORE_BUILD_CLI)
     add_executable(amcore_cli cli/main.c)
     set_target_properties(amcore_cli PROPERTIES OUTPUT_NAME amcore)
@@ -55,6 +78,11 @@ install(TARGETS amcore
 if(AMCORE_BUILD_CLI)
     install(TARGETS amcore_cli
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+endif()
+if(AMCORE_BUILD_WASM)
+    install(TARGETS amcore_wasm
+        RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
 endif()
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
