@@ -1,0 +1,5 @@
+{
+  "name": "libamcore",
+  "version-string": "0.1.0",
+  "description": "Core computational routines for antenna measurements"
+}

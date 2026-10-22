@@ -1,0 +1,15 @@
+# Ignore proprietary PDF files under doc/standards
+doc/standards/*.pdf
+
+# CMake build output
+/build/
+/cmake-build-*/
+CMakeUserPresets.json
+
+# Generated documentation
+/docs/html/
+/docs/latex/
+
+# IDE and platform files
+.DS_Store
+Thumbs.db
