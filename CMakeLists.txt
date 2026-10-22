@@ -14,7 +14,7 @@ include(CTest)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-add_library(amcore src/amcore.c)
+add_library(amcore src/utility.c)
 add_library(amcore::amcore ALIAS amcore)
 set_target_properties(amcore PROPERTIES
     VERSION ${PROJECT_VERSION}
@@ -44,7 +44,7 @@ if(AMCORE_BUILD_WASM)
             "AMCORE_BUILD_WASM requires configuring with the Emscripten toolchain")
     endif()
 
-    add_executable(amcore_wasm src/amcore.c)
+    add_executable(amcore_wasm src/utility.c)
     set_target_properties(amcore_wasm PROPERTIES
         OUTPUT_NAME amcore
         SUFFIX ".wasm"
@@ -57,6 +57,7 @@ if(AMCORE_BUILD_WASM)
         "-Wl,--no-entry"
         "-sSTANDALONE_WASM=1"
         "-sEXPORTED_FUNCTIONS=_amcore_free_space_wavelength"
+        "-sEXPORTED_GLOBALS=_speed_of_light_m_per_s"
     )
 endif()
 

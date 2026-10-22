@@ -1,12 +1,13 @@
-#include <amcore/amcore.h>
+#include <amcore/utility.h>
 
 #include <math.h>
 #include <stddef.h>
 
+const double speed_of_light_m_per_s = 299792458.0;
+
 amcore_status amcore_free_space_wavelength(double frequency_hz,
                                            double *wavelength_m)
 {
-    const double speed_of_light_m_per_s = 299792458.0;
     double wavelength;
 
     if (wavelength_m == NULL || !isfinite(frequency_hz) ||

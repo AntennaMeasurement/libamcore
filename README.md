@@ -32,8 +32,11 @@ build/amcore help
 build/amcore version
 ```
 
-The public API uses `AMCORE_API` to export symbols from shared builds on
-Windows and platforms with GCC-compatible visibility attributes. Consumers
+The public API is available through `<amcore/amcore.h>`, which includes the
+utility module's `<amcore/utility.h>` API. The utility module exports
+`speed_of_light_m_per_s` as a shared constant and provides
+`amcore_free_space_wavelength`. `AMCORE_API` exports symbols from shared builds
+on Windows and platforms with GCC-compatible visibility attributes. Consumers
 linking through the CMake target receive the matching import/export settings.
 
 ## WebAssembly

@@ -10,6 +10,9 @@ static int test_wavelength(void)
     double wavelength = -1.0;
     const double expected = 0.299792458;
 
+    if (speed_of_light_m_per_s != 299792458.0) {
+        return 1;
+    }
     if (amcore_free_space_wavelength(1.0e9, &wavelength) !=
         AMCORE_STATUS_SUCCESS) {
         return 1;
