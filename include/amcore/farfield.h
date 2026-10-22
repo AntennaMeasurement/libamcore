@@ -15,8 +15,12 @@ extern "C" {
 /**
  * @brief Calculate the minimum far-field distance per IEEE 149-2021, 7.1.2.
  *
- * Uses R_ff = max(5D, 1.6 lambda, 2D^2 / lambda), where D is the largest
- * antenna aperture length and lambda is the free-space wavelength.
+ * Uses the formula for the minimum far-field distance:
+ * \f$ R_{ff} = \max(5D, 1.6 \lambda, 2D^2 / \lambda) \f$
+ * where D is the largest antenna aperture length and lambda is the free-space 
+ * wavelength.
+ * 
+ * @ref [1] IEEE 149-2021 Recommended Practice for Antenna Measurements, Section 7.1.2
  *
  * @param frequency_hz Frequency in hertz; must be finite and greater than zero.
  * @param aperture_length_m Largest antenna aperture length in metres; must be
