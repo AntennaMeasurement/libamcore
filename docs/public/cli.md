@@ -10,6 +10,9 @@ amcore utility wavelength <frequency_hz>
 amcore farfield distance <frequency_hz> <aperture_length_m>
 ```
 
+Logging-enabled builds additionally provide [call history](#call-history) with
+tabular summaries and detailed record lookup.
+
 Examples:
 
 ```sh
@@ -62,6 +65,74 @@ The feature is available only on desktop Windows, Linux, and macOS, not
 WebAssembly or embedded targets. See
 [desktop operation logging](cmake-integration.md#desktop-operation-logging)
 for dependency setup, database locations, schema, timing, and retention limits.
+
+### Call history
+
+Only logging-enabled builds expose the `history` subcommand:
+
+```sh
+amcore history
+amcore history -l 25
+amcore history --limit 100
+amcore history --function amcore_free_space_wavelength
+amcore history --function amcore_free_space_wavelength --id 12
+amcore history --help
+```
+
+It reads the local log database and lists calls across **all functions and
+library versions**, including failed and nested calls. `-l` and `--limit`
+set a global maximum row count, not a per-function or per-version count.
+The default is **10**. Values must be positive decimal integers up to
+`9223372036854775807`; `--limit=25` is also supported.
+
+Output is an aligned ASCII table with borders and up to the requested number
+of calls. The ID is displayed first:
+
+```text
++----+------------------------------+---------+------------------+--------------+-------------+
+| ID | Function                     | Version | executed_at_us   | return_value | duration_ns |
++----+------------------------------+---------+------------------+--------------+-------------+
+| 12 | amcore_free_space_wavelength | 0.4.0   | 1700000000000024 | 0            | 1200        |
++----+------------------------------+---------+------------------+--------------+-------------+
+```
+
+| Column | Meaning |
+| --- | --- |
+| `ID` | Row identifier within the original function/version table |
+| `Function` | Library function name |
+| `Version` | Recorded library version |
+| `executed_at_us` | Call start time in UTC epoch microseconds |
+| `return_value` | Numeric library status: 0 success, 1 invalid argument, 2 out of range |
+| `duration_ns` | Call duration in nanoseconds |
+
+Rows are sorted by start time descending, then table name ascending and row id
+descending to break ties. Historical versioned tables lacking a `version`
+column use the version suffix in the table name. For unversioned tables without
+that column, the version is `unknown`. Function-specific input/output columns
+are not included in this summary.
+
+Use `--function <name>` to filter by the library function name, without a
+version suffix. Combine `--function` with `--id <positive-id>` to show every
+stored field for the matching call, including named inputs, output-pointer
+nullness, status, outputs and timing. Each match has a function/version/ID
+heading and a two-column Field/Value table. IDs are local to their original
+tables: the same function and ID can match **multiple library versions**, and
+all matching versions are displayed newest-first. Versionless legacy records
+are also included. Details are not capped at 10; `--id` cannot be combined
+with `--limit` and requires `--function`. If no call matches, the command produces
+a diagnostic and a nonzero exit status. Function-only queries with no matches show an empty
+summary table. The `--function=<name>` and `--id=<id>` forms are also supported.
+
+SQL NULL is shown as `NULL`. Control characters, backslashes and `|` in stored
+values are escaped as `\xHH` so they cannot break the table layout.
+
+History opens the log database read-only; it does not create directories,
+change the database, record calls, or send telemetry. An empty database prints
+the header and borders with no data rows. Missing or unreadable databases,
+invalid log schemas, corrupt databases and query failures produce stderr
+diagnostics and a nonzero exit
+status. Help (`help`, `-h`, `--help`) does not open the database. Disabled builds
+neither advertise nor recognize `history`.
 
 ## Telemetry
 

@@ -17,6 +17,9 @@
 #ifndef AMCORE_CLI_TELEMETRY
 #error "AMCORE_CLI_TELEMETRY must be defined by the build system"
 #endif
+#if AMCORE_CLI_OPERATION_LOGGING
+#include "history.h"
+#endif
 
 typedef int (*command_handler)(int argc, char **argv);
 
@@ -32,12 +35,18 @@ static int run_utility(int argc, char **argv);
 static int run_farfield(int argc, char **argv);
 static int calculate_wavelength(int argc, char **argv);
 static int calculate_distance(int argc, char **argv);
+#if AMCORE_CLI_OPERATION_LOGGING
+static int run_history(int argc, char **argv);
+#endif
 
 static const command commands[] = {
     {"help", "Show this help message", show_help},
     {"version", "Show the program version", show_version},
     {"utility", "Utility calculations", run_utility},
     {"farfield", "Far-field calculations", run_farfield},
+#if AMCORE_CLI_OPERATION_LOGGING
+    {"history", "List logged function calls across all versions", run_history},
+#endif
 };
 
 static const command utility_commands[] = {
@@ -131,6 +140,26 @@ static int run_farfield(int argc, char **argv)
                       sizeof(farfield_commands) / sizeof(farfield_commands[0]),
                       argc, argv);
 }
+
+#if AMCORE_CLI_OPERATION_LOGGING
+static int run_history(int argc, char **argv)
+{
+    if (argc == 1 && is_help(argv[0])) {
+        puts("Usage: amcore history [--function <name>] [-l <limit> | --limit <limit>]");
+        puts("       amcore history --function <name> --id <id>");
+        puts("List logged function calls across all versions, newest first.");
+        puts("  -l, --limit  Maximum number of calls (positive integer; default: 10)");
+        puts("  --function   Filter by library function name across all versions");
+        puts("  --id         Show all stored fields for this ID; requires --function");
+        puts("               Matches every version; cannot be combined with --limit.");
+        puts("Output: aligned tables with ID, function, version, UTC epoch microseconds,");
+        puts("        return status and duration in nanoseconds. IDs are per-table.");
+        show_instrumentation();
+        return EXIT_SUCCESS;
+    }
+    return amcore_cli_history(argc, argv);
+}
+#endif
 
 static int parse_positive_double(const char *text, const char *name,
                                  double *value)

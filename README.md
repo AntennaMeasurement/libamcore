@@ -226,9 +226,45 @@ Help also reports the telemetry setting and, when enabled, its endpoint.
 There is no runtime logging flag. The CLI automatically records calculations
 through the library, including nested calls and out-of-range calculations.
 Parsing errors, help, and version requests do not call the calculation API and
-are not recorded. Successful stdout remains numeric-only; logging failures may
+are not recorded. Successful calculation stdout remains numeric-only; logging failures may
 produce stderr diagnostics without changing the calculation exit status.
 See [desktop operation logging](#desktop-operation-logging) for setup and schema.
+
+Logging-enabled builds also provide a read-only history command:
+
+```sh
+amcore history
+amcore history -l 25
+amcore history --limit 100
+amcore history --function amcore_free_space_wavelength --id 12
+```
+
+History lists the newest calls across all function tables and library versions,
+including failed and nested calls. The limit is global, defaults to **10**, and
+must be a positive integer no greater than `9223372036854775807`;
+`--limit=25` is also accepted. Output is an aligned, bordered table with
+`ID` (per-table row identifier), `Function`, `Version`, `executed_at_us`
+(UTC epoch microseconds), `return_value` (numeric library status), and
+`duration_ns`. Calls are sorted by
+start time descending, then table name ascending and row id descending for ties.
+Historical versioned tables without a `version` column use the table's version
+suffix; unversioned tables show `unknown`.
+
+Use `--function <name>` to filter the summary by function across all versions.
+Combine it with `--id <positive-id>` to display all stored fields, including
+inputs, output-pointer nullness and outputs, in a Field/Value table per matching
+call. IDs are local to each function/version table, so detail lookup shows
+**all versions** matching that function and ID. Details are not limited to the
+newest 10; `--id` requires `--function` and cannot be combined with `--limit`.
+A missing match is an error. SQL NULL is displayed as `NULL`; control
+characters, backslashes and table delimiters in values are escaped as `\xHH`.
+
+The command reads the same local database used by logging without modifying it
+or recording a call. An empty summary prints a header and borders; a missing,
+unreadable, corrupt, or incompatible database produces a diagnostic and a
+nonzero exit status. History never creates the database or its directory.
+`amcore history --help` shows usage without opening the database.
+The command and its help entry are absent when operation logging is disabled.
 
 
 ## WebAssembly

@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(libamcore
-    VERSION 0.3.0
+    VERSION 0.4.0
     DESCRIPTION "Core computational routines for antenna measurements"
     LANGUAGES C
 )
@@ -44,7 +44,7 @@ if(AMCORE_ENABLE_OPERATION_LOGGING)
             "AMCORE_ENABLE_OPERATION_LOGGING supports desktop Windows, Linux and macOS only")
     endif()
     find_package(SQLite3 3.24 REQUIRED)
-    target_sources(amcore PRIVATE src/operation_log.c)
+    target_sources(amcore PRIVATE src/operation_log.c src/operation_log_path.c)
     target_compile_definitions(amcore PRIVATE
         AMCORE_ENABLE_OPERATION_LOGGING
         AMCORE_LOG_PROJECT_NAME="${PROJECT_NAME}"
@@ -178,6 +178,13 @@ if(AMCORE_BUILD_CLI)
             "AMCORE_TELEMETRY_ENDPOINT=\"${amcore_telemetry_endpoint}\"")
     endif()
     target_link_libraries(amcore_cli PRIVATE amcore::amcore)
+    if(AMCORE_ENABLE_OPERATION_LOGGING)
+        target_sources(amcore_cli PRIVATE cli/history.c src/operation_log_path.c)
+        target_include_directories(amcore_cli PRIVATE src)
+        target_compile_definitions(amcore_cli PRIVATE
+            AMCORE_LOG_PROJECT_NAME="${PROJECT_NAME}")
+        target_link_libraries(amcore_cli PRIVATE SQLite::SQLite3)
+    endif()
 endif()
 
 install(TARGETS amcore
@@ -262,7 +269,8 @@ if(BUILD_TESTING)
             "AMCORE_VERSION=\"${PROJECT_VERSION}\"")
         target_include_directories(amcore_operation_field_tests PRIVATE include src)
         if(AMCORE_ENABLE_OPERATION_LOGGING)
-            target_sources(amcore_operation_field_tests PRIVATE src/operation_log.c)
+            target_sources(amcore_operation_field_tests PRIVATE
+                src/operation_log.c src/operation_log_path.c)
             target_compile_definitions(amcore_operation_field_tests PRIVATE
                 AMCORE_ENABLE_OPERATION_LOGGING AMCORE_LOG_PROJECT_NAME="${PROJECT_NAME}")
             target_link_libraries(amcore_operation_field_tests PRIVATE SQLite::SQLite3)
@@ -297,6 +305,19 @@ if(BUILD_TESTING)
     endif()
 
     if(AMCORE_BUILD_CLI)
+        if(AMCORE_ENABLE_OPERATION_LOGGING)
+            add_executable(amcore_history_fixture tests/history_fixture.c)
+            target_compile_features(amcore_history_fixture PRIVATE c_std_99)
+            target_compile_definitions(amcore_history_fixture PRIVATE
+                AMCORE_VERSION="${PROJECT_VERSION}")
+            target_link_libraries(amcore_history_fixture PRIVATE SQLite::SQLite3)
+            add_test(NAME amcore_cli_history COMMAND ${CMAKE_COMMAND}
+                "-DAMCORE_CLI=$<TARGET_FILE:amcore_cli>"
+                "-DHISTORY_FIXTURE=$<TARGET_FILE:amcore_history_fixture>"
+                "-DHISTORY_ROOT=${CMAKE_CURRENT_BINARY_DIR}/history-test"
+                "-DAMCORE_VERSION=${PROJECT_VERSION}"
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_history.cmake)
+        endif()
         amcore_add_test(amcore_cli_calculations ${CMAKE_COMMAND}
                 "-DAMCORE_CLI=$<TARGET_FILE:amcore_cli>"
                 "-DAMCORE_OPERATION_LOGGING=${AMCORE_ENABLE_OPERATION_LOGGING}"

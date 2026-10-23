@@ -116,6 +116,16 @@ The CLI automatically uses the library's logging setting and reports it in
 general, module, and calculation help. There is no runtime toggle; CLI parse
 errors and help/version requests do not invoke calculation functions and are
 not recorded. See [CLI logging behavior](cli.md#desktop-operation-logging).
+Logging-enabled CLI builds also expose `amcore history [-l <limit> | --limit
+<limit>]` to read calls across all function/version tables, newest first, with
+a global default limit of 10. The database is opened read-only; history does
+not create the database, migrate schemas, record calls, or send telemetry.
+Historical tables without a `version` column are read using the table's version
+suffix (or `unknown` for unversioned tables). See
+[call history](cli.md#call-history) for output columns and error behavior.
+History uses aligned tables with per-table IDs. `--function <name>` filters
+across versions; `--function <name> --id <id>` shows all stored fields for every
+matching version without a row limit. Detail selection cannot use `--limit`.
 
 ## Telemetry
 

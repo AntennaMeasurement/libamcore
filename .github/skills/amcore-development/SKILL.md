@@ -1,7 +1,7 @@
 ---
 # Last content update: Unreleased (latest tag: v0.2.0)
 name: amcore-development
-description: "Develop and document libamcore, the portable C antenna-measurement library. Use for C API changes, computational modules, CLI behavior, desktop SQLite operation logging, CMake builds, tests, or project documentation."
+description: "Develop and document libamcore, the portable C antenna-measurement library. Use for C API changes, computational modules, CLI behavior and call history, desktop SQLite operation logging, CMake builds, tests, or project documentation."
 ---
 
 # AMCore Development
@@ -31,6 +31,10 @@ not a substitute for code.
 5. Update `README.md`, affected pages in `docs/public/`, and
    `docs/public/LLM_CONTEXT.md` when user-visible behavior, supported modules,
    or build instructions change. Keep CLI help and build options consistent.
+   Update this skill when development workflows or feature contracts change,
+   and record notable features in `CHANGELOG.md`. Keep version metadata in
+   `CMakeLists.txt`, `vcpkg.json`, and `docs/public/api.json` synchronized when
+   updating the project version.
 6. Configure, build, and run tests using the repository's CMake workflow:
 
    ```sh
@@ -74,6 +78,39 @@ not a substitute for code.
   builds and installed dependency propagation when changing CMake wiring.
 - Keep [CMake integration](../../../docs/public/cmake-integration.md) current
   for database paths, schema, timing boundaries, and retention limitations.
+
+### CLI Call History
+
+- `amcore history` exists only in logging-enabled builds; disabled builds
+  must neither advertise nor recognize it. Keep calculation stdout numeric-only;
+  history intentionally prints aligned, bordered tables with ID first.
+- Reuse `src/operation_log_path.c` for the database location. History resolves
+  the path without creating directories and opens SQLite read-only. It must
+  not migrate schemas, record calls, send telemetry, or modify the database.
+  Help must not access the database.
+- Summary rows cover all function/version tables, including failed and nested
+  calls. Sort by `executed_at_us` descending, table name ascending, then row
+  ID descending. `-l`, `--limit`, and `--limit=<value>` set a global limit,
+  defaulting to 10; accept only positive decimal integers up to INT64_MAX.
+- IDs are local to each function/version table. `--function <name>` filters
+  summaries across versions; `--function <name> --id <id>` displays every
+  stored field in a Field/Value table for every matching version. Detail lookup
+  requires both flags, rejects `--limit`, and is not capped at 10. Support
+  `--function=<name>` and `--id=<id>` too.
+- Derive fields from each table's schema, not hard-coded function branches.
+  For historical tables lacking a `version` column, use the table's version
+  suffix or `unknown` for unversioned tables. Preserve NULL outputs as `NULL`
+  and escape controls, backslashes, and pipes as `\xHH` in displayed values.
+  Do not rely on a compound SELECT across all tables: databases can exceed
+  SQLite's compound-SELECT limit.
+- Empty summaries print headers and borders. Missing detail matches and
+  missing, unreadable, corrupt, or incompatible databases fail with stderr
+  diagnostics and nonzero exit status; never hide query failures.
+- Run `amcore_cli_history` using `tests/test_history.cmake` and
+  `tests/history_fixture.c`. Cover alignment, IDs, limits, ordering, function
+  filters, cross-version details, legacy schemas, NULL/escaped values, many
+  version tables, read-only access, and invalid options. Keep fixtures isolated
+  from real user data and verify history remains absent in disabled builds.
 
 ## Telemetry
 

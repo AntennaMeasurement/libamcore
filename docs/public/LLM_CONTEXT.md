@@ -22,6 +22,8 @@ the current implementation**.
   Practice for Antenna Measurements*, section 7.1.2:
   `max(5D, 1.6 lambda, 2D^2/lambda)`.
 - A small `amcore` CLI that exposes those calculations.
+- Logging-enabled CLI builds expose read-only call history across all functions
+  and library versions, with a global default limit of 10.
 - Static library builds by default, optional shared-library builds, CMake
   installation/package support, opt-in C tests, and an optional Emscripten
   WebAssembly target.
@@ -50,6 +52,9 @@ the current headers before making claims about feature availability.
 | `src/telemetry_libwebsockets.c`, `src/telemetry_fetch.c` | Desktop HTTP client and synchronous worker-only Emscripten Fetch |
 | `tests/test_telemetry.c`, `tests/telemetry_server.cjs` | Local-only telemetry integration, payload and failure tests |
 | `cli/main.c` | CLI argument parsing, module dispatch, diagnostics, and output |
+| `cli/history.c` | Logging-only SQLite call history across all function/version tables |
+| `src/operation_log_path.c` | Private database path resolver shared by logging and CLI history |
+| `tests/test_history.cmake`, `tests/history_fixture.c` | History ordering, limits, versions, read-only access, and errors |
 | `tests/test_amcore.c` | Library calculations, invalid inputs, and range behavior |
 | `tests/test_cli.cmake` | CLI integration checks |
 | `tests/test_operation_log.c`, `tests/test_operation_log.cmake` | SQLite records, timing, persistence, paths, and logging failure behavior |
@@ -150,7 +155,7 @@ Useful configure options:
   Main-browser-thread calls report an explicit telemetry error but retain
   calculation behavior. Embedded Linux must leave telemetry off.
 
-Current CLI commands:
+Current calculation commands:
 
 ```text
 amcore utility wavelength <frequency_hz>
@@ -173,6 +178,28 @@ CLI numeric parsing and syntax failures never call the library, so they are
 not recorded. Out-of-range library calls are recorded. Logging errors can
 appear on stderr alongside a successful calculation without changing its
 numeric stdout or zero exit code. Help/version do not create database records.
+
+Logging-enabled builds alone recognize and advertise `amcore history`.
+`-l <limit>`, `--limit <limit>` and `--limit=<limit>` accept a positive decimal
+integer up to INT64_MAX, defaulting to 10 rows globally across all functions
+and versions. Output is an aligned bordered ASCII table: ID, Function, Version,
+executed_at_us, return_value, duration_ns. Order is start time descending, table name
+ascending, id descending. Historical tables lacking a version column use the
+versioned table suffix or `unknown` for unversioned tables. This is a metadata
+summary, not a dump of function-specific input/output columns.
+`--function <name>` filters summaries across all versions; combined with
+`--id <positive-id>` it displays all stored fields in Field/Value tables for
+every matching version, including legacy tables. Detail selection requires
+both flags, rejects `--limit` and is not capped at 10. Missing detail matches
+fail explicitly; an unmatched function-only summary is empty. Long option
+`=value` forms work. SQL NULL displays as NULL; controls, backslashes and pipes
+are escaped as `\xHH` in table values.
+History uses the shared private path resolver without creating directories and
+opens SQLite read-only, staging per-table candidates in a temporary table to
+avoid SQLite's compound-SELECT limit across many versions. It never records
+calls, sends telemetry, or migrates schemas. Empty databases print header/borders;
+missing, corrupt, unreadable or incompatible databases fail with diagnostics.
+History help does not access the database.
 
 ## Logging implementation and validation
 
@@ -224,6 +251,10 @@ Unicode paths, errors, and Linux XDG fallback; the C tests verify stored values,
 statuses, NULL outputs, timestamps, and durations.
 `tests/test_cli.cmake` verifies logging help in both modes, numeric-only
 calculation stdout, and unchanged results/exit status on a logging error.
+`tests/test_history.cmake` and `tests/history_fixture.c` cover aligned summary
+tables, per-table IDs, global limits, function filters, cross-version details,
+legacy schemas, escaped field values, read-only access, and error diagnostics,
+including databases with more than 500 version tables.
 Check installed CMake consumers when changing dependency wiring. SQLite
 development files are needed only when enabled; dynamically linked SQLite must
 be distributed separately.

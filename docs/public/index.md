@@ -6,6 +6,8 @@ far-field distance. The library is C99; by default it performs no dynamic
 allocation and has no operating-system-specific dependencies. Optional
 [desktop operation logging](cmake-integration.md#desktop-operation-logging)
 adds SQLite, allocation, native clocks, and filesystem access.
+Logging-enabled CLI builds also provide [call history](cli.md#call-history),
+with tabular summaries and per-call details across library versions.
 
 ## Supported calculations
 
