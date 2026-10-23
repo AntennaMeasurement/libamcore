@@ -1,6 +1,6 @@
 {
   "name": "libamcore",
-  "version-string": "0.1.0",
+  "version-string": "0.3.0",
   "description": "Core computational routines for antenna measurements",
   "features": {
     "telemetry": {
