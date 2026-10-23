@@ -93,6 +93,9 @@ Every `main` push checks the version and builds and deploys documentation
 to GitHub Pages. Documentation also builds and deploys on release-tag pushes;
 manual documentation builds accept any branch or tag without deploying.
 Other branch pushes and pull requests do not run CI.
+Read the Docs installs `requirements-docs.txt` through `.readthedocs.yaml`,
+sharing MkDocs and math-extension dependencies with local and GitHub Actions
+documentation builds.
 
 Requirements are CMake 3.15 or newer and a C99-capable compiler. Configure,
 build, and test:

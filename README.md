@@ -311,6 +311,9 @@ Build the static site with:
 python -m mkdocs build --strict
 ```
 
+Read the Docs installs the same `requirements-docs.txt` dependencies through
+`.readthedocs.yaml`, including `pymdown-extensions` for math rendering.
+
 ## vcpkg
 
 The repository includes a vcpkg manifest, with SQLite declared in its
