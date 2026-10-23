@@ -85,7 +85,7 @@ jobs:
                 throw new Error(`Cannot find CHANGELOG.md entry for ${tag}`);
               }
               const nextEntry = lines.findIndex((line, index) =>
-                index > entryStart && /^## \[v\d/.test(line));
+                index > entryStart && line.startsWith('## '));
               const tagMessage = lines
                 .slice(entryStart, nextEntry === -1 ? undefined : nextEntry)
                 .join('\n')

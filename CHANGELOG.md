@@ -2,27 +2,6 @@
 
 All notable changes for each release are documented here.
 
-## [Unreleased]
-
-### Added
-
-- Logging-only `amcore history` command to read calls across all functions and
-  library versions without modifying the log database.
-- Aligned, bordered history tables with per-table IDs, versions, timestamps,
-  return statuses, and durations. `-l` / `--limit` sets a global row limit
-  (default: 10).
-- `--function` filtering and `--function <name> --id <id>` detail lookup,
-  displaying every stored field for matching calls across all versions.
-- History integration tests covering table alignment, ordering, limits,
-  cross-version details, legacy schemas, read-only behavior, and errors.
-
-### Changed
-
-- Updated CLI help, public documentation, and package feature descriptions for
-  history. History remains unavailable when operation logging is disabled.
-- Synchronized the machine-readable API manifest's library version with the
-  current `0.4.0` CMake project and vcpkg manifest.
-
 ## [v0.4.0] - 2026-10-23
 
 ### Changes
