@@ -20,6 +20,15 @@ All notable changes for each release are documented here.
 - Updated public build, API, CLI, and platform documentation, LLM context, and
   development skill guidance for operation logging and current project paths.
 
+## [v0.2.0] - 2026-10-23
+
+### Changes
+
+- Add optional desktop operation logging with SQLite support
+- docs: enhance API documentation with LaTeX support for equations
+- fix: correct LaTeX formatting for far-field distance equation in API documentation
+- ci: remove unused docs_changed output and related logic
+
 ## [v0.1.1] - 2026-10-22
 
 ### Changes
