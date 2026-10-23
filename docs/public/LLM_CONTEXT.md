@@ -54,7 +54,7 @@ the current headers before making claims about feature availability.
 | `tests/test_cli.cmake` | CLI integration checks |
 | `tests/test_operation_log.c`, `tests/test_operation_log.cmake` | SQLite records, timing, persistence, paths, and logging failure behavior |
 | `CMakeLists.txt` | Targets, options, tests, install/export/package configuration |
-| `.github/workflows/ci.yml` | Configure/build/test with logging enabled and disabled on Windows, macOS, and Linux |
+| `.github/workflows/ci.yml` | Release-tag-only desktop/WASM builds and tests; lightweight version check and automatic tagging on `main` |
 | `README.md` | User build, install, CLI, and API guide |
 | `docs/public/api.json` | Versioned machine-readable API manifest with input schemas, units, statuses, examples, and existing telemetry fields; metadata only, not a server |
 | `docs/public/` | Public MkDocs pages and this agent context (excluded from the site) |
@@ -85,6 +85,11 @@ the current headers before making claims about feature availability.
   seed MCP tools, but adapters must supply C bindings and finite-double checks.
 
 ## Build, test, and CLI
+
+GitHub Actions builds/tests and documentation deployment run only for `v*`
+release tags, including tags created automatically by the version check on
+`main`. Other `main` pushes only check the version; branch pushes and pull
+requests do not run builds. Manual documentation builds require a `v*` tag.
 
 Requirements are CMake 3.15 or newer and a C99-capable compiler. Configure,
 build, and test:

@@ -286,6 +286,12 @@ link `amcore::amcore`.
 
 ## Public documentation
 
+GitHub Actions builds and tests run only for release tags matching `v*`,
+including tags automatically created when the CMake project version changes
+on `main`. Ordinary `main` pushes only check the version; other branch pushes
+and pull requests do not run CI. Documentation builds and deployment also run
+only for releases; manual documentation runs must select a `v*` tag.
+
 The public documentation is built with MkDocs and published to
 [GitHub Pages](https://antennameasurement.github.io/libamcore/). To preview it
 locally, install the documentation dependencies and start the development
