@@ -2,6 +2,24 @@
 
 All notable changes for each release are documented here.
 
+## [Unreleased]
+
+### Added
+
+- Optional desktop SQLite operation logging with
+  `AMCORE_ENABLE_OPERATION_LOGGING`, recording function inputs, status, output,
+  UTC start time, and duration in per-function tables in the user's local
+  `libamcore.db`.
+- CLI help reports the compile-time logging setting and, when enabled, the
+  database location template without changing calculation or version output.
+- Logging integration tests, opt-in vcpkg SQLite dependency, and enabled/disabled
+  CI coverage on Windows, Linux, and macOS.
+
+### Changed
+
+- Updated public build, API, CLI, and platform documentation, LLM context, and
+  development skill guidance for operation logging and current project paths.
+
 ## [v0.1.1] - 2026-10-22
 
 ### Changes

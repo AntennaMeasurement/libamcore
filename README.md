@@ -3,8 +3,9 @@
 
 `libamcore` is a portable C library for core computational routines used in
 antenna measurements. It builds as a static library by default for embedded use, can
-also be built as a shared library, performs no dynamic allocation, and has no
-operating-system or platform-specific dependencies.
+also be built as a shared library. By default it performs no dynamic allocation
+and has no operating-system or platform-specific dependencies. Optional desktop
+operation logging adds SQLite and native filesystem/clock dependencies.
 
 ## Modules and Functions
 
@@ -44,6 +45,67 @@ cmake -S . -B build-shared -DBUILD_SHARED_LIBS=ON
 cmake --build build-shared --config Release
 ```
 
+### Desktop operation logging
+
+Configure with `-DAMCORE_ENABLE_OPERATION_LOGGING=ON` to persist every public
+calculation call, including invalid inputs and nested library calls:
+
+```sh
+cmake -S . -B build-logging -DAMCORE_ENABLE_OPERATION_LOGGING=ON
+cmake --build build-logging --config Release
+```
+
+This option is **off by default** and supports desktop Windows, Linux, and
+macOS only. WebAssembly/Emscripten and other target systems (including bare-metal
+embedded toolchains) are rejected at configuration time. Leave it off for
+embedded builds, including embedded Linux. Disabled builds contain no logging
+code and require no SQLite dependency.
+
+Install SQLite development headers and libraries before configuring; CMake
+uses `find_package(SQLite3)`. To use the repository's vcpkg manifest, configure
+with the vcpkg toolchain and enable the `operation-logging` manifest feature.
+See [vcpkg](#vcpkg) for a complete command. Installed CMake packages resolve
+SQLite for consumers automatically. SQLite must also be available at runtime
+when linked dynamically; it is not bundled in the libamcore package.
+
+The database is named `libamcore.db` (from the library's CMake project name,
+not the consuming application's name) and is created on the first call:
+
+| Platform | Database path |
+| --- | --- |
+| Windows | `%LOCALAPPDATA%\libamcore\libamcore.db` |
+| Linux | `$XDG_DATA_HOME/libamcore/libamcore.db`, or `~/.local/share/libamcore/libamcore.db` when XDG_DATA_HOME is unset, empty, or relative |
+| macOS | `~/Library/Application Support/libamcore/libamcore.db` |
+
+Missing directories are created automatically. Windows paths support Unicode.
+The relevant environment variables must resolve to an absolute user directory;
+there is no fallback to the current working directory.
+
+Tables are named `amcore_free_space_wavelength` and
+`amcore_far_field_distance`. Each row contains:
+
+- `id`: generated integer primary key.
+- Named input columns: `frequency_hz`, and `aperture_length_m` for far-field
+  calls. Finite values are numeric; non-finite inputs are preserved as text
+  `NaN`, `+Infinity`, or `-Infinity`.
+- `output_is_null`: whether the caller supplied a null output pointer. Pointer
+  addresses and pre-existing output contents are not stored.
+- `return_value`: the numeric `amcore_status` returned by the function.
+- `wavelength_m` or `distance_m`: the computed output, SQL NULL on failure.
+- `executed_at_us`: UTC call-start time, in microseconds since the Unix epoch.
+- `duration_ns`: nonnegative elapsed time from a monotonic clock, in nanoseconds.
+  Clock resolution is platform-dependent. This excludes the call's own database
+  write, but includes nested calls and their logging.
+
+Logging is synchronous and uses a separate connection per record, allowing
+concurrent calls and processes. SQLite lock waits are bounded to five seconds
+per database operation. Filesystem, clock, or database errors are reported to
+stderr with an `amcore operation logging:` prefix; they never change calculation
+results, status codes, or output-on-error behavior. Failed records are not
+retried or buffered. Logging uses allocation and adds I/O latency; do not enable
+it for real-time workloads. Logs can contain sensitive inputs and grow without
+automatic retention limits; manage access and cleanup accordingly.
+
 ## Testing
 
 To run the tests, first configure and build the test target with CMake, then use CTest to execute them. Tests are opt-in so cross-compiling firmware does not also try to build or run a host test executable:
@@ -70,6 +132,14 @@ build/amcore utility --help
 build/amcore farfield distance --help
 ```
 
+General, module, and calculation help display the compile-time operation
+logging setting; enabled builds also show the database location template.
+There is no runtime logging flag. The CLI automatically records calculations
+through the library, including nested calls and out-of-range calculations.
+Parsing errors, help, and version requests do not call the calculation API and
+are not recorded. Successful stdout remains numeric-only; logging failures may
+produce stderr diagnostics without changing the calculation exit status.
+See [desktop operation logging](#desktop-operation-logging) for setup and schema.
 
 
 ## WebAssembly
@@ -81,6 +151,7 @@ standalone WebAssembly module:
 emcmake cmake -S . -B build-wasm \
   -DAMCORE_BUILD_WASM=ON \
   -DAMCORE_BUILD_CLI=OFF \
+  -DAMCORE_ENABLE_OPERATION_LOGGING=OFF \
   -DBUILD_TESTING=OFF
 cmake --build build-wasm --target amcore_wasm
 ```
@@ -95,7 +166,7 @@ directory when `AMCORE_BUILD_WASM` is enabled.
 ## AI-assisted development
 
 Repository-specific guidance for AI coding agents is in
-[`doc/LLM_CONTEXT.md`](doc/LLM_CONTEXT.md), with the reusable development
+[`docs/public/LLM_CONTEXT.md`](docs/public/LLM_CONTEXT.md), with the reusable development
 workflow in [`.github/skills/amcore-development/SKILL.md`](.github/skills/amcore-development/SKILL.md).
 
 ## Embedded toolchain
@@ -106,6 +177,7 @@ For an embedded toolchain, pass its CMake toolchain file when configuring:
 cmake -S . -B build-firmware \
   -DCMAKE_TOOLCHAIN_FILE=/path/to/your/toolchain.cmake \
   -DBUILD_TESTING=OFF \
+  -DAMCORE_ENABLE_OPERATION_LOGGING=OFF \
   -DAMCORE_BUILD_CLI=OFF
 cmake --build build-firmware
 ```
@@ -143,19 +215,64 @@ python -m mkdocs build --strict
 
 ## vcpkg
 
-The repository includes a vcpkg manifest. With vcpkg available, configure the
-project using its toolchain file:
+The repository includes a vcpkg manifest, with SQLite declared in its
+`operation-logging` feature and a pinned `builtin-baseline` for the built-in
+registry. The baseline is required by Visual Studio's bundled vcpkg and
+selects the dependency versions. In manifest mode, do not pass package names
+such as `sqlite3` to `vcpkg install`. To install the feature's dependencies
+manually, run this from the repository root:
 
-```sh
-cmake -S . -B build \
-  -DCMAKE_TOOLCHAIN_FILE=/path/to/vcpkg/scripts/buildsystems/vcpkg.cmake
+```powershell
+vcpkg install --x-feature=operation-logging
 ```
+
+Alternatively, CMake can install the feature's dependencies as part of
+configuration. To build with operation logging on Windows in PowerShell, set
+`VCPKG_ROOT` to your vcpkg checkout and configure with both the vcpkg toolchain
+and the feature enabled:
+
+```powershell
+cmake -S . -B build-logging `
+  "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
+  -DVCPKG_MANIFEST_FEATURES=operation-logging `
+  -DAMCORE_ENABLE_OPERATION_LOGGING=ON
+cmake --build build-logging --config Release
+```
+
+The toolchain must be supplied on the build directory's first configuration.
+If `build-logging` was previously configured without vcpkg, adding the
+toolchain argument later may still leave SQLite undiscoverable. With CMake
+3.24 or newer, reset the cached configuration and configure again:
+
+```powershell
+cmake --fresh -S . -B build-logging `
+  "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
+  -DVCPKG_MANIFEST_FEATURES=operation-logging `
+  -DAMCORE_ENABLE_OPERATION_LOGGING=ON
+```
+
+`--fresh` resets cached options, so include any other options your build needs.
+With older CMake, use a new build directory instead. A working configuration
+reports `Running vcpkg install` followed by `Found SQLite3`.
+
+In manifest mode, the feature command or CMake configuration installs the
+`sqlite3` dependency for the selected triplet and makes it available to CMake's
+`find_package(SQLite3)`. When configuring with CMake, use the vcpkg toolchain
+and enable the manifest feature as shown so the dependency is available to
+that build.
+
+Keep the baseline compatible with your vcpkg tool's scripts. When updating
+dependency versions, update vcpkg first, then run `vcpkg x-update-baseline`
+and review the manifest changes. Selecting a newer registry baseline with an
+older bundled vcpkg can cause dependency builds to fail.
 
 ## Packaging
 
 CPack packages the installed library, headers, CMake package configuration,
 and CLI when enabled. Run `cpack` from the configured build directory to create
 a ZIP archive on Windows or a tarball on other platforms.
+Logging-enabled packages do not bundle SQLite; distribute its runtime library
+separately if dynamically linked.
 
 ## References
 

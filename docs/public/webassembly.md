@@ -8,6 +8,7 @@ the native CLI and tests:
 emcmake cmake -S . -B build-wasm \
   -DAMCORE_BUILD_WASM=ON \
   -DAMCORE_BUILD_CLI=OFF \
+  -DAMCORE_ENABLE_OPERATION_LOGGING=OFF \
   -DBUILD_TESTING=OFF
 cmake --build build-wasm --target amcore_wasm
 ```
@@ -18,3 +19,8 @@ The build produces `build-wasm/amcore.wasm`, which exports
 pointer refers to a location in WebAssembly linear memory. When
 `AMCORE_BUILD_WASM` is enabled, the module is installed into the library
 directory.
+
+Desktop SQLite operation logging is unavailable for WebAssembly. Configuring
+with `AMCORE_ENABLE_OPERATION_LOGGING=ON` and either Emscripten or
+`AMCORE_BUILD_WASM=ON` fails explicitly. Keep logging disabled (the default);
+the WebAssembly module has no logging, database, or native filesystem dependency.

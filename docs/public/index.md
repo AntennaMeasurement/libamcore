@@ -2,8 +2,10 @@
 
 `libamcore` is a portable C library of core computational routines for antenna
 measurements. Its current API calculates free-space wavelength and minimum
-far-field distance. The library is C99, performs no dynamic allocation, and
-has no operating-system-specific dependencies.
+far-field distance. The library is C99; by default it performs no dynamic
+allocation and has no operating-system-specific dependencies. Optional
+[desktop operation logging](cmake-integration.md#desktop-operation-logging)
+adds SQLite, allocation, native clocks, and filesystem access.
 
 ## Supported calculations
 

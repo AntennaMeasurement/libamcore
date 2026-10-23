@@ -11,6 +11,10 @@
 #error "AMCORE_VERSION must be defined by the build system"
 #endif
 
+#ifndef AMCORE_CLI_OPERATION_LOGGING
+#error "AMCORE_CLI_OPERATION_LOGGING must be defined by the build system"
+#endif
+
 typedef int (*command_handler)(int argc, char **argv);
 
 typedef struct command {
@@ -49,6 +53,28 @@ static int is_help(const char *argument)
            strcmp(argument, "--help") == 0;
 }
 
+static void show_operation_logging(void)
+{
+    puts("");
+#if AMCORE_CLI_OPERATION_LOGGING
+    puts("Operation logging: enabled (SQLite, compile-time setting).");
+#if defined(_WIN32)
+    puts("Database: %LOCALAPPDATA%\\libamcore\\libamcore.db");
+#elif defined(__APPLE__)
+    puts("Database: $HOME/Library/Application Support/libamcore/libamcore.db");
+#else
+    puts("Database: $XDG_DATA_HOME/libamcore/libamcore.db");
+    puts("Fallback: $HOME/.local/share/libamcore/libamcore.db");
+#endif
+    puts("Records calculation inputs, status, output, UTC start time and duration.");
+    puts("Nested calls are recorded; CLI parsing errors and help/version are not.");
+    puts("Logging errors go to stderr without changing calculation results or exit status.");
+#else
+    puts("Operation logging: disabled (compile-time setting).");
+    puts("Desktop builds can enable it with -DAMCORE_ENABLE_OPERATION_LOGGING=ON.");
+#endif
+}
+
 static int run_module(const char *module, const command *subcommands,
                       size_t count, int argc, char **argv)
 {
@@ -62,6 +88,7 @@ static int run_module(const char *module, const command *subcommands,
                    subcommands[i].description);
         }
         printf("\nRun 'amcore %s <subcommand> --help' for arguments.\n", module);
+        show_operation_logging();
         return EXIT_SUCCESS;
     }
 
@@ -140,6 +167,7 @@ static int calculate_wavelength(int argc, char **argv)
         puts("Usage: amcore utility wavelength <frequency_hz>");
         puts("Calculate free-space wavelength. Frequency must be positive and finite.");
         puts("Output: one numeric value in metres.");
+        show_operation_logging();
         return EXIT_SUCCESS;
     }
     if (argc != 1) {
@@ -167,6 +195,7 @@ static int calculate_distance(int argc, char **argv)
         puts("Calculate minimum far-field distance per IEEE 149-2021, 7.1.2.");
         puts("Frequency (Hz) and largest aperture length (m) must be positive and finite.");
         puts("Output: one numeric value in metres.");
+        show_operation_logging();
         return EXIT_SUCCESS;
     }
     if (argc != 2) {
@@ -210,6 +239,7 @@ static int show_help(int argc, char **argv)
     puts("Options:");
     puts("  -h, --help     Show this help message");
     puts("  -V, --version  Show the program version");
+    show_operation_logging();
     return EXIT_SUCCESS;
 }
 

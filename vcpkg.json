@@ -1,5 +1,14 @@
 {
   "name": "libamcore",
   "version-string": "0.1.0",
-  "description": "Core computational routines for antenna measurements"
+  "description": "Core computational routines for antenna measurements",
+  "features": {
+    "operation-logging": {
+      "description": "SQLite dependency for AMCORE_ENABLE_OPERATION_LOGGING",
+      "dependencies": [
+        "sqlite3"
+      ]
+    }
+  },
+  "builtin-baseline": "b1b19307e2d2ec1eefbdb7ea069de7d4bcd31f01"
 }

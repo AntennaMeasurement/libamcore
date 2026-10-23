@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(libamcore
-    VERSION 0.1.1
+    VERSION 0.2.0
     DESCRIPTION "Core computational routines for antenna measurements"
     LANGUAGES C
 )
@@ -11,6 +11,7 @@ option(BUILD_SHARED_LIBS "Build amcore as a shared library" OFF)
 option(BUILD_TESTING "Build the amcore test executable" OFF)
 option(AMCORE_BUILD_CLI "Build the amcore command-line tool" ON)
 option(AMCORE_BUILD_WASM "Build a standalone WebAssembly module with Emscripten" OFF)
+option(AMCORE_ENABLE_OPERATION_LOGGING "Store desktop function operations in SQLite" OFF)
 include(CTest)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -24,6 +25,20 @@ set_target_properties(amcore PROPERTIES
 )
 
 target_compile_features(amcore PRIVATE c_std_99)
+if(AMCORE_ENABLE_OPERATION_LOGGING)
+    if(EMSCRIPTEN OR AMCORE_BUILD_WASM OR
+       NOT CMAKE_SYSTEM_NAME MATCHES "^(Windows|Linux|Darwin)$")
+        message(FATAL_ERROR
+            "AMCORE_ENABLE_OPERATION_LOGGING supports desktop Windows, Linux and macOS only")
+    endif()
+    find_package(SQLite3 REQUIRED)
+    target_sources(amcore PRIVATE src/operation_log.c)
+    target_compile_definitions(amcore PRIVATE
+        AMCORE_ENABLE_OPERATION_LOGGING
+        AMCORE_LOG_PROJECT_NAME="${PROJECT_NAME}"
+    )
+    target_link_libraries(amcore PRIVATE SQLite::SQLite3)
+endif()
 if(BUILD_SHARED_LIBS)
     target_compile_definitions(amcore
         PUBLIC AMCORE_SHARED
@@ -68,6 +83,7 @@ if(AMCORE_BUILD_CLI)
     set_target_properties(amcore_cli PROPERTIES OUTPUT_NAME amcore)
     target_compile_definitions(amcore_cli
         PRIVATE AMCORE_VERSION="${PROJECT_VERSION}"
+                AMCORE_CLI_OPERATION_LOGGING=$<BOOL:${AMCORE_ENABLE_OPERATION_LOGGING}>
     )
     target_link_libraries(amcore_cli PRIVATE amcore::amcore)
 endif()
@@ -116,10 +132,27 @@ if(BUILD_TESTING)
     target_link_libraries(amcore_tests PRIVATE amcore::amcore)
     add_test(NAME amcore_tests COMMAND amcore_tests)
 
+    if(AMCORE_ENABLE_OPERATION_LOGGING)
+        add_executable(amcore_operation_log_tests tests/test_operation_log.c)
+        target_compile_features(amcore_operation_log_tests PRIVATE c_std_99)
+        target_link_libraries(amcore_operation_log_tests PRIVATE
+            amcore::amcore SQLite::SQLite3)
+        if(MINGW)
+            target_link_options(amcore_operation_log_tests PRIVATE -municode)
+        endif()
+        add_test(NAME amcore_operation_log_tests
+            COMMAND ${CMAKE_COMMAND}
+                "-DLOG_TEST=$<TARGET_FILE:amcore_operation_log_tests>"
+                "-DLOG_ROOT=${CMAKE_CURRENT_BINARY_DIR}/operation-log-test"
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_operation_log.cmake)
+    endif()
+
     if(AMCORE_BUILD_CLI)
         add_test(NAME amcore_cli_calculations
             COMMAND ${CMAKE_COMMAND}
                 "-DAMCORE_CLI=$<TARGET_FILE:amcore_cli>"
+                "-DAMCORE_OPERATION_LOGGING=${AMCORE_ENABLE_OPERATION_LOGGING}"
+                "-DAMCORE_TEST_ROOT=${CMAKE_CURRENT_BINARY_DIR}/cli-test"
                 -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_cli.cmake
         )
         add_test(NAME amcore_cli_default_help COMMAND amcore_cli)
@@ -146,6 +179,16 @@ if(BUILD_TESTING)
         set_tests_properties(amcore_cli_unknown_subcommand PROPERTIES
             WILL_FAIL TRUE
         )
+    endif()
+    if(AMCORE_ENABLE_OPERATION_LOGGING)
+        # Keep enabled-build tests out of the developer's real user data.
+        get_property(amcore_test_names DIRECTORY PROPERTY TESTS)
+        foreach(amcore_test_name IN LISTS amcore_test_names)
+            if(NOT amcore_test_name STREQUAL "amcore_operation_log_tests")
+                set_tests_properties(${amcore_test_name} PROPERTIES ENVIRONMENT
+                    "LOCALAPPDATA=${CMAKE_CURRENT_BINARY_DIR}/test-user;XDG_DATA_HOME=${CMAKE_CURRENT_BINARY_DIR}/test-user;HOME=${CMAKE_CURRENT_BINARY_DIR}/test-user")
+            endif()
+        endforeach()
     endif()
 endif()
 

@@ -99,7 +99,7 @@ jobs:
             }
 
   build:
-    name: Build and test (${{ matrix.os }})
+    name: Build and test (${{ matrix.os }}, logging=${{ matrix.logging }})
     needs: version
     if: needs.version.outputs.changed != 'true'
     runs-on: ${{ matrix.os }}
@@ -107,10 +107,26 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        logging: ["OFF", "ON"]
     steps:
       - uses: actions/checkout@v4
+      - name: Install SQLite development files (Linux)
+        if: matrix.logging == 'ON' && runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libsqlite3-dev
+      - name: Locate SQLite (macOS)
+        if: matrix.logging == 'ON' && runner.os == 'macOS'
+        run: |
+          brew list sqlite >/dev/null 2>&1 || brew install sqlite
+          echo "CMAKE_PREFIX_PATH=$(brew --prefix sqlite)" >> "$GITHUB_ENV"
       - name: Configure
-        run: cmake -S . -B build -DBUILD_TESTING=ON
+        if: matrix.logging == 'OFF' || runner.os != 'Windows'
+        run: cmake -S . -B build -DBUILD_TESTING=ON -DAMCORE_ENABLE_OPERATION_LOGGING=${{ matrix.logging }}
+      - name: Configure with SQLite (Windows)
+        if: matrix.logging == 'ON' && runner.os == 'Windows'
+        run: >-
+          cmake -S . -B build -DBUILD_TESTING=ON -DAMCORE_ENABLE_OPERATION_LOGGING=ON
+          "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake"
+          -DVCPKG_MANIFEST_FEATURES=operation-logging
       - name: Build
         run: cmake --build build --config Release
       - name: Test
