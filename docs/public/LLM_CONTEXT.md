@@ -1,4 +1,4 @@
-<!-- Last content update tag: v0.1.0 -->
+<!-- Last content update: Unreleased (latest tag: v0.2.0) -->
 # libamcore: LLM Project Context
 
 This document is a compact, source-grounded orientation for AI coding agents
@@ -86,10 +86,12 @@ the current headers before making claims about feature availability.
 
 ## Build, test, and CLI
 
-GitHub Actions builds/tests and documentation deployment run only for `v*`
+GitHub Actions library/WASM builds and tests run only for `v*`
 release tags, including tags created automatically by the version check on
-`main`. Other `main` pushes only check the version; branch pushes and pull
-requests do not run builds. Manual documentation builds require a `v*` tag.
+`main`. Every `main` push checks the version and builds and deploys documentation
+to GitHub Pages. Documentation also builds and deploys on release-tag pushes;
+manual documentation builds accept any branch or tag without deploying.
+Other branch pushes and pull requests do not run CI.
 
 Requirements are CMake 3.15 or newer and a C99-capable compiler. Configure,
 build, and test:

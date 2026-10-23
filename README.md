@@ -1,4 +1,4 @@
-<!-- Last content update tag: v0.1.0 -->
+<!-- Last content update: Unreleased (latest tag: v0.2.0) -->
 # libamcore
 
 `libamcore` is a portable C library for core computational routines used in
@@ -288,9 +288,10 @@ link `amcore::amcore`.
 
 GitHub Actions builds and tests run only for release tags matching `v*`,
 including tags automatically created when the CMake project version changes
-on `main`. Ordinary `main` pushes only check the version; other branch pushes
-and pull requests do not run CI. Documentation builds and deployment also run
-only for releases; manual documentation runs must select a `v*` tag.
+on `main`. Ordinary `main` pushes check the version and build and deploy
+documentation to GitHub Pages; other branch pushes and pull requests do not run
+CI. Documentation also builds and deploys on release-tag pushes. Manual
+documentation builds can select any branch or tag and do not deploy.
 
 The public documentation is built with MkDocs and published to
 [GitHub Pages](https://antennameasurement.github.io/libamcore/). To preview it

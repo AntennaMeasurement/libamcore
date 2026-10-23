@@ -212,15 +212,11 @@ jobs:
         run: cmake --install build-wasm --prefix install-wasm
 
   docs:
-    needs: version
-    if: needs.version.outputs.changed == 'true' || startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: read
       pages: write
       id-token: write
     uses: ./.github/workflows/docs.yml
-    with:
-      tag: ${{ needs.version.outputs.changed == 'true' && needs.version.outputs.tag || github.ref_name }}
 
   release:
     needs: version

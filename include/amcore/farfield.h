@@ -1,4 +1,4 @@
-/* Last content update: Unreleased (latest tag: v0.1.0) */
+/* Last content update: Unreleased (latest tag: v0.2.0) */
 #ifndef AMCORE_FARFIELD_H
 #define AMCORE_FARFIELD_H
 
