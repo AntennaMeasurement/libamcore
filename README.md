@@ -28,6 +28,11 @@ utility module's `<amcore/utility.h>` API and the far-field module's
 on Windows and platforms with GCC-compatible visibility attributes. Consumers
 linking through the CMake target receive the matching import/export settings.
 
+For telemetry receivers and MCP/server adapters, [the machine-readable API
+manifest](docs/public/api.json) describes the current functions, JSON input
+schemas, units, status codes, examples, and telemetry event fields. It is
+metadata, not a server implementation or a new wire protocol. See the
+[integration notes](docs/public/api.md#machine-readable-manifest).
 
 
 ## Building

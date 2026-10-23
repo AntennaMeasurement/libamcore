@@ -4,6 +4,28 @@ Include `<amcore/amcore.h>` to use the full public API, or include a module
 header such as `<amcore/utility.h>` or `<amcore/farfield.h>`. Public
 declarations use `AMCORE_API`; the API supports both C and C++ callers.
 
+## Machine-readable manifest
+
+[api.json](api.json) is a compact API manifest for telemetry receivers and
+MCP/server adapters. It includes the library version, functions, input schemas,
+output names and units, numeric status codes, examples, and telemetry fields.
+`manifest_version` versions the metadata format independently of
+`library_version`. Keep the manifest synchronized with the public API and
+telemetry serializer when either changes.
+
+Each function's `input_schema` uses JSON Schema Draft 2020-12; `x-unit` is an
+annotation for the physical unit. An MCP adapter can map `name`, `description`,
+and `input_schema` to a tool's `name`, `description`, and `inputSchema`.
+The adapter must provide the binding to C, allocate a non-null output, check
+status codes, and validate finite C-double representability. JSON Schema's
+numeric constraints alone do not guarantee C-double representability.
+
+The `telemetry` section describes the existing outgoing event format, including
+failed calls and non-finite input encoding. Its `fields` map is descriptive
+metadata, not a standalone JSON Schema. Parse timestamp and duration integers
+without loss of 64-bit precision. The manifest does not introduce HTTP routes,
+an MCP server, or runtime JSON parsing in the library.
+
 ## Status values
 
 Operations return an `amcore_status`:

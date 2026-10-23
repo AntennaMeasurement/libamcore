@@ -56,6 +56,7 @@ the current headers before making claims about feature availability.
 | `CMakeLists.txt` | Targets, options, tests, install/export/package configuration |
 | `.github/workflows/ci.yml` | Configure/build/test with logging enabled and disabled on Windows, macOS, and Linux |
 | `README.md` | User build, install, CLI, and API guide |
+| `docs/public/api.json` | Versioned machine-readable API manifest with input schemas, units, statuses, examples, and existing telemetry fields; metadata only, not a server |
 | `docs/public/` | Public MkDocs pages and this agent context (excluded from the site) |
 | `.github/skills/amcore-development/SKILL.md` | Reusable development workflow and logging conventions |
 | `docs/standards/IEEE 149-2021 Recommended Practice for Antenna Measurements.pdf` | Project reference copy of IEEE Std 149-2021 |
@@ -79,6 +80,9 @@ the current headers before making claims about feature availability.
   dynamic allocation by default. Optional logging and telemetry add clocks,
   allocation and I/O; SQLite/filesystem use remains desktop logging-only,
   except for an optional desktop telemetry CA file.
+- Keep `docs/public/api.json` synchronized with public functions, the project
+  version, status codes, and telemetry fields. Its function input schemas can
+  seed MCP tools, but adapters must supply C bindings and finite-double checks.
 
 ## Build, test, and CLI
 
