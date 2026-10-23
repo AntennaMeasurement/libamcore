@@ -23,6 +23,15 @@ All notable changes for each release are documented here.
 - Synchronized the machine-readable API manifest's library version with the
   current `0.4.0` CMake project and vcpkg manifest.
 
+## [v0.4.0] - 2026-10-23
+
+### Changes
+
+- feat: implement history command for CLI
+- docs: update documentation to reflect changes in Read the Docs configuration and dependencies
+- feat: add Read the Docs configuration for documentation build
+- refactor: simplify CI configuration and update documentation on build processes
+
 ## [v0.3.0] - 2026-10-23
 
 ### Changes
