@@ -54,7 +54,7 @@ the current headers before making claims about feature availability.
 | `tests/test_cli.cmake` | CLI integration checks |
 | `tests/test_operation_log.c`, `tests/test_operation_log.cmake` | SQLite records, timing, persistence, paths, and logging failure behavior |
 | `CMakeLists.txt` | Targets, options, tests, install/export/package configuration |
-| `.github/workflows/ci.yml` | Release-tag-only desktop/WASM builds and tests; lightweight version check and automatic tagging on `main` |
+| `.github/workflows/ci.yml` | Release-tag-only desktop builds and tests with logging/telemetry disabled, no WASM builds; lightweight version check and automatic tagging on `main` |
 | `README.md` | User build, install, CLI, and API guide |
 | `docs/public/api.json` | Versioned machine-readable API manifest with input schemas, units, statuses, examples, and existing telemetry fields; metadata only, not a server |
 | `docs/public/` | Public MkDocs pages and this agent context (excluded from the site) |
@@ -86,9 +86,10 @@ the current headers before making claims about feature availability.
 
 ## Build, test, and CLI
 
-GitHub Actions library/WASM builds and tests run only for `v*`
+GitHub Actions desktop builds and tests run only for `v*`
 release tags, including tags created automatically by the version check on
-`main`. Every `main` push checks the version and builds and deploys documentation
+`main`. CI disables operation logging and telemetry and does not build WASM.
+Every `main` push checks the version and builds and deploys documentation
 to GitHub Pages. Documentation also builds and deploys on release-tag pushes;
 manual documentation builds accept any branch or tag without deploying.
 Other branch pushes and pull requests do not run CI.

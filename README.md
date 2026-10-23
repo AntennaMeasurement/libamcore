@@ -288,7 +288,9 @@ link `amcore::amcore`.
 
 GitHub Actions builds and tests run only for release tags matching `v*`,
 including tags automatically created when the CMake project version changes
-on `main`. Ordinary `main` pushes check the version and build and deploy
+on `main`. CI tests desktop builds on Windows, macOS, and Linux with operation
+logging and telemetry disabled; WebAssembly builds are not run in CI.
+Ordinary `main` pushes check the version and build and deploy
 documentation to GitHub Pages; other branch pushes and pull requests do not run
 CI. Documentation also builds and deploys on release-tag pushes. Manual
 documentation builds can select any branch or tag and do not deploy.
