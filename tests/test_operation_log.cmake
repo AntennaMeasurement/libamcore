@@ -1,6 +1,7 @@
 if(NOT DEFINED LOG_TEST OR NOT DEFINED LOG_ROOT)
     message(FATAL_ERROR "LOG_TEST and LOG_ROOT are required")
 endif()
+include("${CMAKE_CURRENT_LIST_DIR}/telemetry_diagnostics.cmake")
 
 function(run_log_test root argument expect_error)
     execute_process(
@@ -9,6 +10,7 @@ function(run_log_test root argument expect_error)
             ${ARGN}
             "${LOG_TEST}" "${argument}"
         RESULT_VARIABLE result OUTPUT_VARIABLE output ERROR_VARIABLE error)
+    amcore_filter_transport_notices(error)
     if(NOT result EQUAL 0)
         message(FATAL_ERROR "Logging test failed (${result}): ${output}${error}")
     endif()

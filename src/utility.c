@@ -11,21 +11,22 @@ amcore_status amcore_free_space_wavelength(double frequency_hz,
                                            double *wavelength_m)
 {
     double wavelength;
-    AMCORE_OPERATION_BEGIN();
+    AMCORE_OPERATION_FIELDS(inputs,
+        {"frequency_hz", AMCORE_OPERATION_DOUBLE, &frequency_hz});
+    AMCORE_OPERATION_FIELDS(outputs,
+        {"wavelength_m", AMCORE_OPERATION_DOUBLE, wavelength_m});
+    AMCORE_OPERATION_BEGIN(inputs, 1, outputs, 1);
 
     if (wavelength_m == NULL || !isfinite(frequency_hz) ||
         frequency_hz <= 0.0) {
-        AMCORE_OPERATION_RETURN("amcore_free_space_wavelength", frequency_hz,
-                                0.0, wavelength_m, AMCORE_STATUS_INVALID_ARGUMENT);
+        AMCORE_OPERATION_RETURN(AMCORE_STATUS_INVALID_ARGUMENT);
     }
 
     wavelength = speed_of_light_m_per_s / frequency_hz;
     if (!isfinite(wavelength) || wavelength <= 0.0) {
-        AMCORE_OPERATION_RETURN("amcore_free_space_wavelength", frequency_hz,
-                                0.0, wavelength_m, AMCORE_STATUS_OUT_OF_RANGE);
+        AMCORE_OPERATION_RETURN(AMCORE_STATUS_OUT_OF_RANGE);
     }
 
     *wavelength_m = wavelength;
-    AMCORE_OPERATION_RETURN("amcore_free_space_wavelength", frequency_hz,
-                            0.0, wavelength_m, AMCORE_STATUS_SUCCESS);
+    AMCORE_OPERATION_RETURN(AMCORE_STATUS_SUCCESS);
 }

@@ -27,6 +27,9 @@ the current implementation**.
   WebAssembly target.
 - Opt-in desktop SQLite operation logging for every public calculation call,
   including failed and nested calls, without changing the public C API.
+- Independent opt-in telemetry: synchronous JSON POST per successful, failed,
+  and nested calculation; libwebsockets on desktop and Emscripten Fetch from
+  pthread workers on WebAssembly. Embedded telemetry is deferred.
 
 Near-field calculations, chamber design, device control, pattern processing,
 and post-processing are not currently exposed by the library. Confirm against
@@ -42,6 +45,10 @@ the current headers before making claims about feature availability.
 | `src/utility.c` | Wavelength computation and physical constant |
 | `src/farfield.c` | Far-field distance computation |
 | `src/operation_log.h`, `src/operation_log.c` | Compile-time instrumentation and optional desktop SQLite backend |
+| `src/operation.h`, `src/operation.c` | Shared call clocks and dispatch to enabled logging/telemetry sinks |
+| `src/telemetry.c`, `src/telemetry_backend.h` | JSON event serialization and private transport boundary |
+| `src/telemetry_libwebsockets.c`, `src/telemetry_fetch.c` | Desktop HTTP client and synchronous worker-only Emscripten Fetch |
+| `tests/test_telemetry.c`, `tests/telemetry_server.cjs` | Local-only telemetry integration, payload and failure tests |
 | `cli/main.c` | CLI argument parsing, module dispatch, diagnostics, and output |
 | `tests/test_amcore.c` | Library calculations, invalid inputs, and range behavior |
 | `tests/test_cli.cmake` | CLI integration checks |
@@ -69,8 +76,9 @@ the current headers before making claims about feature availability.
 - Use explicit unit suffixes in new API names and document units, constraints,
   output behavior, and error statuses in public headers.
 - Preserve portability: C99 implementation with no OS-specific dependencies or
-  dynamic allocation by default. Only the optional desktop logging backend
-  uses allocation, native clocks/filesystems, and SQLite.
+  dynamic allocation by default. Optional logging and telemetry add clocks,
+  allocation and I/O; SQLite/filesystem use remains desktop logging-only,
+  except for an optional desktop telemetry CA file.
 
 ## Build, test, and CLI
 
@@ -108,6 +116,24 @@ Useful configure options:
 - `-DAMCORE_BUILD_WASM=ON`: build the optional standalone WebAssembly target
   with the Emscripten toolchain; CLI and tests should be disabled in that
   configuration as described in `README.md`.
+- `-DAMCORE_ENABLE_TELEMETRY=ON` and
+  `-DAMCORE_TELEMETRY_ENDPOINT=<absolute-http-or-https-url>`: send every call
+  including failures/nesting. All telemetry builds require cJSON CONFIG and its
+  `cjson` target for serialization. Desktop additionally requires Libwebsockets
+  4.3+ CONFIG (vcpkg feature `telemetry` supplies both). No Mongoose dependency. Optional
+  `AMCORE_TELEMETRY_CA_FILE` supplies a runtime-accessible PEM CA bundle;
+  otherwise trust sources come from the TLS backend. Never disable
+  certificate/hostname verification. No default endpoint, retries, queue,
+  auth headers, or runtime toggle. The example api.signalregistry.net URL is
+  not a verified service. Errors go to stderr without changing API results.
+  Telemetry CTest configurations require Node.js and an unused loopback
+  endpoint such as `http://127.0.0.1:18765/events`; remote test endpoints are
+  rejected. Both telemetry and logging can be enabled; duration is captured
+  before either sink, and database writes precede transmission.
+  Emscripten telemetry requires AMCORE_BUILD_WASM and pthread worker calls,
+  emits JS glue + WASM, and needs browser cross-origin isolation and CORS.
+  Main-browser-thread calls report an explicit telemetry error but retain
+  calculation behavior. Embedded Linux must leave telemetry off.
 
 Current CLI commands:
 
@@ -126,6 +152,8 @@ and, when enabled, the platform database location template. Version output
 remains `amcore <version>`; there is no runtime logging toggle.
 `AMCORE_CLI_OPERATION_LOGGING` is a private CMake definition matching the
 library's build setting, not a public API macro.
+Help also reports telemetry's compile-time state and enabled endpoint through
+the private `AMCORE_CLI_TELEMETRY` build definition.
 CLI numeric parsing and syntax failures never call the library, so they are
 not recorded. Out-of-range library calls are recorded. Logging errors can
 appear on stderr alongside a successful calculation without changing its
@@ -135,8 +163,20 @@ numeric stdout or zero exit code. Help/version do not create database records.
 
 `src/operation_log.h` compiles instrumentation away when disabled. Enabled
 calculations time every exit path and pass named inputs and status to the
-desktop backend. The backend explicitly handles the current two functions;
-extend its schema and bindings when adding APIs. Never read an output value on
+desktop backend. Both sinks iterate a shared generic `amcore_operation_event`
+with named typed input/output collections; there are no function-name branches.
+Register fields in each new function using `AMCORE_OPERATION_FIELDS`,
+`AMCORE_OPERATION_BEGIN(inputs, count, outputs, count)` and
+`AMCORE_OPERATION_RETURN(status)` on every exit. Names come from `__func__`.
+Supported scalars are double, int64_t, int boolean and UTF-8 text; empty and
+multiple output collections work. Both disabled means descriptor declarations
+and timing compile away. SQLite 3.24+ generates schema/bindings from descriptors;
+cJSON dynamically sizes and escapes JSON field values; int64 fields and timestamps
+use generated raw integer literals to avoid double precision loss. Do not change
+cJSON's global hooks or the process locale concurrently with calls. Preserve stable per-function
+schemas; deployed schema changes require explicit migration. See the
+instrumenting-new-functions section in CMake integration for pointer lifetimes,
+reserved/duplicate names and multi-output null semantics. Never read an output value on
 failure or store pointer addresses. Nested wavelength calls are recorded only
 when the far-field function reaches that calculation.
 
@@ -165,6 +205,9 @@ calculation stdout, and unchanged results/exit status on a logging error.
 Check installed CMake consumers when changing dependency wiring. SQLite
 development files are needed only when enabled; dynamically linked SQLite must
 be distributed separately.
+`tests/test_operation_fields.c` exercises synthetic function names, all current
+field types, multiple/no outputs, uninitialized outputs on failure, large text,
+escaping and invalid descriptors against the shared sinks without networking.
 
 ## Standards reference
 

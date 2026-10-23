@@ -6,6 +6,8 @@ antenna measurements. It builds as a static library by default for embedded use,
 also be built as a shared library. By default it performs no dynamic allocation
 and has no operating-system or platform-specific dependencies. Optional desktop
 operation logging adds SQLite and native filesystem/clock dependencies.
+Independent, opt-in telemetry adds HTTP delivery using libwebsockets on desktop
+or Emscripten Fetch on WebAssembly. Both features are disabled by default.
 
 ## Modules and Functions
 
@@ -61,7 +63,7 @@ embedded toolchains) are rejected at configuration time. Leave it off for
 embedded builds, including embedded Linux. Disabled builds contain no logging
 code and require no SQLite dependency.
 
-Install SQLite development headers and libraries before configuring; CMake
+Install SQLite 3.24+ development headers and libraries before configuring; CMake
 uses `find_package(SQLite3)`. To use the repository's vcpkg manifest, configure
 with the vcpkg toolchain and enable the `operation-logging` manifest feature.
 See [vcpkg](#vcpkg) for a complete command. Installed CMake packages resolve
@@ -106,6 +108,80 @@ retried or buffered. Logging uses allocation and adds I/O latency; do not enable
 it for real-time workloads. Logs can contain sensitive inputs and grow without
 automatic retention limits; manage access and cleanup accordingly.
 
+### Telemetry
+
+Enable telemetry independently of SQLite logging and supply the endpoint at
+configuration time:
+
+```powershell
+cmake -S . -B build-telemetry `
+  "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
+  -DVCPKG_MANIFEST_FEATURES=telemetry `
+  -DAMCORE_ENABLE_TELEMETRY=ON `
+  -DAMCORE_TELEMETRY_ENDPOINT=https://api.signalregistry.net `
+  -DBUILD_TESTING=OFF
+cmake --build build-telemetry --config Release
+```
+
+`https://api.signalregistry.net` is a configuration example, not a built-in
+default or a verified telemetry service. Confirm that your server accepts JSON
+POST requests at the configured path before using it.
+
+Desktop builds require libwebsockets 4.3+ with HTTP client and TLS support
+(`find_package(Libwebsockets CONFIG)`). All telemetry builds also require cJSON
+(`find_package(cJSON CONFIG)`) for JSON serialization. The `telemetry` vcpkg
+feature provides both desktop dependencies. Review their licenses and dependencies
+before distribution. Installed CMake consumers discover these automatically;
+shared runtime dependencies must be distributed separately.
+
+Every calculation, including failures and nested calls, sends one synchronous
+JSON POST with named inputs, output-pointer nullness, status, successful output,
+UTC start time and duration. Errors go to stderr with `amcore telemetry:` and
+never change calculation results or exit status. There is no retry, queue,
+disk storage, runtime toggle, or authentication configuration. Redirects are
+not followed on desktop. Telemetry transmits potentially sensitive calculation
+data; enable it only with appropriate consent and a trusted HTTPS endpoint.
+libwebsockets may additionally emit its own platform diagnostics on stderr;
+libamcore does not change the application's global libwebsockets log settings.
+
+TLS certificate and hostname verification stay enabled. Desktop HTTPS uses
+the libwebsockets TLS backend's default trust sources; optionally set
+`-DAMCORE_TELEMETRY_CA_FILE=<absolute-path-to-ca-bundle.pem>`. This PEM bundle
+must remain accessible on the deployment machine. On Windows, an explicit CA
+bundle may be needed depending on the TLS backend's trust-store setup.
+WebAssembly uses browser trust and CORS, not this CA file.
+
+Embedded telemetry is deferred; leave it disabled for embedded Linux and
+firmware. WebAssembly telemetry requires Emscripten JavaScript glue, pthread
+worker-thread calls and cross-origin isolation; the default telemetry-disabled
+standalone module is unchanged. See
+[telemetry configuration and payload](docs/public/cmake-integration.md#telemetry)
+and [WebAssembly telemetry](docs/public/webassembly.md#telemetry).
+
+Telemetry integration tests require Node.js and an unused local port:
+
+```powershell
+cmake -S . -B build-telemetry-tests `
+  "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
+  -DVCPKG_MANIFEST_FEATURES=telemetry `
+  -DAMCORE_ENABLE_TELEMETRY=ON `
+  -DAMCORE_TELEMETRY_ENDPOINT=http://127.0.0.1:18765/events `
+  -DBUILD_TESTING=ON
+cmake --build build-telemetry-tests --config Release
+ctest --test-dir build-telemetry-tests -C Release --output-on-failure
+```
+
+CTest starts and stops a loopback-only mock server for each test. Configuration
+rejects non-loopback endpoints when telemetry tests are enabled, preventing
+test calculations from being transmitted to an external server.
+
+Logging and telemetry share a generic internal operation record. Functions
+declare named, typed input/output fields once; the backends iterate those
+fields rather than recognizing particular function names. Existing calculation
+tables and JSON payloads remain compatible. See
+[instrumenting new functions](docs/public/cmake-integration.md#instrumenting-new-functions)
+for the extension pattern and current field types.
+
 ## Testing
 
 To run the tests, first configure and build the test target with CMake, then use CTest to execute them. Tests are opt-in so cross-compiling firmware does not also try to build or run a host test executable:
@@ -134,6 +210,7 @@ build/amcore farfield distance --help
 
 General, module, and calculation help display the compile-time operation
 logging setting; enabled builds also show the database location template.
+Help also reports the telemetry setting and, when enabled, its endpoint.
 There is no runtime logging flag. The CLI automatically records calculations
 through the library, including nested calls and out-of-range calculations.
 Parsing errors, help, and version requests do not call the calculation API and

@@ -14,19 +14,21 @@ amcore_status amcore_far_field_distance(double frequency_hz,
     double wavelength_limit;
     double aperture_limit;
     amcore_status status;
-    AMCORE_OPERATION_BEGIN();
+    AMCORE_OPERATION_FIELDS(inputs,
+        {"frequency_hz", AMCORE_OPERATION_DOUBLE, &frequency_hz},
+        {"aperture_length_m", AMCORE_OPERATION_DOUBLE, &aperture_length_m});
+    AMCORE_OPERATION_FIELDS(outputs,
+        {"distance_m", AMCORE_OPERATION_DOUBLE, distance_m});
+    AMCORE_OPERATION_BEGIN(inputs, 2, outputs, 1);
 
     if (distance_m == NULL || !isfinite(aperture_length_m) ||
         aperture_length_m <= 0.0) {
-        AMCORE_OPERATION_RETURN("amcore_far_field_distance", frequency_hz,
-                                aperture_length_m, distance_m,
-                                AMCORE_STATUS_INVALID_ARGUMENT);
+        AMCORE_OPERATION_RETURN(AMCORE_STATUS_INVALID_ARGUMENT);
     }
 
     status = amcore_free_space_wavelength(frequency_hz, &wavelength);
     if (status != AMCORE_STATUS_SUCCESS) {
-        AMCORE_OPERATION_RETURN("amcore_far_field_distance", frequency_hz,
-                                aperture_length_m, distance_m, status);
+        AMCORE_OPERATION_RETURN(status);
     }
 
     distance = 5.0 * aperture_length_m;
@@ -35,9 +37,7 @@ amcore_status amcore_far_field_distance(double frequency_hz,
     aperture_limit = (aperture_length_m / wavelength) * aperture_length_m * 2.0;
     if (!isfinite(distance) || !isfinite(wavelength_limit) ||
         !isfinite(aperture_limit)) {
-        AMCORE_OPERATION_RETURN("amcore_far_field_distance", frequency_hz,
-                                aperture_length_m, distance_m,
-                                AMCORE_STATUS_OUT_OF_RANGE);
+        AMCORE_OPERATION_RETURN(AMCORE_STATUS_OUT_OF_RANGE);
     }
 
     if (wavelength_limit > distance) {
@@ -48,6 +48,5 @@ amcore_status amcore_far_field_distance(double frequency_hz,
     }
 
     *distance_m = distance;
-    AMCORE_OPERATION_RETURN("amcore_far_field_distance", frequency_hz,
-                            aperture_length_m, distance_m, AMCORE_STATUS_SUCCESS);
+    AMCORE_OPERATION_RETURN(AMCORE_STATUS_SUCCESS);
 }

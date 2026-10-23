@@ -18,8 +18,9 @@ not a substitute for code.
    Check `README.md` and `CMakeLists.txt` when public behavior or build wiring
    is involved.
 2. Keep calculations portable C99, with no OS-specific dependencies or dynamic
-   allocation by default. Only the opt-in desktop logging backend may use
-   SQLite, allocation, native clocks, and filesystem access. Follow the
+   allocation by default. Opt-in logging and telemetry may add allocation,
+   clocks, and I/O. SQLite remains desktop logging-only; telemetry uses
+   libwebsockets on desktop and Emscripten Fetch on WebAssembly. Follow the
    existing module naming and public-header patterns.
 3. For numeric APIs, validate pointers and input domains, detect non-finite or
    unrepresentable results, return the appropriate `amcore_status`, and write
@@ -49,9 +50,13 @@ not a substitute for code.
   disabled build.
 - Reuse `src/operation_log.h` instrumentation and `src/operation_log.c` when
   changing calculations. Instrument every return path, including failures;
-  preserve nested-call records. Extend the backend's per-function schema and
-  bindings explicitly for new functions rather than assuming existing columns
-  fit new APIs.
+  preserve nested-call records. Declare named typed input/output collections
+  in each function with `AMCORE_OPERATION_FIELDS` and
+  `AMCORE_OPERATION_BEGIN(inputs, count, outputs, count)`; use
+  `AMCORE_OPERATION_RETURN(status)` on every exit. Both sinks consume the
+  shared generic event; never add function-name branches or fixed argument
+  slots. Extend shared field types for new data shapes. Keep deployed schemas
+  stable or provide an explicit migration.
 - Store named numeric inputs, output-pointer nullness, status, successful
   output, UTC epoch-microsecond start time, and monotonic nanosecond duration.
   Store failed outputs as SQL NULL and non-finite inputs as text. Never read
@@ -63,12 +68,46 @@ not a substitute for code.
   There is no runtime toggle. CLI parsing errors and help/version do not reach
   the calculation API and are not logged; out-of-range library calls are.
 - For logging changes, validate both enabled and disabled builds. The enabled
-  build requires SQLite development files; with vcpkg, enable manifest feature
+  build requires SQLite 3.24+ development files; with vcpkg, enable manifest feature
   `operation-logging`. Run `amcore_operation_log_tests` and relevant CLI tests;
   keep test user directories isolated from real user data. Check static/shared
   builds and installed dependency propagation when changing CMake wiring.
 - Keep [CMake integration](../../../docs/public/cmake-integration.md) current
   for database paths, schema, timing boundaries, and retention limitations.
+
+## Telemetry
+
+- `AMCORE_ENABLE_TELEMETRY` is off by default and independent of SQLite logging.
+  `AMCORE_TELEMETRY_ENDPOINT` is required when enabled; there is no default URL
+  or runtime toggle. Keep it disabled on embedded targets, including Linux.
+- Reuse `src/operation_log.h` instrumentation and shared `src/operation.c`
+  timing. Capture duration before dispatching either sink, write SQLite first
+  when enabled, then send telemetry. Preserve nested and failed calls and
+  calculation behavior even when either sink fails.
+- Serialize the documented JSON shape with cJSON in `src/telemetry.c`. cJSON is
+  required only for telemetry, including an Emscripten-built library for WASM.
+  Preserve exact int64 literals with internally generated raw integer nodes;
+  never convert them to cJSON's double-based numbers or accept raw user JSON.
+  Do not change global cJSON allocation hooks in library code. Failed output is
+  null, non-finite inputs are strings, and pointers/user identifiers are never
+  sent. Report errors to stderr with `amcore telemetry:`.
+- Generic fields support double, int64_t, int boolean and UTF-8 text; null
+  pointers are values, not addresses. Descriptors and typed storage must live
+  through operation return. Snapshot mutated inputs at entry. Use
+  `tests/test_operation_fields.c` to verify new shared types, escaping, large
+  events and multiple/empty field collections.
+- Desktop transport is libwebsockets 4.3+ (vcpkg feature `telemetry`), with TLS
+  verification enabled, optional `AMCORE_TELEMETRY_CA_FILE`, no redirects, and
+  a five-second event-loop deadline. Do not add Mongoose.
+- WebAssembly uses synchronous Emscripten Fetch on pthread worker threads;
+  reject browser-main-thread transmission explicitly without changing results.
+  Telemetry builds require JS glue, pthreads, cross-origin isolation and CORS.
+  Preserve the standalone WASM output when telemetry is disabled.
+- Test enabled and disabled modes and both together with SQLite. Telemetry
+  CTest requires Node.js and a loopback endpoint such as
+  `http://127.0.0.1:18765/events`; do not send test data to remote services.
+  Validate payloads, timing, failure semantics, CLI help, shared/static builds
+  and installed CMake dependency propagation.
 
 ## API and Module Conventions
 

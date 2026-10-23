@@ -112,7 +112,7 @@ jobs:
             }
 
   build:
-    name: Build and test (${{ matrix.os }}, logging=${{ matrix.logging }})
+    name: Build and test (${{ matrix.os }}, logging=${{ matrix.logging }}, telemetry=${{ matrix.telemetry }})
     needs: version
     if: needs.version.outputs.changed != 'true'
     runs-on: ${{ matrix.os }}
@@ -121,6 +121,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         logging: ["OFF", "ON"]
+        telemetry: ["OFF", "ON"]
     steps:
       - uses: actions/checkout@v4
       - name: Install SQLite development files (Linux)
@@ -131,19 +132,79 @@ jobs:
         run: |
           brew list sqlite >/dev/null 2>&1 || brew install sqlite
           echo "CMAKE_PREFIX_PATH=$(brew --prefix sqlite)" >> "$GITHUB_ENV"
+      - name: Install telemetry dependencies (Linux)
+        if: matrix.telemetry == 'ON' && runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libwebsockets-dev libcjson-dev
+      - name: Install telemetry dependencies (macOS)
+        if: matrix.telemetry == 'ON' && runner.os == 'macOS'
+        run: |
+          brew list libwebsockets >/dev/null 2>&1 || brew install libwebsockets
+          brew list cjson >/dev/null 2>&1 || brew install cjson
+          echo "CMAKE_PREFIX_PATH=$(brew --prefix libwebsockets);$(brew --prefix cjson);${CMAKE_PREFIX_PATH:-}" >> "$GITHUB_ENV"
       - name: Configure
-        if: matrix.logging == 'OFF' || runner.os != 'Windows'
-        run: cmake -S . -B build -DBUILD_TESTING=ON -DAMCORE_ENABLE_OPERATION_LOGGING=${{ matrix.logging }}
-      - name: Configure with SQLite (Windows)
-        if: matrix.logging == 'ON' && runner.os == 'Windows'
+        if: runner.os != 'Windows'
         run: >-
-          cmake -S . -B build -DBUILD_TESTING=ON -DAMCORE_ENABLE_OPERATION_LOGGING=ON
-          "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake"
-          -DVCPKG_MANIFEST_FEATURES=operation-logging
+          cmake -S . -B build -DBUILD_TESTING=ON
+          -DAMCORE_ENABLE_OPERATION_LOGGING=${{ matrix.logging }}
+          -DAMCORE_ENABLE_TELEMETRY=${{ matrix.telemetry }}
+          -DAMCORE_TELEMETRY_ENDPOINT=http://127.0.0.1:18765/events
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $options = @(
+            '-DBUILD_TESTING=ON',
+            '-DAMCORE_ENABLE_OPERATION_LOGGING=${{ matrix.logging }}',
+            '-DAMCORE_ENABLE_TELEMETRY=${{ matrix.telemetry }}',
+            '-DAMCORE_TELEMETRY_ENDPOINT=http://127.0.0.1:18765/events'
+          )
+          $features = @()
+          if ('${{ matrix.logging }}' -eq 'ON') { $features += 'operation-logging' }
+          if ('${{ matrix.telemetry }}' -eq 'ON') { $features += 'telemetry' }
+          if ($features.Count -gt 0) {
+            $options += "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake"
+            $options += "-DVCPKG_MANIFEST_FEATURES=$($features -join ';')"
+          }
+          cmake -S . -B build @options
       - name: Build
         run: cmake --build build --config Release
       - name: Test
         run: ctest --test-dir build -C Release --output-on-failure
+
+  wasm:
+    name: Build WebAssembly (telemetry=${{ matrix.telemetry }})
+    needs: version
+    if: needs.version.outputs.changed != 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        telemetry: ["OFF", "ON"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: '4.0.23'
+      - name: Build cJSON for WebAssembly
+        if: matrix.telemetry == 'ON'
+        run: |
+          git clone --depth 1 --branch v1.7.19 https://github.com/DaveGamble/cJSON.git "$RUNNER_TEMP/cjson"
+          emcmake cmake -S "$RUNNER_TEMP/cjson" -B "$RUNNER_TEMP/cjson-build" \
+            -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/cjson-install" \
+            -DCMAKE_C_FLAGS=-pthread -DBUILD_SHARED_LIBS=OFF \
+            -DENABLE_CJSON_TEST=OFF -DENABLE_CJSON_UTILS=OFF
+          cmake --build "$RUNNER_TEMP/cjson-build"
+          cmake --install "$RUNNER_TEMP/cjson-build"
+      - name: Configure
+        run: >-
+          emcmake cmake -S . -B build-wasm
+          -DAMCORE_BUILD_WASM=ON -DAMCORE_BUILD_CLI=OFF -DBUILD_TESTING=OFF
+          -DAMCORE_ENABLE_TELEMETRY=${{ matrix.telemetry }}
+          -DAMCORE_TELEMETRY_ENDPOINT=http://127.0.0.1:18765/events
+          -DCMAKE_PREFIX_PATH=${{ runner.temp }}/cjson-install
+      - name: Build
+        run: cmake --build build-wasm
+      - name: Install
+        run: cmake --install build-wasm --prefix install-wasm
 
   docs:
     needs: version

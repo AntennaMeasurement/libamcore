@@ -2,7 +2,7 @@
 #define _POSIX_C_SOURCE 200809L
 #endif
 
-#include "operation_log.h"
+#include "operation.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -194,68 +194,6 @@ static char *database_path(void)
     return path;
 }
 
-amcore_operation_start amcore_operation_begin(void)
-{
-    amcore_operation_start start = {0, 0, 0};
-#ifdef _WIN32
-    FILETIME wall;
-    ULARGE_INTEGER value;
-    LARGE_INTEGER ticks;
-
-    GetSystemTimeAsFileTime(&wall);
-    value.LowPart = wall.dwLowDateTime;
-    value.HighPart = wall.dwHighDateTime;
-    start.executed_at_us = (int64_t)(value.QuadPart / 10) - 11644473600000000LL;
-    if (!QueryPerformanceCounter(&ticks)) {
-        report_error("cannot read monotonic clock");
-        return start;
-    }
-    start.ticks = ticks.QuadPart;
-#else
-    struct timespec wall;
-    struct timespec monotonic;
-
-    if (clock_gettime(CLOCK_REALTIME, &wall) != 0 ||
-        clock_gettime(CLOCK_MONOTONIC, &monotonic) != 0) {
-        report_error("cannot read operation clocks");
-        return start;
-    }
-    start.executed_at_us = (int64_t)wall.tv_sec * 1000000 + wall.tv_nsec / 1000;
-    start.ticks = (int64_t)monotonic.tv_sec * 1000000000 + monotonic.tv_nsec;
-#endif
-    start.valid = 1;
-    return start;
-}
-
-static int elapsed_ns(amcore_operation_start start, int64_t *duration)
-{
-#ifdef _WIN32
-    LARGE_INTEGER ticks;
-    LARGE_INTEGER frequency;
-    int64_t delta;
-    if (!QueryPerformanceCounter(&ticks) ||
-        !QueryPerformanceFrequency(&frequency) || frequency.QuadPart <= 0) {
-        report_error("cannot read monotonic clock");
-        return 0;
-    }
-    delta = ticks.QuadPart - start.ticks;
-    *duration = (int64_t)((long double)delta * 1000000000 /
-                         frequency.QuadPart);
-#else
-    struct timespec ticks;
-    if (clock_gettime(CLOCK_MONOTONIC, &ticks) != 0) {
-        report_error("cannot read monotonic clock");
-        return 0;
-    }
-    *duration = (int64_t)ticks.tv_sec * 1000000000 + ticks.tv_nsec - start.ticks;
-#endif
-    if (*duration < 0) {
-        report_error("monotonic clock moved backwards");
-        return 0;
-    }
-    return 1;
-}
-
 static int bind_number(sqlite3_stmt *statement, int index, double value)
 {
     if (isfinite(value)) {
@@ -267,28 +205,49 @@ static int bind_number(sqlite3_stmt *statement, int index, double value)
                              -1, SQLITE_STATIC);
 }
 
-amcore_status amcore_operation_end(amcore_operation_start start,
-                                  const char *function_name,
-                                  double frequency_hz,
-                                  double aperture_length_m,
-                                  const double *output,
-                                  amcore_status status)
+static const char *column_type(amcore_operation_type type)
+{
+    switch (type) {
+    case AMCORE_OPERATION_DOUBLE: return "REAL";
+    case AMCORE_OPERATION_INT64:
+    case AMCORE_OPERATION_BOOL: return "INTEGER";
+    case AMCORE_OPERATION_TEXT: return "TEXT";
+    }
+    return NULL;
+}
+
+static int bind_field(sqlite3_stmt *statement, int index,
+                       const amcore_operation_field *field, int available)
+{
+    if (!available || field->data == NULL)
+        return sqlite3_bind_null(statement, index);
+    switch (field->type) {
+    case AMCORE_OPERATION_DOUBLE:
+        return bind_number(statement, index, *(const double *)field->data);
+    case AMCORE_OPERATION_INT64:
+        return sqlite3_bind_int64(statement, index, *(const int64_t *)field->data);
+    case AMCORE_OPERATION_BOOL:
+        return sqlite3_bind_int(statement, index, *(const int *)field->data != 0);
+    case AMCORE_OPERATION_TEXT:
+        return sqlite3_bind_text(statement, index, field->data, -1, SQLITE_STATIC);
+    }
+    return SQLITE_MISUSE;
+}
+
+void amcore_operation_log_write(const amcore_operation_event *event)
 {
     sqlite3 *database = NULL;
     sqlite3_stmt *statement = NULL;
+    sqlite3_str *builder;
     char *path;
-    char sql[1024];
-    int64_t duration;
+    char *sql = NULL;
+    size_t i;
+    int index = 1;
     int rc;
-    int farfield = strcmp(function_name, "amcore_far_field_distance") == 0;
-    const char *result_name = farfield ? "distance_m" : "wavelength_m";
 
-    if (!start.valid || !elapsed_ns(start, &duration)) {
-        return status;
-    }
     path = database_path();
     if (path == NULL) {
-        return status;
+        return;
     }
     rc = sqlite3_open_v2(path, &database,
                          SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE |
@@ -301,50 +260,68 @@ amcore_status amcore_operation_end(amcore_operation_start start,
     if (rc != SQLITE_OK) {
         goto cleanup;
     }
-    /* Identifiers come exclusively from the instrumented functions, not inputs. */
-    snprintf(sql, sizeof(sql),
-             "CREATE TABLE IF NOT EXISTS \"%s\" ("
-             "id INTEGER PRIMARY KEY, frequency_hz REAL, %s"
-             "output_is_null INTEGER NOT NULL, return_value INTEGER NOT NULL, "
-             "%s REAL, executed_at_us INTEGER NOT NULL, "
-             "duration_ns INTEGER NOT NULL CHECK(duration_ns >= 0))",
-             function_name, farfield ? "aperture_length_m REAL, " : "",
-             result_name);
+    builder = sqlite3_str_new(database);
+    sqlite3_str_appendf(builder, "CREATE TABLE IF NOT EXISTS \"%w\" ("
+        "id INTEGER PRIMARY KEY", event->function_name);
+    for (i = 0; i < event->input_count; ++i)
+        sqlite3_str_appendf(builder, ", \"%w\" %s", event->inputs[i].name,
+                            column_type(event->inputs[i].type));
+    sqlite3_str_appendall(builder,
+        ", output_is_null INTEGER NOT NULL, return_value INTEGER NOT NULL");
+    for (i = 0; i < event->output_count; ++i)
+        sqlite3_str_appendf(builder, ", \"%w\" %s", event->outputs[i].name,
+                            column_type(event->outputs[i].type));
+    sqlite3_str_appendall(builder, ", executed_at_us INTEGER NOT NULL, "
+        "duration_ns INTEGER NOT NULL CHECK(duration_ns >= 0))");
+    sql = sqlite3_str_finish(builder);
+    if (sql == NULL) {
+        rc = SQLITE_NOMEM;
+        goto cleanup;
+    }
     rc = sqlite3_exec(database, sql, NULL, NULL, NULL);
+    sqlite3_free(sql);
+    sql = NULL;
     if (rc != SQLITE_OK) {
         goto cleanup;
     }
-    snprintf(sql, sizeof(sql),
-             "INSERT INTO \"%s\" (frequency_hz, %soutput_is_null, "
-             "return_value, %s, executed_at_us, duration_ns) "
-             "VALUES (?1, %s?3, ?4, ?5, ?6, ?7)",
-             function_name, farfield ? "aperture_length_m, " : "",
-             result_name, farfield ? "?2, " : "");
+    builder = sqlite3_str_new(database);
+    sqlite3_str_appendf(builder, "INSERT INTO \"%w\" ("
+        "output_is_null, return_value, executed_at_us, duration_ns",
+        event->function_name);
+    for (i = 0; i < event->input_count; ++i)
+        sqlite3_str_appendf(builder, ", \"%w\"", event->inputs[i].name);
+    for (i = 0; i < event->output_count; ++i)
+        sqlite3_str_appendf(builder, ", \"%w\"", event->outputs[i].name);
+    sqlite3_str_appendall(builder, ") VALUES (?, ?, ?, ?");
+    for (i = 0; i < event->input_count; ++i)
+        sqlite3_str_appendall(builder, ", ?");
+    for (i = 0; i < event->output_count; ++i)
+        sqlite3_str_appendall(builder, ", ?");
+    sqlite3_str_appendall(builder, ")");
+    sql = sqlite3_str_finish(builder);
+    if (sql == NULL) {
+        rc = SQLITE_NOMEM;
+        goto cleanup;
+    }
     rc = sqlite3_prepare_v2(database, sql, -1, &statement, NULL);
     if (rc != SQLITE_OK) {
         goto cleanup;
     }
-    rc = bind_number(statement, 1, frequency_hz);
-    if (rc == SQLITE_OK && farfield) {
-        rc = bind_number(statement, 2, aperture_length_m);
+    rc = sqlite3_bind_int(statement, index++, event->output_is_null);
+    if (rc == SQLITE_OK) {
+        rc = sqlite3_bind_int(statement, index++, event->status);
     }
     if (rc == SQLITE_OK) {
-        rc = sqlite3_bind_int(statement, 3, output == NULL);
+        rc = sqlite3_bind_int64(statement, index++, event->executed_at_us);
     }
     if (rc == SQLITE_OK) {
-        rc = sqlite3_bind_int(statement, 4, status);
+        rc = sqlite3_bind_int64(statement, index++, event->duration_ns);
     }
-    if (rc == SQLITE_OK) {
-        rc = status == AMCORE_STATUS_SUCCESS && output != NULL
-                 ? sqlite3_bind_double(statement, 5, *output)
-                 : sqlite3_bind_null(statement, 5);
-    }
-    if (rc == SQLITE_OK) {
-        rc = sqlite3_bind_int64(statement, 6, start.executed_at_us);
-    }
-    if (rc == SQLITE_OK) {
-        rc = sqlite3_bind_int64(statement, 7, duration);
-    }
+    for (i = 0; rc == SQLITE_OK && i < event->input_count; ++i)
+        rc = bind_field(statement, index++, &event->inputs[i], 1);
+    for (i = 0; rc == SQLITE_OK && i < event->output_count; ++i)
+        rc = bind_field(statement, index++, &event->outputs[i],
+                        event->status == AMCORE_STATUS_SUCCESS);
     if (rc == SQLITE_OK) {
         rc = sqlite3_step(statement);
         if (rc == SQLITE_DONE) {
@@ -353,6 +330,7 @@ amcore_status amcore_operation_end(amcore_operation_start start,
     }
 
 cleanup:
+    sqlite3_free(sql);
     if (rc != SQLITE_OK) {
         report_error(database != NULL ? sqlite3_errmsg(database) : sqlite3_errstr(rc));
     }
@@ -364,5 +342,4 @@ cleanup:
     if (rc != SQLITE_OK) {
         report_error(sqlite3_errstr(rc));
     }
-    return status;
 }

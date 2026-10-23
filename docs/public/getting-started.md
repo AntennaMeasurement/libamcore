@@ -4,8 +4,12 @@
 
 - CMake 3.15 or newer
 - A C99-capable compiler
-- SQLite development headers and libraries only when desktop operation logging
+- SQLite 3.24+ development headers and libraries only when desktop operation logging
   is enabled (not required by the default build)
+- libwebsockets 4.3+ with HTTP client/TLS support only for desktop telemetry;
+  Node.js additionally for its loopback integration tests
+- cJSON development headers, library and CMake config package for all enabled
+  telemetry builds (not required when telemetry is disabled)
 
 ## Build
 
@@ -84,6 +88,17 @@ builds, including embedded Linux. See
 [desktop operation logging](cmake-integration.md#desktop-operation-logging)
 for database locations, schema, timing, error handling, and data-retention
 considerations.
+
+## Optional telemetry
+
+Telemetry is disabled by default and independent of SQLite logging.
+Enable `AMCORE_ENABLE_TELEMETRY` and supply `AMCORE_TELEMETRY_ENDPOINT` at
+configuration time. Desktop builds use libwebsockets (vcpkg feature
+`telemetry`, which also provides cJSON); Emscripten builds use Fetch from pthread
+worker threads and require cJSON built with the Emscripten toolchain.
+Embedded support is deferred. See
+[telemetry setup](cmake-integration.md#telemetry) for complete build examples,
+TLS trust, JSON payloads, isolated tests and privacy considerations.
 
 ## Install
 

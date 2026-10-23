@@ -3,8 +3,7 @@
 docs/standards
 
 # CMake build output
-/build/
-/build-logging/
+/build*
 /cmake-build-*/
 /vcpkg_installed/
 CMakeUserPresets.json

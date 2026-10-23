@@ -62,3 +62,19 @@ The feature is available only on desktop Windows, Linux, and macOS, not
 WebAssembly or embedded targets. See
 [desktop operation logging](cmake-integration.md#desktop-operation-logging)
 for dependency setup, database locations, schema, timing, and retention limits.
+
+## Telemetry
+
+Telemetry is a separate compile-time option, disabled by default.
+`AMCORE_ENABLE_TELEMETRY=ON` requires `AMCORE_TELEMETRY_ENDPOINT` and a
+desktop libwebsockets dependency. General, module, and calculation help report
+`Telemetry: enabled` or `Telemetry: disabled`; enabled help shows the endpoint.
+There are no runtime telemetry flags.
+
+Calculation calls, including failures and nested calls, send JSON POST events.
+Parsing failures, help and version do not invoke calculations or send events.
+Delivery is synchronous. Telemetry failures produce `amcore telemetry:`
+diagnostics on stderr without changing numeric stdout or calculation exit
+status. A successful calculation can therefore exit zero with a network warning.
+See [telemetry configuration](cmake-integration.md#telemetry) for dependencies,
+payloads, TLS trust, privacy and timeout behavior.
