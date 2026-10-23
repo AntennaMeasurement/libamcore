@@ -2,6 +2,18 @@
 
 All notable changes for each release are documented here.
 
+## [v0.3.0] - 2026-10-23
+
+### Changes
+
+- feat: update version to 0.3.0 in CMakeLists.txt and vcpkg.json
+- chore: update last content update tags to v0.2.0 across documentation and source files
+- feat: update CI and documentation workflows for release-tag-only builds and version checks
+- feat: add machine-readable API manifest and update documentation
+- feat: add versioning support to operation logging and telemetry features
+- Implement telemetry and operation logging features
+- docs: update CHANGELOG for v0.2.0 release
+
 ## [v0.2.0] - 2026-10-23
 
 ### Added
