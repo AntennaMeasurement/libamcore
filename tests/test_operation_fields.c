@@ -5,6 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define SYNTHETIC_TABLE "synthetic_operation_" AMCORE_VERSION
+#define EMPTY_TABLE "no_fields_" AMCORE_VERSION
+#define MANY_TABLE "many_fields_" AMCORE_VERSION
+
 #ifdef AMCORE_ENABLE_OPERATION_LOGGING
 #include <sqlite3.h>
 #endif
@@ -55,6 +59,7 @@ void amcore_telemetry_send(const char *json)
         telemetry_valid = telemetry_valid &&
             strstr(json, "\"executed_at_us\":9223372036854775807") != NULL &&
             strstr(json, "\"duration_ns\":9223372036854775807") != NULL &&
+            strstr(json, "\"version\":\"" AMCORE_VERSION "\"") != NULL &&
             strstr(json, "\"minimum\":-9223372036854775808") != NULL;
         return;
     }
@@ -67,6 +72,7 @@ void amcore_telemetry_send(const char *json)
         cJSON *text = cJSON_GetObjectItemCaseSensitive(inputs, "label");
         telemetry_valid = telemetry_valid &&
             strlen(json) > 5000 &&
+            strstr(json, "\"version\":\"" AMCORE_VERSION "\"") != NULL &&
             strstr(json, "\"function\":\"synthetic_operation\"") != NULL &&
             strstr(json, "\"count\":9223372036854775807") != NULL &&
             strstr(json, "\"enabled\":true") != NULL &&
@@ -186,7 +192,7 @@ static amcore_status many_fields(void)
 static int invalid_fields(void)
 {
     const amcore_operation_field reserved = {
-        "RETURN_VALUE", AMCORE_OPERATION_DOUBLE, NULL
+        "VERSION", AMCORE_OPERATION_DOUBLE, NULL
     };
     const amcore_operation_field duplicate[] = {
         {"value", AMCORE_OPERATION_DOUBLE, NULL},
@@ -206,6 +212,27 @@ static int invalid_fields(void)
 }
 
 #ifdef AMCORE_ENABLE_OPERATION_LOGGING
+static int create_legacy_table(const char *path)
+{
+    sqlite3 *database = NULL;
+    int success = sqlite3_open(path, &database) == SQLITE_OK;
+
+    if (success) {
+        success = sqlite3_exec(database,
+            "CREATE TABLE \"" SYNTHETIC_TABLE "\" ("
+            "id INTEGER PRIMARY KEY, \"count\" INTEGER, input REAL, "
+            "enabled INTEGER, label TEXT, special REAL, optional TEXT, "
+            "output_is_null INTEGER NOT NULL, return_value INTEGER NOT NULL, "
+            "value REAL, accepted INTEGER, executed_at_us INTEGER NOT NULL, "
+            "duration_ns INTEGER NOT NULL)",
+            NULL, NULL, NULL) == SQLITE_OK;
+    }
+    if (database != NULL && sqlite3_close(database) != SQLITE_OK) {
+        success = 0;
+    }
+    return success;
+}
+
 static int check_database(const char *path)
 {
     sqlite3 *database = NULL;
@@ -213,13 +240,14 @@ static int check_database(const char *path)
     int success = sqlite3_open(path, &database) == SQLITE_OK;
     const char *sql =
         "SELECT count(*)=3 AND "
+        "sum(version='" AMCORE_VERSION "')=3 AND "
         "sum(\"count\"=9223372036854775807 AND typeof(\"count\")='integer')=3 AND "
-        "sum(input=1.25 AND enabled=1 AND length(label)=4998 AND "
+        "sum(version='" AMCORE_VERSION "' AND input=1.25 AND enabled=1 AND length(label)=4998 AND "
         "special='+Infinity' AND optional IS NULL)=3 AND "
-        "sum(return_value=0 AND value=2.5 AND accepted=0)=1 AND "
+        "sum(version='" AMCORE_VERSION "' AND return_value=0 AND value=2.5 AND accepted=0)=1 AND "
         "sum(return_value=1 AND value IS NULL AND accepted IS NULL)=1 AND "
         "sum(output_is_null=1 AND value IS NULL AND accepted=0)=1 "
-        "FROM synthetic_operation";
+        "FROM \"" SYNTHETIC_TABLE "\"";
     if (success)
         success = sqlite3_prepare_v2(database, sql, -1, &statement, NULL) == SQLITE_OK;
     if (success)
@@ -229,7 +257,8 @@ static int check_database(const char *path)
     statement = NULL;
     if (success)
         success = sqlite3_prepare_v2(database,
-            "SELECT count(*)=1 AND output_is_null=0 AND return_value=0 FROM no_fields",
+            "SELECT count(*)=1 AND output_is_null=0 AND return_value=0 FROM \""
+            EMPTY_TABLE "\"",
             -1, &statement, NULL) == SQLITE_OK;
     if (success)
         success = sqlite3_step(statement) == SQLITE_ROW &&
@@ -241,7 +270,7 @@ static int check_database(const char *path)
     statement = NULL;
     if (success)
         success = sqlite3_prepare_v2(database,
-            "SELECT field_0=0 AND field_79=79 FROM many_fields",
+            "SELECT field_0=0 AND field_79=79 FROM \"" MANY_TABLE "\"",
             -1, &statement, NULL) == SQLITE_OK;
     if (success)
         success = sqlite3_step(statement) == SQLITE_ROW &&
@@ -266,7 +295,13 @@ int main(int argc, char **argv)
     label[2] = '\n';
     label[3] = (char)0xc3;
     label[4] = (char)0xbc;
-    success = synthetic_operation(&value, &accepted, AMCORE_STATUS_SUCCESS) ==
+#ifdef AMCORE_ENABLE_OPERATION_LOGGING
+    success = argc == 2 && create_legacy_table(argv[1]);
+#else
+    success = 1;
+#endif
+    success = success &&
+        synthetic_operation(&value, &accepted, AMCORE_STATUS_SUCCESS) ==
                   AMCORE_STATUS_SUCCESS && value == 2.5 && accepted == 0;
     success = success &&
         synthetic_operation(&unwritten, &unwritten_flag, AMCORE_STATUS_INVALID_ARGUMENT) ==
@@ -281,7 +316,7 @@ int main(int argc, char **argv)
     success = success && sent == 5 && telemetry_valid && allocation_failures();
 #endif
 #ifdef AMCORE_ENABLE_OPERATION_LOGGING
-    success = success && argc == 2 && check_database(argv[1]);
+    success = success && check_database(argv[1]);
 #else
     (void)argc;
     (void)argv;

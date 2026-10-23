@@ -173,8 +173,9 @@ multiple output collections work. Both disabled means descriptor declarations
 and timing compile away. SQLite 3.24+ generates schema/bindings from descriptors;
 cJSON dynamically sizes and escapes JSON field values; int64 fields and timestamps
 use generated raw integer literals to avoid double precision loss. Do not change
-cJSON's global hooks or the process locale concurrently with calls. Preserve stable per-function
-schemas; deployed schema changes require explicit migration. See the
+cJSON's global hooks or the process locale concurrently with calls. Keep each
+versioned table schema stable within a project version; a new project version
+uses separate tables, leaving prior schemas and records untouched. See the
 instrumenting-new-functions section in CMake integration for pointer lifetimes,
 reserved/duplicate names and multi-output null semantics. Never read an output value on
 failure or store pointer addresses. Nested wavelength calls are recorded only
@@ -187,7 +188,13 @@ consuming application. Directories are `%LOCALAPPDATA%\libamcore` on Windows,
 created; relative or absent Linux XDG locations fall back to HOME. No fallback
 to the working directory is permitted.
 
-Each row stores `id`, `frequency_hz`, optional `aperture_length_m`,
+Tables use `<function>_<project-version>` names, for example
+`amcore_free_space_wavelength_0.2.0`. Each new version gets separate tables;
+pre-existing unversioned tables are left untouched. If a table from an earlier
+build of the same version lacks the `version` column, logging adds it and fills
+existing rows with the current version. Each row stores `id`, the project
+version in `version`, `frequency_hz`, optional
+`aperture_length_m`,
 `output_is_null`, `return_value`, `wavelength_m` or `distance_m`,
 `executed_at_us`, and `duration_ns`. Status values are 0 (success), 1 (invalid
 argument), and 2 (out of range). Non-finite inputs are text `NaN`, `+Infinity`,
@@ -208,6 +215,8 @@ be distributed separately.
 `tests/test_operation_fields.c` exercises synthetic function names, all current
 field types, multiple/no outputs, uninitialized outputs on failure, large text,
 escaping and invalid descriptors against the shared sinks without networking.
+Telemetry JSON includes the library's CMake project version in its `version`
+field.
 
 ## Standards reference
 

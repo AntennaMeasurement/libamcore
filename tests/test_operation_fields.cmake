@@ -3,9 +3,12 @@ if(NOT DEFINED FIELD_TEST OR NOT DEFINED FIELD_ROOT)
 endif()
 if(APPLE)
     set(database "${FIELD_ROOT}/Library/Application Support/libamcore/libamcore.db")
+    get_filename_component(database_directory "${database}" DIRECTORY)
 else()
     set(database "${FIELD_ROOT}/libamcore/libamcore.db")
+    get_filename_component(database_directory "${database}" DIRECTORY)
 endif()
+file(MAKE_DIRECTORY "${database_directory}")
 file(REMOVE "${database}")
 execute_process(
     COMMAND "${CMAKE_COMMAND}" -E env

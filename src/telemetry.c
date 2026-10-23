@@ -85,6 +85,7 @@ void amcore_telemetry_write(const amcore_operation_event *event)
                     !(event->output_count == 1 && event->output_is_null);
 
     if (object == NULL ||
+        !add_value(object, "version", cJSON_CreateString(AMCORE_VERSION)) ||
         !add_value(object, "function", cJSON_CreateString(event->function_name)) ||
         !add_value(object, "inputs", field_values(event->inputs, event->input_count)) ||
         !add_value(object, "output_is_null", cJSON_CreateBool(event->output_is_null)) ||

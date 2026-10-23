@@ -8,6 +8,9 @@
 #include <time.h>
 #include <sqlite3.h>
 
+#define WAVELENGTH_TABLE "amcore_free_space_wavelength_" AMCORE_VERSION
+#define FARFIELD_TABLE "amcore_far_field_distance_" AMCORE_VERSION
+
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -83,7 +86,6 @@ static int run_test(const char *argument)
     sqlite3 *database = NULL;
     sqlite3_int64 before_wavelength = 0;
     sqlite3_int64 before_farfield = 0;
-    sqlite3_int64 table_count = 0;
     char query[1024];
     time_t started = time(NULL);
     int success;
@@ -96,80 +98,129 @@ static int run_test(const char *argument)
         sqlite3_close(database);
         return 1;
     }
-    success = scalar(database, "SELECT count(*) FROM sqlite_master "
-                     "WHERE type='table'", &table_count);
-    if (success && table_count != 0) {
-        success = scalar(database, "SELECT count(*) FROM amcore_free_space_wavelength",
-                         &before_wavelength) &&
-                  scalar(database, "SELECT count(*) FROM amcore_far_field_distance",
-                         &before_farfield);
+    success = sqlite3_exec(database,
+        "CREATE TABLE IF NOT EXISTS amcore_free_space_wavelength "
+        "(legacy_marker TEXT NOT NULL);"
+        "INSERT INTO amcore_free_space_wavelength "
+        "SELECT 'preserved' WHERE NOT EXISTS "
+        "(SELECT 1 FROM amcore_free_space_wavelength);",
+        NULL, NULL, NULL) == SQLITE_OK;
+    snprintf(query, sizeof(query),
+        "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='%s'",
+        WAVELENGTH_TABLE);
+    success = success && scalar(database, query, &before_wavelength);
+    if (success && before_wavelength != 0) {
+        snprintf(query, sizeof(query), "SELECT count(*) FROM \"%s\"",
+                 WAVELENGTH_TABLE);
+        success = scalar(database, query, &before_wavelength);
+    } else if (success) {
+        before_wavelength = 0;
+    }
+    snprintf(query, sizeof(query),
+        "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='%s'",
+        FARFIELD_TABLE);
+    success = success && scalar(database, query, &before_farfield);
+    if (success && before_farfield != 0) {
+        snprintf(query, sizeof(query), "SELECT count(*) FROM \"%s\"",
+                 FARFIELD_TABLE);
+        success = scalar(database, query, &before_farfield);
+    } else if (success) {
+        before_farfield = 0;
     }
     success = success && exercise_calls();
+    snprintf(query, sizeof(query), "SELECT count(*) FROM \"%s\"", WAVELENGTH_TABLE);
+    success = success && expect_count(database, query, before_wavelength + 10);
+    snprintf(query, sizeof(query), "SELECT count(*) FROM \"%s\"", FARFIELD_TABLE);
+    success = success && expect_count(database, query, before_farfield + 5);
     success = success &&
-        expect_count(database, "SELECT count(*) FROM amcore_free_space_wavelength",
-                     before_wavelength + 10) &&
-        expect_count(database, "SELECT count(*) FROM amcore_far_field_distance",
-                     before_farfield + 5);
+        expect_count(database,
+            "SELECT count(*) FROM amcore_free_space_wavelength "
+            "WHERE legacy_marker='preserved'", 1);
+    snprintf(query, sizeof(query),
+        "SELECT count(*) FROM \"%s\" WHERE version='%s'",
+        WAVELENGTH_TABLE, AMCORE_VERSION);
+    success = success && expect_count(database, query, before_wavelength + 10);
+    snprintf(query, sizeof(query),
+        "SELECT count(*) FROM \"%s\" WHERE version='%s'",
+        FARFIELD_TABLE, AMCORE_VERSION);
+    success = success && expect_count(database, query, before_farfield + 5);
 
     snprintf(query, sizeof(query),
-        "SELECT count(*) FROM amcore_free_space_wavelength WHERE id > %lld AND "
+        "SELECT count(*) FROM \"%s\" WHERE id > %lld AND "
         "frequency_hz=1e9 AND abs(wavelength_m-0.299792458)<1e-12 AND "
-        "return_value=0 AND output_is_null=0",
-        (long long)before_wavelength);
+        "return_value=0 AND output_is_null=0 AND version='%s'",
+        WAVELENGTH_TABLE,
+        (long long)before_wavelength, AMCORE_VERSION);
     success = success && expect_count(database, query, 3);
     snprintf(query, sizeof(query),
-        "SELECT count(*) FROM amcore_far_field_distance WHERE id > %lld AND "
+        "SELECT count(*) FROM \"%s\" WHERE id > %lld AND "
         "frequency_hz=1e9 AND aperture_length_m=1 AND "
-        "abs(distance_m-(2e9/299792458.0))<1e-12 AND return_value=0",
-        (long long)before_farfield);
+        "abs(distance_m-(2e9/299792458.0))<1e-12 AND return_value=0 "
+        "AND version='%s'",
+        FARFIELD_TABLE,
+        (long long)before_farfield, AMCORE_VERSION);
     success = success && expect_count(database, query, 1);
     snprintf(query, sizeof(query),
-        "SELECT count(*) FROM amcore_free_space_wavelength WHERE id > %lld "
-        "AND return_value=1", (long long)before_wavelength);
+        "SELECT count(*) FROM \"%s\" WHERE id > %lld "
+        "AND return_value=1", WAVELENGTH_TABLE, (long long)before_wavelength);
     success = success && expect_count(database, query, 6);
     snprintf(query, sizeof(query),
-        "SELECT count(*) FROM amcore_free_space_wavelength WHERE id > %lld "
-        "AND return_value=2", (long long)before_wavelength);
+        "SELECT count(*) FROM \"%s\" WHERE id > %lld "
+        "AND return_value=2", WAVELENGTH_TABLE, (long long)before_wavelength);
     success = success && expect_count(database, query, 1);
     snprintf(query, sizeof(query),
-        "SELECT count(*) FROM amcore_far_field_distance WHERE id > %lld "
-        "AND return_value=1", (long long)before_farfield);
+        "SELECT count(*) FROM \"%s\" WHERE id > %lld "
+        "AND return_value=1", FARFIELD_TABLE, (long long)before_farfield);
     success = success && expect_count(database, query, 3);
     snprintf(query, sizeof(query),
-        "SELECT count(*) FROM amcore_far_field_distance WHERE id > %lld "
-        "AND return_value=2", (long long)before_farfield);
+        "SELECT count(*) FROM \"%s\" WHERE id > %lld "
+        "AND return_value=2", FARFIELD_TABLE, (long long)before_farfield);
     success = success && expect_count(database, query, 1);
+    snprintf(query, sizeof(query),
+        "SELECT count(*) FROM \"%s\" WHERE frequency_hz='NaN' "
+        "AND version='%s'", WAVELENGTH_TABLE, AMCORE_VERSION);
     success = success &&
-        expect_count(database, "SELECT count(*) FROM amcore_free_space_wavelength "
-                     "WHERE frequency_hz='NaN'", (before_wavelength / 10 + 1) * 2) &&
-        expect_count(database, "SELECT count(*) FROM amcore_free_space_wavelength "
-                     "WHERE frequency_hz IN ('+Infinity','-Infinity')",
-                     (before_wavelength / 10 + 1) * 2) &&
-        expect_count(database, "SELECT count(*) FROM amcore_free_space_wavelength "
-                     "WHERE return_value<>0 AND wavelength_m IS NOT NULL", 0) &&
-        expect_count(database, "SELECT count(*) FROM amcore_far_field_distance "
-                     "WHERE return_value<>0 AND distance_m IS NOT NULL", 0) &&
-        expect_count(database, "SELECT count(*) FROM amcore_free_space_wavelength "
-                     "WHERE output_is_null=1 AND return_value=1",
-                     before_wavelength / 10 + 1) &&
-        expect_count(database, "SELECT count(*) FROM amcore_far_field_distance "
-                     "WHERE output_is_null=1 AND return_value=1",
-                     before_farfield / 5 + 1);
+        expect_count(database, query, (before_wavelength / 10 + 1) * 2);
+    snprintf(query, sizeof(query),
+        "SELECT count(*) FROM \"%s\" WHERE frequency_hz "
+        "IN ('+Infinity','-Infinity')", WAVELENGTH_TABLE);
+    success = success &&
+        expect_count(database, query, (before_wavelength / 10 + 1) * 2);
+    snprintf(query, sizeof(query),
+        "SELECT count(*) FROM \"%s\" WHERE return_value<>0 "
+        "AND wavelength_m IS NOT NULL", WAVELENGTH_TABLE);
+    success = success && expect_count(database, query, 0);
+    snprintf(query, sizeof(query),
+        "SELECT count(*) FROM \"%s\" WHERE return_value<>0 "
+        "AND distance_m IS NOT NULL", FARFIELD_TABLE);
+    success = success && expect_count(database, query, 0);
+    snprintf(query, sizeof(query),
+        "SELECT count(*) FROM \"%s\" WHERE output_is_null=1 "
+        "AND return_value=1", WAVELENGTH_TABLE);
+    success = success &&
+        expect_count(database, query, before_wavelength / 10 + 1);
+    snprintf(query, sizeof(query),
+        "SELECT count(*) FROM \"%s\" WHERE output_is_null=1 "
+        "AND return_value=1", FARFIELD_TABLE);
+    success = success &&
+        expect_count(database, query, before_farfield / 5 + 1);
     snprintf(query, sizeof(query),
         "SELECT count(*) FROM ("
-        "SELECT executed_at_us,duration_ns FROM amcore_free_space_wavelength WHERE id>%lld "
-        "UNION ALL SELECT executed_at_us,duration_ns FROM amcore_far_field_distance WHERE id>%lld"
+        "SELECT executed_at_us,duration_ns FROM \"%s\" WHERE id>%lld "
+        "UNION ALL SELECT executed_at_us,duration_ns FROM \"%s\" WHERE id>%lld"
         ") WHERE executed_at_us >= %lld AND executed_at_us <= %lld "
         "AND typeof(executed_at_us)='integer' AND typeof(duration_ns)='integer' "
         "AND duration_ns>=0 AND duration_ns<60000000000",
-        (long long)before_wavelength, (long long)before_farfield,
+        WAVELENGTH_TABLE, (long long)before_wavelength,
+        FARFIELD_TABLE, (long long)before_farfield,
         (long long)started * 1000000, ((long long)time(NULL) + 1) * 1000000);
     success = success && expect_count(database, query, 15);
     snprintf(query, sizeof(query),
-        "SELECT count(*) FROM amcore_far_field_distance f "
-        "JOIN amcore_free_space_wavelength w ON w.id=%lld "
+        "SELECT count(*) FROM \"%s\" f "
+        "JOIN \"%s\" w ON w.id=%lld "
         "WHERE f.id=%lld AND f.executed_at_us<=w.executed_at_us "
         "AND f.duration_ns>=w.duration_ns",
+        FARFIELD_TABLE, WAVELENGTH_TABLE,
         (long long)before_wavelength + 8, (long long)before_farfield + 1);
     success = success && expect_count(database, query, 1);
     if (sqlite3_close(database) != SQLITE_OK) {

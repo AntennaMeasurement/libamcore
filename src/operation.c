@@ -124,7 +124,8 @@ static int valid_fields(const amcore_operation_field *fields, size_t count,
                         size_t previous_count)
 {
     static const char *reserved[] = {
-        "id", "output_is_null", "return_value", "executed_at_us", "duration_ns"
+        "id", "version", "output_is_null", "return_value",
+        "executed_at_us", "duration_ns"
     };
     size_t i, j;
 

@@ -43,7 +43,8 @@ target_link_libraries(my_app PRIVATE amcore::amcore)
 ## Desktop operation logging
 
 Enable `AMCORE_ENABLE_OPERATION_LOGGING` to store successful, failed, and nested
-calls in `libamcore.db`, with one table per public calculation function.
+calls in `libamcore.db`, with one table per public calculation function and
+library version.
 SQLite 3.24+ development files must be available to CMake
 (`find_package(SQLite3 3.24)`).
 With vcpkg, use the repository's manifest feature so the dependency is installed
@@ -88,11 +89,19 @@ The database directory is `%LOCALAPPDATA%\libamcore` on Windows,
 `~/Library/Application Support/libamcore` on macOS. Directories are created
 automatically; relative or missing Linux XDG locations fall back to HOME.
 
-Tables `amcore_free_space_wavelength` and `amcore_far_field_distance` contain an
-integer `id`, named numeric inputs (`frequency_hz`, plus `aperture_length_m` for
-far-field calls), `output_is_null`, the status code `return_value`, and the
-numeric result (`wavelength_m` or `distance_m`, NULL on failure). Non-finite
-inputs are stored as text `NaN`, `+Infinity`, or `-Infinity`.
+Tables are named `amcore_free_space_wavelength_<version>` and
+`amcore_far_field_distance_<version>`, using the libamcore project version
+(for example, `amcore_free_space_wavelength_0.2.0`). A new library version
+creates new tables and leaves tables from older releases, including the
+unversioned tables used before versioned logging, unchanged. When a table from
+an earlier build of the same release lacks the `version` column, logging adds
+it and assigns the current project version to existing rows. Each table
+contains an integer `id`, a `version` text column holding the project version,
+named numeric inputs (`frequency_hz`, plus
+`aperture_length_m` for far-field calls), `output_is_null`, the status code
+`return_value`, and the numeric result (`wavelength_m` or `distance_m`, NULL on
+failure). Non-finite inputs are stored as text `NaN`, `+Infinity`, or
+`-Infinity`.
 `executed_at_us` is the UTC start time in Unix-epoch microseconds;
 `duration_ns` is monotonic elapsed time in nanoseconds. Duration excludes the
 call's own write but includes nested calls and their logging.
@@ -150,6 +159,7 @@ nested calls. Example payload:
 
 ```json
 {
+  "version": "0.2.0",
   "function": "amcore_free_space_wavelength",
   "inputs": {"frequency_hz": 1000000000},
   "output_is_null": false,

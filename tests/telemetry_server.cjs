@@ -61,8 +61,9 @@ function verifyEvents(started, finished) {
     assert.equal(events.length, 15, 'all successful, failed and nested calls must be sent');
     for (const event of events) {
         assert.deepEqual(Object.keys(event).sort(),
-            ['function', 'inputs', 'output_is_null', 'return_value', 'output',
+            ['version', 'function', 'inputs', 'output_is_null', 'return_value', 'output',
                 'executed_at_us', 'duration_ns'].sort());
+        assert.match(event.version, /^\d+\.\d+\.\d+$/);
         assert.ok(Number.isInteger(event.executed_at_us));
         assert.ok(event.executed_at_us >= started * 1000);
         assert.ok(event.executed_at_us <= finished * 1000);

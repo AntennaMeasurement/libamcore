@@ -234,12 +234,54 @@ static int bind_field(sqlite3_stmt *statement, int index,
     return SQLITE_MISUSE;
 }
 
+static int ensure_version_column(sqlite3 *database, const char *table_name)
+{
+    sqlite3_stmt *statement = NULL;
+    char *sql = sqlite3_mprintf("PRAGMA table_info(\"%w\")", table_name);
+    int found = 0;
+    int rc;
+
+    if (sql == NULL) {
+        return SQLITE_NOMEM;
+    }
+    rc = sqlite3_prepare_v2(database, sql, -1, &statement, NULL);
+    sqlite3_free(sql);
+    if (rc != SQLITE_OK) {
+        return rc;
+    }
+    while ((rc = sqlite3_step(statement)) == SQLITE_ROW) {
+        const unsigned char *name = sqlite3_column_text(statement, 1);
+        if (name != NULL && strcmp((const char *)name, "version") == 0) {
+            found = 1;
+        }
+    }
+    if (rc != SQLITE_DONE) {
+        sqlite3_finalize(statement);
+        return rc;
+    }
+    rc = sqlite3_finalize(statement);
+    if (rc != SQLITE_OK || found) {
+        return rc;
+    }
+
+    sql = sqlite3_mprintf(
+        "ALTER TABLE \"%w\" ADD COLUMN version TEXT NOT NULL DEFAULT %Q",
+        table_name, AMCORE_VERSION);
+    if (sql == NULL) {
+        return SQLITE_NOMEM;
+    }
+    rc = sqlite3_exec(database, sql, NULL, NULL, NULL);
+    sqlite3_free(sql);
+    return rc;
+}
+
 void amcore_operation_log_write(const amcore_operation_event *event)
 {
     sqlite3 *database = NULL;
     sqlite3_stmt *statement = NULL;
     sqlite3_str *builder;
     char *path;
+    char *table_name = NULL;
     char *sql = NULL;
     size_t i;
     int index = 1;
@@ -260,9 +302,14 @@ void amcore_operation_log_write(const amcore_operation_event *event)
     if (rc != SQLITE_OK) {
         goto cleanup;
     }
+    table_name = sqlite3_mprintf("%s_%s", event->function_name, AMCORE_VERSION);
+    if (table_name == NULL) {
+        rc = SQLITE_NOMEM;
+        goto cleanup;
+    }
     builder = sqlite3_str_new(database);
     sqlite3_str_appendf(builder, "CREATE TABLE IF NOT EXISTS \"%w\" ("
-        "id INTEGER PRIMARY KEY", event->function_name);
+        "id INTEGER PRIMARY KEY, version TEXT NOT NULL", table_name);
     for (i = 0; i < event->input_count; ++i)
         sqlite3_str_appendf(builder, ", \"%w\" %s", event->inputs[i].name,
                             column_type(event->inputs[i].type));
@@ -284,15 +331,19 @@ void amcore_operation_log_write(const amcore_operation_event *event)
     if (rc != SQLITE_OK) {
         goto cleanup;
     }
+    rc = ensure_version_column(database, table_name);
+    if (rc != SQLITE_OK) {
+        goto cleanup;
+    }
     builder = sqlite3_str_new(database);
     sqlite3_str_appendf(builder, "INSERT INTO \"%w\" ("
-        "output_is_null, return_value, executed_at_us, duration_ns",
-        event->function_name);
+        "version, output_is_null, return_value, executed_at_us, duration_ns",
+        table_name);
     for (i = 0; i < event->input_count; ++i)
         sqlite3_str_appendf(builder, ", \"%w\"", event->inputs[i].name);
     for (i = 0; i < event->output_count; ++i)
         sqlite3_str_appendf(builder, ", \"%w\"", event->outputs[i].name);
-    sqlite3_str_appendall(builder, ") VALUES (?, ?, ?, ?");
+    sqlite3_str_appendall(builder, ") VALUES (?, ?, ?, ?, ?");
     for (i = 0; i < event->input_count; ++i)
         sqlite3_str_appendall(builder, ", ?");
     for (i = 0; i < event->output_count; ++i)
@@ -307,7 +358,10 @@ void amcore_operation_log_write(const amcore_operation_event *event)
     if (rc != SQLITE_OK) {
         goto cleanup;
     }
-    rc = sqlite3_bind_int(statement, index++, event->output_is_null);
+    rc = sqlite3_bind_text(statement, index++, AMCORE_VERSION, -1, SQLITE_STATIC);
+    if (rc == SQLITE_OK) {
+        rc = sqlite3_bind_int(statement, index++, event->output_is_null);
+    }
     if (rc == SQLITE_OK) {
         rc = sqlite3_bind_int(statement, index++, event->status);
     }
@@ -331,6 +385,7 @@ void amcore_operation_log_write(const amcore_operation_event *event)
 
 cleanup:
     sqlite3_free(sql);
+    sqlite3_free(table_name);
     if (rc != SQLITE_OK) {
         report_error(database != NULL ? sqlite3_errmsg(database) : sqlite3_errstr(rc));
     }

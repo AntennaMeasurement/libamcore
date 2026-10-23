@@ -83,8 +83,14 @@ Missing directories are created automatically. Windows paths support Unicode.
 The relevant environment variables must resolve to an absolute user directory;
 there is no fallback to the current working directory.
 
-Tables are named `amcore_free_space_wavelength` and
-`amcore_far_field_distance`. Each row contains:
+Tables are named `amcore_free_space_wavelength_<version>` and
+`amcore_far_field_distance_<version>`, where `<version>` is the libamcore
+project version (for example, `amcore_free_space_wavelength_0.2.0`). Each
+release writes to its own tables; existing tables, including the unversioned
+tables created by older releases, are left unchanged. Each row includes a
+`version` text column containing that same project version. If a table already
+exists from an earlier build of this release without that column, logging adds
+it and assigns the current version to existing rows:
 
 - `id`: generated integer primary key.
 - Named input columns: `frequency_hz`, and `aperture_length_m` for far-field
@@ -135,9 +141,10 @@ before distribution. Installed CMake consumers discover these automatically;
 shared runtime dependencies must be distributed separately.
 
 Every calculation, including failures and nested calls, sends one synchronous
-JSON POST with named inputs, output-pointer nullness, status, successful output,
-UTC start time and duration. Errors go to stderr with `amcore telemetry:` and
-never change calculation results or exit status. There is no retry, queue,
+JSON POST with the library `version`, named inputs, output-pointer nullness,
+status, successful output, UTC start time and duration. Errors go to stderr
+with `amcore telemetry:` and never change calculation results or exit status.
+There is no retry, queue,
 disk storage, runtime toggle, or authentication configuration. Redirects are
 not followed on desktop. Telemetry transmits potentially sensitive calculation
 data; enable it only with appropriate consent and a trusted HTTPS endpoint.

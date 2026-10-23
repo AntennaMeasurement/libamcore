@@ -33,6 +33,9 @@ set_target_properties(amcore PROPERTIES
 target_compile_features(amcore PRIVATE c_std_99)
 if(AMCORE_ENABLE_OPERATION_LOGGING OR AMCORE_ENABLE_TELEMETRY)
     target_sources(amcore PRIVATE src/operation.c)
+    target_compile_definitions(amcore PRIVATE
+        "AMCORE_VERSION=\"${PROJECT_VERSION}\""
+    )
 endif()
 if(AMCORE_ENABLE_OPERATION_LOGGING)
     if(EMSCRIPTEN OR AMCORE_BUILD_WASM OR
@@ -255,6 +258,8 @@ if(BUILD_TESTING)
         add_executable(amcore_operation_field_tests
             tests/test_operation_fields.c src/operation.c)
         target_compile_features(amcore_operation_field_tests PRIVATE c_std_99)
+        target_compile_definitions(amcore_operation_field_tests PRIVATE
+            "AMCORE_VERSION=\"${PROJECT_VERSION}\"")
         target_include_directories(amcore_operation_field_tests PRIVATE include src)
         if(AMCORE_ENABLE_OPERATION_LOGGING)
             target_sources(amcore_operation_field_tests PRIVATE src/operation_log.c)
@@ -277,6 +282,8 @@ if(BUILD_TESTING)
     if(AMCORE_ENABLE_OPERATION_LOGGING)
         add_executable(amcore_operation_log_tests tests/test_operation_log.c)
         target_compile_features(amcore_operation_log_tests PRIVATE c_std_99)
+        target_compile_definitions(amcore_operation_log_tests PRIVATE
+            "AMCORE_VERSION=\"${PROJECT_VERSION}\"")
         target_link_libraries(amcore_operation_log_tests PRIVATE
             amcore::amcore SQLite::SQLite3)
         if(MINGW)
