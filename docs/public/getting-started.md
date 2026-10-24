@@ -89,6 +89,12 @@ builds, including embedded Linux. See
 for database locations, schema, timing, error handling, and data-retention
 considerations.
 
+On desktop Windows, Linux, and macOS, operation logging and telemetry can be
+enabled together by setting both `AMCORE_ENABLE_OPERATION_LOGGING=ON` and
+`AMCORE_ENABLE_TELEMETRY=ON`. The combined build requires SQLite and
+libwebsockets; see
+[the combined desktop configuration](cmake-integration.md#enable-both-on-desktop).
+
 ## Optional telemetry
 
 Telemetry is disabled by default and independent of SQLite logging.

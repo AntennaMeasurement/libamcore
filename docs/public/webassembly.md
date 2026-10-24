@@ -28,6 +28,8 @@ the WebAssembly module has no logging, database, or native filesystem dependency
 ## Telemetry
 
 `AMCORE_ENABLE_TELEMETRY=ON` selects Emscripten Fetch instead of libwebsockets.
+This is telemetry-only: SQLite operation logging remains unsupported for
+WebAssembly and cannot be enabled in this configuration.
 Unlike the default standalone module, this build produces `amcore.js` plus
 `amcore.wasm` and any toolchain-generated worker script. Deploy these files
 together. The JavaScript module factory is `createAmcore`; calculation exports

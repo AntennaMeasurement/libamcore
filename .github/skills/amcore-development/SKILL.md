@@ -51,7 +51,8 @@ not a substitute for code.
 - `AMCORE_ENABLE_OPERATION_LOGGING` is off by default and supported only on
   desktop Windows, Linux, and macOS. Keep it disabled for embedded targets
   (including embedded Linux) and WebAssembly; do not add dependencies to the
-  disabled build.
+  disabled build. On supported desktop targets, it can be enabled together with
+  telemetry.
 - Reuse `src/operation_log.h` instrumentation and `src/operation_log.c` when
   changing calculations. Instrument every return path, including failures;
   preserve nested-call records. Declare named typed input/output collections
@@ -116,7 +117,8 @@ not a substitute for code.
 
 - `AMCORE_ENABLE_TELEMETRY` is off by default and independent of SQLite logging.
   `AMCORE_TELEMETRY_ENDPOINT` is required when enabled; there is no default URL
-  or runtime toggle. Keep it disabled on embedded targets, including Linux.
+  or runtime toggle. It can be combined with SQLite logging on desktop Windows,
+  Linux, and macOS. Keep it disabled on embedded targets, including Linux.
 - Reuse `src/operation_log.h` instrumentation and shared `src/operation.c`
   timing. Capture duration before dispatching either sink, write SQLite first
   when enabled, then send telemetry. Preserve nested and failed calls and

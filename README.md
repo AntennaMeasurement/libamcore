@@ -8,6 +8,9 @@ and has no operating-system or platform-specific dependencies. Optional desktop
 operation logging adds SQLite and native filesystem/clock dependencies.
 Independent, opt-in telemetry adds HTTP delivery using libwebsockets on desktop
 or Emscripten Fetch on WebAssembly. Both features are disabled by default.
+On desktop Windows, Linux, and macOS, logging and telemetry may be enabled
+together; WebAssembly supports telemetry without logging, and embedded targets
+keep both disabled.
 
 ## Modules and Functions
 
@@ -74,6 +77,21 @@ with the vcpkg toolchain and enable the `operation-logging` manifest feature.
 See [vcpkg](#vcpkg) for a complete command. Installed CMake packages resolve
 SQLite for consumers automatically. SQLite must also be available at runtime
 when linked dynamically; it is not bundled in the libamcore package.
+
+On desktop Windows, Linux, and macOS, operation logging and telemetry can be
+enabled together. The combined vcpkg configuration needs both dependency
+features; replace the example endpoint with your trusted HTTP(S) endpoint:
+
+```powershell
+cmake -S . -B build-desktop-observability `
+  "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
+  "-DVCPKG_MANIFEST_FEATURES=telemetry;operation-logging" `
+  -DAMCORE_ENABLE_OPERATION_LOGGING=ON `
+  -DAMCORE_ENABLE_TELEMETRY=ON `
+  -DAMCORE_TELEMETRY_ENDPOINT=https://telemetry.example.com/events `
+  -DBUILD_TESTING=OFF
+cmake --build build-desktop-observability --config Release
+```
 
 The database is named `libamcore.db` (from the library's CMake project name,
 not the consuming application's name) and is created on the first call:

@@ -31,7 +31,9 @@ the current implementation**.
   including failed and nested calls, without changing the public C API.
 - Independent opt-in telemetry: synchronous JSON POST per successful, failed,
   and nested calculation; libwebsockets on desktop and Emscripten Fetch from
-  pthread workers on WebAssembly. Embedded telemetry is deferred.
+  pthread workers on WebAssembly. Both telemetry and SQLite logging can be
+  enabled together on desktop Windows, Linux, and macOS. WebAssembly supports
+  telemetry without logging; embedded support is deferred.
 
 Near-field calculations, chamber design, device control, pattern processing,
 and post-processing are not currently exposed by the library. Confirm against
@@ -149,8 +151,10 @@ Useful configure options:
   not a verified service. Errors go to stderr without changing API results.
   Telemetry CTest configurations require Node.js and an unused loopback
   endpoint such as `http://127.0.0.1:18765/events`; remote test endpoints are
-  rejected. Both telemetry and logging can be enabled; duration is captured
-  before either sink, and database writes precede transmission.
+  rejected. On desktop Windows, Linux, and macOS, telemetry and logging can be
+  enabled together; duration is captured before either sink, and database
+  writes precede transmission. WebAssembly supports telemetry only; embedded
+  Linux must leave both options off.
   Emscripten telemetry requires AMCORE_BUILD_WASM and pthread worker calls,
   emits JS glue + WASM, and needs browser cross-origin isolation and CORS.
   Main-browser-thread calls report an explicit telemetry error but retain

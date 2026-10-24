@@ -65,6 +65,9 @@ The feature is available only on desktop Windows, Linux, and macOS, not
 WebAssembly or embedded targets. See
 [desktop operation logging](cmake-integration.md#desktop-operation-logging)
 for dependency setup, database locations, schema, timing, and retention limits.
+On supported desktop systems, logging can be enabled together with telemetry;
+the combined dependency setup is documented in the
+[CMake guide](cmake-integration.md#enable-both-on-desktop).
 
 ### Call history
 
@@ -137,10 +140,15 @@ neither advertise nor recognize `history`.
 ## Telemetry
 
 Telemetry is a separate compile-time option, disabled by default.
-`AMCORE_ENABLE_TELEMETRY=ON` requires `AMCORE_TELEMETRY_ENDPOINT` and a
-desktop libwebsockets dependency. General, module, and calculation help report
+`AMCORE_ENABLE_TELEMETRY=ON` requires `AMCORE_TELEMETRY_ENDPOINT`; desktop
+builds require libwebsockets, while WebAssembly uses Emscripten Fetch. General,
+module, and calculation help report
 `Telemetry: enabled` or `Telemetry: disabled`; enabled help shows the endpoint.
 There are no runtime telemetry flags.
+
+Logging and telemetry can be enabled together on desktop Windows, Linux, and
+macOS only. WebAssembly supports telemetry without logging; embedded builds
+should keep both options disabled.
 
 Calculation calls, including failures and nested calls, send JSON POST events.
 Parsing failures, help and version do not invoke calculations or send events.

@@ -40,6 +40,10 @@ target_link_libraries(my_app PRIVATE amcore::amcore)
 | `AMCORE_TELEMETRY_ENDPOINT`       | empty   | Required absolute HTTP(S) endpoint when telemetry is enabled; no default destination.                                                                             |
 | `AMCORE_TELEMETRY_CA_FILE`        | empty   | Optional desktop PEM CA bundle path; otherwise use the TLS backend's default trust sources. Browser Fetch ignores this option.                                    |
 
+On desktop Windows, Linux, and macOS, logging and telemetry can be enabled
+together. WebAssembly supports telemetry but not SQLite operation logging;
+embedded builds should keep both options disabled.
+
 ## Desktop operation logging
 
 Enable `AMCORE_ENABLE_OPERATION_LOGGING` to store successful, failed, and nested
@@ -153,6 +157,26 @@ TLS support. CMake uses its `Libwebsockets` config package and the exported
 `telemetry` and installs libwebsockets; enable both manifest features with
 `"-DVCPKG_MANIFEST_FEATURES=telemetry;operation-logging"` when enabling both
 instrumentation options.
+
+### Enable both on desktop
+
+For desktop Windows, Linux, and macOS, enable both CMake options and both vcpkg
+features. The build uses SQLite for local records and libwebsockets for HTTP
+delivery; when both sinks are active, SQLite is written before telemetry is
+sent. Replace the example endpoint with a trusted service. Use
+`BUILD_TESTING=OFF` for a production endpoint; telemetry tests require a
+loopback endpoint instead.
+
+```powershell
+cmake -S . -B build-desktop-observability `
+  "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
+  "-DVCPKG_MANIFEST_FEATURES=telemetry;operation-logging" `
+  -DAMCORE_ENABLE_OPERATION_LOGGING=ON `
+  -DAMCORE_ENABLE_TELEMETRY=ON `
+  -DAMCORE_TELEMETRY_ENDPOINT=https://telemetry.example.com/events `
+  -DBUILD_TESTING=OFF
+cmake --build build-desktop-observability --config Release
+```
 
 Example (PowerShell, `VCPKG_ROOT` pointing to vcpkg):
 

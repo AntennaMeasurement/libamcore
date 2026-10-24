@@ -56,6 +56,9 @@ Logging failures emit a diagnostic to stderr but do not change API results.
 
 This desktop-only option adds synchronous filesystem access, memory allocation,
 and a SQLite dependency. Leave it off for embedded and WebAssembly targets.
+On desktop Windows, Linux, and macOS, it can be enabled alongside telemetry;
+WebAssembly supports telemetry only, and embedded builds should keep both
+options disabled.
 See [desktop operation logging](cmake-integration.md#desktop-operation-logging)
 for paths, exact columns and units, timing boundaries, and operational limits.
 
