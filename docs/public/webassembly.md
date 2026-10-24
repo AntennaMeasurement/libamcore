@@ -34,23 +34,13 @@ together. The JavaScript module factory is `createAmcore`; calculation exports
 and `malloc`/`free` and the `HEAPF64` memory view are available. The installed CMake library target propagates
 `-pthread` and `-sFETCH=1` to applications linking it.
 
-Telemetry also requires a cJSON library built for WebAssembly, not a native
-desktop library. For example, build and install upstream cJSON first (the
-`-pthread` flag makes it compatible with the telemetry module's shared memory):
-
-```sh
-git clone --depth 1 --branch v1.7.19 https://github.com/DaveGamble/cJSON.git cjson-src
-emcmake cmake -S cjson-src -B cjson-build \
-  -DCMAKE_INSTALL_PREFIX="$PWD/cjson-install" \
-  -DCMAKE_C_FLAGS=-pthread -DBUILD_SHARED_LIBS=OFF \
-  -DENABLE_CJSON_TEST=OFF -DENABLE_CJSON_UTILS=OFF
-cmake --build cjson-build
-cmake --install cjson-build
-```
+Telemetry builds fetch coreJSON v3.3.1 during CMake configuration and compile
+the validator for WebAssembly. For offline builds, point
+`FETCHCONTENT_SOURCE_DIR_COREJSON` at a local coreJSON checkout. The serialized
+request body is capped at 1 MiB.
 
 ```sh
 emcmake cmake -S . -B build-wasm-telemetry \
-  -DCMAKE_PREFIX_PATH="$PWD/cjson-install" \
   -DAMCORE_BUILD_WASM=ON \
   -DAMCORE_BUILD_CLI=OFF \
   -DBUILD_TESTING=OFF \

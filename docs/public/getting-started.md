@@ -8,8 +8,8 @@
   is enabled (not required by the default build)
 - libwebsockets 4.3+ with HTTP client/TLS support only for desktop telemetry;
   Node.js additionally for its loopback integration tests
-- cJSON development headers, library and CMake config package for all enabled
-  telemetry builds (not required when telemetry is disabled)
+- coreJSON v3.3.1 source fetched during telemetry-enabled CMake configuration
+  (or provide a local checkout with `FETCHCONTENT_SOURCE_DIR_COREJSON`)
 
 ## Build
 
@@ -93,9 +93,10 @@ considerations.
 
 Telemetry is disabled by default and independent of SQLite logging.
 Enable `AMCORE_ENABLE_TELEMETRY` and supply `AMCORE_TELEMETRY_ENDPOINT` at
-configuration time. Desktop builds use libwebsockets (vcpkg feature
-`telemetry`, which also provides cJSON); Emscripten builds use Fetch from pthread
-worker threads and require cJSON built with the Emscripten toolchain.
+configuration time. CMake fetches coreJSON v3.3.1 for JSON validation;
+desktop builds use libwebsockets (vcpkg feature `telemetry`), while Emscripten
+builds use Fetch from pthread worker threads. Serialized request bodies have a
+1 MiB maximum.
 Embedded support is deferred. See
 [telemetry setup](cmake-integration.md#telemetry) for complete build examples,
 TLS trust, JSON payloads, isolated tests and privacy considerations.

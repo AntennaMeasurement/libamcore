@@ -139,7 +139,7 @@ static const struct lws_protocols protocols[] = {
     {NULL, NULL, 0, 0, 0, NULL, 0}
 };
 
-void amcore_telemetry_send(const char *json)
+void amcore_telemetry_send(const char *json, size_t length)
 {
     telemetry_request request;
     struct lws_context_creation_info context_info;
@@ -154,8 +154,9 @@ void amcore_telemetry_send(const char *json)
 
     memset(&request, 0, sizeof(request));
     request.json = json;
-    request.length = strlen(json);
-    if (request.length > INT_MAX || request.length > SIZE_MAX - LWS_PRE) {
+    request.length = length;
+    if (request.length > AMCORE_TELEMETRY_MAX_BODY_SIZE ||
+        request.length > INT_MAX || request.length > SIZE_MAX - LWS_PRE) {
         report_error("HTTP request body exceeds transport limits");
         return;
     }

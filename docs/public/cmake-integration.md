@@ -29,16 +29,16 @@ target_link_libraries(my_app PRIVATE amcore::amcore)
 
 ## Configure options
 
-| Option | Default | Effect |
-| --- | --- | --- |
-| `BUILD_SHARED_LIBS` | `OFF` | Build a shared library instead of a static library. |
-| `AMCORE_BUILD_CLI` | `ON` | Build and install the `amcore` command-line tool. |
-| `BUILD_TESTING` | `OFF` | Build and register the tests. |
-| `AMCORE_BUILD_WASM` | `OFF` | Build the standalone WebAssembly target; requires the Emscripten toolchain. |
-| `AMCORE_ENABLE_OPERATION_LOGGING` | `OFF` | Record public calculation calls in SQLite on desktop Windows, Linux, or macOS. Not supported for WebAssembly or bare-metal targets; leave off for embedded Linux. |
-| `AMCORE_ENABLE_TELEMETRY` | `OFF` | Send calculation events as synchronous JSON POSTs. Uses libwebsockets on desktop and Emscripten Fetch on WebAssembly. Leave off for embedded builds. |
-| `AMCORE_TELEMETRY_ENDPOINT` | empty | Required absolute HTTP(S) endpoint when telemetry is enabled; no default destination. |
-| `AMCORE_TELEMETRY_CA_FILE` | empty | Optional desktop PEM CA bundle path; otherwise use the TLS backend's default trust sources. Browser Fetch ignores this option. |
+| Option                            | Default | Effect                                                                                                                                                            |
+| --------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BUILD_SHARED_LIBS`               | `OFF`   | Build a shared library instead of a static library.                                                                                                               |
+| `AMCORE_BUILD_CLI`                | `ON`    | Build and install the `amcore` command-line tool.                                                                                                                 |
+| `BUILD_TESTING`                   | `OFF`   | Build and register the tests.                                                                                                                                     |
+| `AMCORE_BUILD_WASM`               | `OFF`   | Build the standalone WebAssembly target; requires the Emscripten toolchain.                                                                                       |
+| `AMCORE_ENABLE_OPERATION_LOGGING` | `OFF`   | Record public calculation calls in SQLite on desktop Windows, Linux, or macOS. Not supported for WebAssembly or bare-metal targets; leave off for embedded Linux. |
+| `AMCORE_ENABLE_TELEMETRY`         | `OFF`   | Send calculation events as synchronous JSON POSTs. Uses libwebsockets on desktop and Emscripten Fetch on WebAssembly. Leave off for embedded builds.              |
+| `AMCORE_TELEMETRY_ENDPOINT`       | empty   | Required absolute HTTP(S) endpoint when telemetry is enabled; no default destination.                                                                             |
+| `AMCORE_TELEMETRY_CA_FILE`        | empty   | Optional desktop PEM CA bundle path; otherwise use the TLS backend's default trust sources. Browser Fetch ignores this option.                                    |
 
 ## Desktop operation logging
 
@@ -131,16 +131,17 @@ matching version without a row limit. Detail selection cannot use `--limit`.
 
 Telemetry and operation logging are independent and may be enabled together.
 Disabled telemetry has no network dependency, allocation, clocks or I/O.
-All enabled telemetry builds use cJSON for JSON serialization; provide its
-`cJSON` config package and exported `cjson` target. cJSON handles text escaping,
-finite floating-point formatting, and dynamically sized output. Exact 64-bit
-integers use internally formatted integer literals rather than conversion to
-cJSON's double-based number representation. Do not change cJSON's global
-allocation hooks or the process locale while library calls are in progress.
+Telemetry builds fetch coreJSON v3.3.1 during CMake configuration and compile
+its validator into the telemetry-enabled library. For offline builds, set
+`FETCHCONTENT_SOURCE_DIR_COREJSON` to a local coreJSON checkout. The telemetry
+encoder escapes strings, preserves exact 64-bit integer literals, and validates
+the completed document with coreJSON. Serialized request bodies are limited to
+1 MiB; larger events are reported to stderr and are not sent, without changing
+calculation results. Installed consumers do not need a coreJSON package.
 Desktop telemetry requires libwebsockets 4.3+ configured with HTTP client and
 TLS support. CMake uses its `Libwebsockets` config package and the exported
 `websockets_shared` or `websockets` target. The vcpkg manifest feature is
-`telemetry` and installs both cJSON and libwebsockets; enable both manifest features with
+`telemetry` and installs libwebsockets; enable both manifest features with
 `"-DVCPKG_MANIFEST_FEATURES=telemetry;operation-logging"` when enabling both
 instrumentation options.
 
@@ -260,12 +261,12 @@ Multiple inputs and outputs are supported without backend edits.
 
 Descriptors currently support:
 
-| Type | `data` points to | SQLite | JSON |
-| --- | --- | --- | --- |
-| `AMCORE_OPERATION_DOUBLE` | `double` | REAL; non-finite values as text | number or non-finite string |
-| `AMCORE_OPERATION_INT64` | `int64_t` | INTEGER (exact 64-bit value) | integer literal |
-| `AMCORE_OPERATION_BOOL` | `int` | INTEGER 0/1 | boolean |
-| `AMCORE_OPERATION_TEXT` | NUL-terminated UTF-8 text | TEXT | escaped string |
+| Type                      | `data` points to          | SQLite                          | JSON                        |
+| ------------------------- | ------------------------- | ------------------------------- | --------------------------- |
+| `AMCORE_OPERATION_DOUBLE` | `double`                  | REAL; non-finite values as text | number or non-finite string |
+| `AMCORE_OPERATION_INT64`  | `int64_t`                 | INTEGER (exact 64-bit value)    | integer literal             |
+| `AMCORE_OPERATION_BOOL`   | `int`                     | INTEGER 0/1                     | boolean                     |
+| `AMCORE_OPERATION_TEXT`   | NUL-terminated UTF-8 text | TEXT                            | escaped string              |
 
 Null data is represented as SQL/JSON null, never an address. Output data is
 not read unless status is success. On failure all output columns are NULL

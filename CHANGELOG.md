@@ -2,7 +2,13 @@
 
 All notable changes for each release are documented here.
 
-## [v0.4.0] - 2026-10-23
+## [Unreleased]
+
+### Changed
+
+- Replace cJSON with coreJSON validation and cap telemetry JSON bodies at 1 MiB.
+
+## [v0.4.1] - 2026-10-23
 
 ### Changes
 

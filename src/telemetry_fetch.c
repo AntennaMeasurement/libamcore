@@ -10,7 +10,7 @@
 #error "AMCORE_TELEMETRY_ENDPOINT must be defined by the build system"
 #endif
 
-void amcore_telemetry_send(const char *json)
+void amcore_telemetry_send(const char *json, size_t length)
 {
     emscripten_fetch_attr_t attributes;
     emscripten_fetch_t *fetch;
@@ -21,13 +21,18 @@ void amcore_telemetry_send(const char *json)
               stderr);
         return;
     }
+    if (length > AMCORE_TELEMETRY_MAX_BODY_SIZE) {
+        fputs("amcore telemetry: HTTP request body exceeds the 1 MiB JSON body limit\n",
+              stderr);
+        return;
+    }
     emscripten_fetch_attr_init(&attributes);
     strcpy(attributes.requestMethod, "POST");
     attributes.attributes =
         EMSCRIPTEN_FETCH_SYNCHRONOUS | EMSCRIPTEN_FETCH_REPLACE;
     attributes.requestHeaders = headers;
     attributes.requestData = json;
-    attributes.requestDataSize = strlen(json);
+    attributes.requestDataSize = length;
     attributes.timeoutMSecs = 5000;
     fetch = emscripten_fetch(&attributes, AMCORE_TELEMETRY_ENDPOINT);
     if (fetch == NULL) {

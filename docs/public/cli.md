@@ -92,18 +92,18 @@ of calls. The ID is displayed first:
 +----+------------------------------+---------+------------------+--------------+-------------+
 | ID | Function                     | Version | executed_at_us   | return_value | duration_ns |
 +----+------------------------------+---------+------------------+--------------+-------------+
-| 12 | amcore_free_space_wavelength | 0.4.0   | 1700000000000024 | 0            | 1200        |
+| 12 | amcore_free_space_wavelength | 0.4.1   | 1700000000000024 | 0            | 1200        |
 +----+------------------------------+---------+------------------+--------------+-------------+
 ```
 
-| Column | Meaning |
-| --- | --- |
-| `ID` | Row identifier within the original function/version table |
-| `Function` | Library function name |
-| `Version` | Recorded library version |
-| `executed_at_us` | Call start time in UTC epoch microseconds |
-| `return_value` | Numeric library status: 0 success, 1 invalid argument, 2 out of range |
-| `duration_ns` | Call duration in nanoseconds |
+| Column           | Meaning                                                               |
+| ---------------- | --------------------------------------------------------------------- |
+| `ID`             | Row identifier within the original function/version table             |
+| `Function`       | Library function name                                                 |
+| `Version`        | Recorded library version                                              |
+| `executed_at_us` | Call start time in UTC epoch microseconds                             |
+| `return_value`   | Numeric library status: 0 success, 1 invalid argument, 2 out of range |
+| `duration_ns`    | Call duration in nanoseconds                                          |
 
 Rows are sorted by start time descending, then table name ascending and row id
 descending to break ties. Historical versioned tables lacking a `version`

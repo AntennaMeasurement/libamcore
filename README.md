@@ -78,11 +78,11 @@ when linked dynamically; it is not bundled in the libamcore package.
 The database is named `libamcore.db` (from the library's CMake project name,
 not the consuming application's name) and is created on the first call:
 
-| Platform | Database path |
-| --- | --- |
-| Windows | `%LOCALAPPDATA%\libamcore\libamcore.db` |
-| Linux | `$XDG_DATA_HOME/libamcore/libamcore.db`, or `~/.local/share/libamcore/libamcore.db` when XDG_DATA_HOME is unset, empty, or relative |
-| macOS | `~/Library/Application Support/libamcore/libamcore.db` |
+| Platform | Database path                                                                                                                       |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Windows  | `%LOCALAPPDATA%\libamcore\libamcore.db`                                                                                             |
+| Linux    | `$XDG_DATA_HOME/libamcore/libamcore.db`, or `~/.local/share/libamcore/libamcore.db` when XDG_DATA_HOME is unset, empty, or relative |
+| macOS    | `~/Library/Application Support/libamcore/libamcore.db`                                                                              |
 
 Missing directories are created automatically. Windows paths support Unicode.
 The relevant environment variables must resolve to an absolute user directory;
@@ -139,11 +139,12 @@ default or a verified telemetry service. Confirm that your server accepts JSON
 POST requests at the configured path before using it.
 
 Desktop builds require libwebsockets 4.3+ with HTTP client and TLS support
-(`find_package(Libwebsockets CONFIG)`). All telemetry builds also require cJSON
-(`find_package(cJSON CONFIG)`) for JSON serialization. The `telemetry` vcpkg
-feature provides both desktop dependencies. Review their licenses and dependencies
-before distribution. Installed CMake consumers discover these automatically;
-shared runtime dependencies must be distributed separately.
+(`find_package(Libwebsockets CONFIG)`). Telemetry builds fetch coreJSON v3.3.1
+during CMake configuration for validation; set `FETCHCONTENT_SOURCE_DIR_COREJSON`
+to a local checkout for offline builds. The `telemetry` vcpkg feature provides
+the desktop transport dependency. Serialized telemetry bodies are limited to
+1 MiB. Review dependency licenses before distribution; shared runtime
+dependencies must be distributed separately.
 
 Every calculation, including failures and nested calls, sends one synchronous
 JSON POST with the library `version`, named inputs, output-pointer nullness,

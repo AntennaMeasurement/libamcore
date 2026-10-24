@@ -1,12 +1,11 @@
 {
   "name": "libamcore",
-  "version-string": "0.4.0",
+  "version-string": "0.4.1",
   "description": "Core computational routines for antenna measurements",
   "features": {
     "telemetry": {
-      "description": "JSON serialization and desktop HTTP client dependencies for AMCORE_ENABLE_TELEMETRY",
+      "description": "Desktop HTTP client dependency for AMCORE_ENABLE_TELEMETRY; coreJSON is fetched by CMake",
       "dependencies": [
-        "cjson",
         "libwebsockets"
       ]
     },

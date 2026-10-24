@@ -17,6 +17,17 @@
             "cppStandard": "c++17",
             "intelliSenseMode": "windows-msvc-x64",
             "configurationProvider": "ms-vscode.cmake-tools"
+        },
+        // Add configuration for linux
+        {
+            "name": "Linux",
+            "compilerPath": "/usr/bin/gcc",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "cStandard": "c99",
+            "intelliSenseMode": "linux-gcc-x64"
         }
     ],
     "version": 4

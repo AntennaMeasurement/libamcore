@@ -39,32 +39,32 @@ the current headers before making claims about feature availability.
 
 ## Source map
 
-| Path | Responsibility |
-| --- | --- |
-| `include/amcore/amcore.h` | Umbrella public header |
-| `include/amcore/utility.h` | Status enum, export macro, speed-of-light constant, wavelength API |
-| `include/amcore/farfield.h` | Far-field distance public API |
-| `src/utility.c` | Wavelength computation and physical constant |
-| `src/farfield.c` | Far-field distance computation |
-| `src/operation_log.h`, `src/operation_log.c` | Compile-time instrumentation and optional desktop SQLite backend |
-| `src/operation.h`, `src/operation.c` | Shared call clocks and dispatch to enabled logging/telemetry sinks |
-| `src/telemetry.c`, `src/telemetry_backend.h` | JSON event serialization and private transport boundary |
-| `src/telemetry_libwebsockets.c`, `src/telemetry_fetch.c` | Desktop HTTP client and synchronous worker-only Emscripten Fetch |
-| `tests/test_telemetry.c`, `tests/telemetry_server.cjs` | Local-only telemetry integration, payload and failure tests |
-| `cli/main.c` | CLI argument parsing, module dispatch, diagnostics, and output |
-| `cli/history.c` | Logging-only SQLite call history across all function/version tables |
-| `src/operation_log_path.c` | Private database path resolver shared by logging and CLI history |
-| `tests/test_history.cmake`, `tests/history_fixture.c` | History ordering, limits, versions, read-only access, and errors |
-| `tests/test_amcore.c` | Library calculations, invalid inputs, and range behavior |
-| `tests/test_cli.cmake` | CLI integration checks |
-| `tests/test_operation_log.c`, `tests/test_operation_log.cmake` | SQLite records, timing, persistence, paths, and logging failure behavior |
-| `CMakeLists.txt` | Targets, options, tests, install/export/package configuration |
-| `.github/workflows/ci.yml` | Release-tag-only desktop builds and tests with logging/telemetry disabled, no WASM builds; lightweight version check and automatic tagging on `main` |
-| `README.md` | User build, install, CLI, and API guide |
-| `docs/public/api.json` | Versioned machine-readable API manifest with input schemas, units, statuses, examples, and existing telemetry fields; metadata only, not a server |
-| `docs/public/` | Public MkDocs pages and this agent context (excluded from the site) |
-| `.github/skills/amcore-development/SKILL.md` | Reusable development workflow and logging conventions |
-| `docs/standards/IEEE 149-2021 Recommended Practice for Antenna Measurements.pdf` | Project reference copy of IEEE Std 149-2021 |
+| Path                                                                             | Responsibility                                                                                                                                       |
+| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `include/amcore/amcore.h`                                                        | Umbrella public header                                                                                                                               |
+| `include/amcore/utility.h`                                                       | Status enum, export macro, speed-of-light constant, wavelength API                                                                                   |
+| `include/amcore/farfield.h`                                                      | Far-field distance public API                                                                                                                        |
+| `src/utility.c`                                                                  | Wavelength computation and physical constant                                                                                                         |
+| `src/farfield.c`                                                                 | Far-field distance computation                                                                                                                       |
+| `src/operation_log.h`, `src/operation_log.c`                                     | Compile-time instrumentation and optional desktop SQLite backend                                                                                     |
+| `src/operation.h`, `src/operation.c`                                             | Shared call clocks and dispatch to enabled logging/telemetry sinks                                                                                   |
+| `src/telemetry.c`, `src/telemetry_backend.h`                                     | JSON event serialization and private transport boundary                                                                                              |
+| `src/telemetry_libwebsockets.c`, `src/telemetry_fetch.c`                         | Desktop HTTP client and synchronous worker-only Emscripten Fetch                                                                                     |
+| `tests/test_telemetry.c`, `tests/telemetry_server.cjs`                           | Local-only telemetry integration, payload and failure tests                                                                                          |
+| `cli/main.c`                                                                     | CLI argument parsing, module dispatch, diagnostics, and output                                                                                       |
+| `cli/history.c`                                                                  | Logging-only SQLite call history across all function/version tables                                                                                  |
+| `src/operation_log_path.c`                                                       | Private database path resolver shared by logging and CLI history                                                                                     |
+| `tests/test_history.cmake`, `tests/history_fixture.c`                            | History ordering, limits, versions, read-only access, and errors                                                                                     |
+| `tests/test_amcore.c`                                                            | Library calculations, invalid inputs, and range behavior                                                                                             |
+| `tests/test_cli.cmake`                                                           | CLI integration checks                                                                                                                               |
+| `tests/test_operation_log.c`, `tests/test_operation_log.cmake`                   | SQLite records, timing, persistence, paths, and logging failure behavior                                                                             |
+| `CMakeLists.txt`                                                                 | Targets, options, tests, install/export/package configuration                                                                                        |
+| `.github/workflows/ci.yml`                                                       | Release-tag-only desktop builds and tests with logging/telemetry disabled, no WASM builds; lightweight version check and automatic tagging on `main` |
+| `README.md`                                                                      | User build, install, CLI, and API guide                                                                                                              |
+| `docs/public/api.json`                                                           | Versioned machine-readable API manifest with input schemas, units, statuses, examples, and existing telemetry fields; metadata only, not a server    |
+| `docs/public/`                                                                   | Public MkDocs pages and this agent context (excluded from the site)                                                                                  |
+| `.github/skills/amcore-development/SKILL.md`                                     | Reusable development workflow and logging conventions                                                                                                |
+| `docs/standards/IEEE 149-2021 Recommended Practice for Antenna Measurements.pdf` | Project reference copy of IEEE Std 149-2021                                                                                                          |
 
 ## Public API contract
 
@@ -138,9 +138,10 @@ Useful configure options:
   configuration as described in `README.md`.
 - `-DAMCORE_ENABLE_TELEMETRY=ON` and
   `-DAMCORE_TELEMETRY_ENDPOINT=<absolute-http-or-https-url>`: send every call
-  including failures/nesting. All telemetry builds require cJSON CONFIG and its
-  `cjson` target for serialization. Desktop additionally requires Libwebsockets
-  4.3+ CONFIG (vcpkg feature `telemetry` supplies both). No Mongoose dependency. Optional
+  including failures/nesting. CMake fetches coreJSON v3.3.1 and compiles its
+  validator into telemetry builds; `FETCHCONTENT_SOURCE_DIR_COREJSON` can point
+  to a local checkout for offline configuration. Desktop additionally requires
+  Libwebsockets 4.3+ CONFIG (vcpkg feature `telemetry` supplies it). No Mongoose dependency. Optional
   `AMCORE_TELEMETRY_CA_FILE` supplies a runtime-accessible PEM CA bundle;
   otherwise trust sources come from the TLS backend. Never disable
   certificate/hostname verification. No default endpoint, retries, queue,
@@ -213,9 +214,10 @@ Register fields in each new function using `AMCORE_OPERATION_FIELDS`,
 Supported scalars are double, int64_t, int boolean and UTF-8 text; empty and
 multiple output collections work. Both disabled means descriptor declarations
 and timing compile away. SQLite 3.24+ generates schema/bindings from descriptors;
-cJSON dynamically sizes and escapes JSON field values; int64 fields and timestamps
-use generated raw integer literals to avoid double precision loss. Do not change
-cJSON's global hooks or the process locale concurrently with calls. Keep each
+The bounded telemetry encoder escapes JSON field values and coreJSON validates
+completed bodies. Int64 fields and timestamps use integer literals to avoid
+double precision loss. Telemetry bodies are capped at 1 MiB; oversized events
+are skipped without changing calculations. Keep each
 versioned table schema stable within a project version; a new project version
 uses separate tables, leaving prior schemas and records untouched. See the
 instrumenting-new-functions section in CMake integration for pointer lifetimes,

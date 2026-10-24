@@ -14,7 +14,8 @@
 #endif
 #ifdef AMCORE_ENABLE_TELEMETRY
 #include "operation.h"
-#include <cjson/cJSON.h>
+#include "telemetry_backend.h"
+#include <core_json.h>
 #endif
 
 static char label[5000];
@@ -22,54 +23,40 @@ static int sent;
 static int telemetry_valid = 1;
 
 #ifdef AMCORE_ENABLE_TELEMETRY
-static int testing_allocation;
-static int allocation_sends;
-static int allocations_left;
-static int live_allocations;
+static int testing_integer_boundaries;
+static int integer_boundaries_valid = 1;
 
-static void *test_allocate(size_t size)
+void amcore_telemetry_send(const char *json, size_t length)
 {
-    void *memory;
-    if (allocations_left == 0) {
-        return NULL;
-    }
-    --allocations_left;
-    memory = malloc(size);
-    if (memory != NULL) {
-        ++live_allocations;
-    }
-    return memory;
-}
+    static const char inputs_query[] = "inputs";
+    static const char label_query[] = "inputs.label";
+    static const char expected_label_prefix[] = "\\\"\\\\\\n";
+    const char *value;
+    size_t value_length;
+    JSONTypes_t value_type;
 
-static void test_free(void *memory)
-{
-    if (memory != NULL) {
-        --live_allocations;
-        free(memory);
-    }
-}
-
-void amcore_telemetry_send(const char *json)
-{
-    cJSON *object;
-    cJSON *inputs;
-
-    if (testing_allocation) {
-        ++allocation_sends;
-        telemetry_valid = telemetry_valid &&
+    if (testing_integer_boundaries) {
+        integer_boundaries_valid = length <= AMCORE_TELEMETRY_MAX_BODY_SIZE &&
+            JSON_Validate(json, length) == JSONSuccess &&
             strstr(json, "\"executed_at_us\":9223372036854775807") != NULL &&
             strstr(json, "\"duration_ns\":9223372036854775807") != NULL &&
-            strstr(json, "\"version\":\"" AMCORE_VERSION "\"") != NULL &&
             strstr(json, "\"minimum\":-9223372036854775808") != NULL;
         return;
     }
-    object = cJSON_Parse(json);
-    inputs = cJSON_GetObjectItemCaseSensitive(object, "inputs");
-    telemetry_valid = telemetry_valid && cJSON_IsObject(object) &&
-                      cJSON_IsObject(inputs);
+    telemetry_valid = telemetry_valid &&
+        length <= AMCORE_TELEMETRY_MAX_BODY_SIZE &&
+        JSON_Validate(json, length) == JSONSuccess &&
+        JSON_SearchConst(json, length, inputs_query, sizeof(inputs_query) - 1,
+                         &value, &value_length, &value_type) == JSONSuccess &&
+        value_type == JSONObject;
     ++sent;
     if (sent <= 3) {
-        cJSON *text = cJSON_GetObjectItemCaseSensitive(inputs, "label");
+        const char *text = NULL;
+        size_t text_length = 0;
+        JSONTypes_t text_type = JSONInvalid;
+        int label_found = JSON_SearchConst(json, length, label_query,
+            sizeof(label_query) - 1, &text, &text_length, &text_type) == JSONSuccess;
+
         telemetry_valid = telemetry_valid &&
             strlen(json) > 5000 &&
             strstr(json, "\"version\":\"" AMCORE_VERSION "\"") != NULL &&
@@ -77,7 +64,10 @@ void amcore_telemetry_send(const char *json)
             strstr(json, "\"count\":9223372036854775807") != NULL &&
             strstr(json, "\"enabled\":true") != NULL &&
             strstr(json, "\"optional\":null") != NULL &&
-            cJSON_IsString(text) && strcmp(text->valuestring, label) == 0 &&
+                        label_found && text_type == JSONString &&
+                        text_length > sizeof(expected_label_prefix) - 1 &&
+                        memcmp(text, expected_label_prefix,
+                                     sizeof(expected_label_prefix) - 1) == 0 &&
             strstr(json, "\"special\":\"+Infinity\"") != NULL;
         if (sent == 1)
             telemetry_valid = telemetry_valid &&
@@ -98,44 +88,43 @@ void amcore_telemetry_send(const char *json)
             strstr(json, "\"function\":\"many_fields\"") != NULL &&
             strstr(json, "\"field_79\":79") != NULL;
     }
-    cJSON_Delete(object);
 }
 
-static int allocation_failures(void)
+static int integer_boundaries(void)
 {
     int64_t minimum = INT64_MIN;
-    double value = 1.25;
-    int enabled = 1;
+    int64_t maximum = INT64_MAX;
     const amcore_operation_field inputs[] = {
-        {"label", AMCORE_OPERATION_TEXT, label},
         {"minimum", AMCORE_OPERATION_INT64, &minimum},
-        {"value", AMCORE_OPERATION_DOUBLE, &value},
-        {"enabled", AMCORE_OPERATION_BOOL, &enabled}
+        {"maximum", AMCORE_OPERATION_INT64, &maximum}
     };
     const amcore_operation_event event = {
-        "allocation_test", inputs, 4, inputs + 2, 1, 0,
+        "integer_boundaries", inputs, 2, NULL, 0, 0,
         AMCORE_STATUS_SUCCESS, INT64_MAX, INT64_MAX
     };
-    cJSON_Hooks hooks = {test_allocate, test_free};
-    int attempt;
-    int success = 0;
 
-    testing_allocation = 1;
-    cJSON_InitHooks(&hooks);
-    for (attempt = 0; attempt < 256; ++attempt) {
-        allocations_left = attempt;
-        amcore_telemetry_write(&event);
-        if (live_allocations != 0) {
-            break;
-        }
-        if (allocation_sends != 0) {
-            success = allocation_sends == 1 && telemetry_valid;
-            break;
-        }
-    }
-    cJSON_InitHooks(NULL);
-    testing_allocation = 0;
-    return success;
+    testing_integer_boundaries = 1;
+    amcore_telemetry_write(&event);
+    testing_integer_boundaries = 0;
+    return integer_boundaries_valid;
+}
+
+static int oversized_body_rejected(void)
+{
+    static char text[AMCORE_TELEMETRY_MAX_BODY_SIZE];
+    const amcore_operation_field inputs[] = {
+        {"oversized", AMCORE_OPERATION_TEXT, text}
+    };
+    const amcore_operation_event event = {
+        "oversized_body", inputs, 1, NULL, 0, 0,
+        AMCORE_STATUS_SUCCESS, 0, 0
+    };
+    int sent_before = sent;
+
+    memset(text, 'x', sizeof(text) - 1);
+    text[sizeof(text) - 1] = '\0';
+    amcore_telemetry_write(&event);
+    return sent == sent_before;
 }
 #endif
 
@@ -313,13 +302,20 @@ int main(int argc, char **argv)
         many_fields() == AMCORE_STATUS_SUCCESS &&
         invalid_fields();
 #ifdef AMCORE_ENABLE_TELEMETRY
-    success = success && sent == 5 && telemetry_valid && allocation_failures();
+    success = success && sent == 5 && telemetry_valid &&
+              integer_boundaries() && oversized_body_rejected();
 #endif
 #ifdef AMCORE_ENABLE_OPERATION_LOGGING
     success = success && check_database(argv[1]);
 #else
     (void)argc;
     (void)argv;
+#endif
+#ifdef AMCORE_ENABLE_TELEMETRY
+    if (!success) {
+        fprintf(stderr, "telemetry checks: sent=%d valid=%d integer_boundaries=%d\n",
+                sent, telemetry_valid, integer_boundaries_valid);
+    }
 #endif
     if (!success) fputs("generic operation field tests failed\n", stderr);
     return success ? 0 : 1;

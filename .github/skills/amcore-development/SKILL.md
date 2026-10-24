@@ -121,11 +121,12 @@ not a substitute for code.
   timing. Capture duration before dispatching either sink, write SQLite first
   when enabled, then send telemetry. Preserve nested and failed calls and
   calculation behavior even when either sink fails.
-- Serialize the documented JSON shape with cJSON in `src/telemetry.c`. cJSON is
-  required only for telemetry, including an Emscripten-built library for WASM.
-  Preserve exact int64 literals with internally generated raw integer nodes;
-  never convert them to cJSON's double-based numbers or accept raw user JSON.
-  Do not change global cJSON allocation hooks in library code. Failed output is
+- Serialize the documented JSON shape in `src/telemetry.c` with a bounded
+  encoder validated by coreJSON. Telemetry builds fetch coreJSON v3.3.1 during
+  configuration; `FETCHCONTENT_SOURCE_DIR_COREJSON` supports offline builds.
+  Cap each request body at 1 MiB and skip oversized events without changing
+  calculation results. Preserve exact int64 literals and never accept raw user
+  JSON. Failed output is
   null, non-finite inputs are strings, and pointers/user identifiers are never
   sent. Report errors to stderr with `amcore telemetry:`.
 - Generic fields support double, int64_t, int boolean and UTF-8 text; null

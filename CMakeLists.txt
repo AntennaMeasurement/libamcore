@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(libamcore
-    VERSION 0.4.0
+    VERSION 0.4.1
     DESCRIPTION "Core computational routines for antenna measurements"
     LANGUAGES C
 )
@@ -57,8 +57,20 @@ if(AMCORE_ENABLE_TELEMETRY)
         message(FATAL_ERROR
             "AMCORE_TELEMETRY_ENDPOINT must be an absolute HTTP(S) URL with a hostname, optional port and path; credentials, fragments and IPv6 literals are not supported")
     endif()
-    find_package(cJSON CONFIG REQUIRED)
-    target_link_libraries(amcore PRIVATE cjson)
+    include(FetchContent)
+    FetchContent_Declare(corejson
+        GIT_REPOSITORY https://github.com/FreeRTOS/coreJSON.git
+        GIT_TAG v3.3.1
+        GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable(corejson)
+    set(AMCORE_COREJSON_SOURCE
+        "${corejson_SOURCE_DIR}/source/core_json.c")
+    set(AMCORE_COREJSON_INCLUDE_DIR
+        "${corejson_SOURCE_DIR}/source/include")
+    set_property(TARGET core_json PROPERTY EXCLUDE_FROM_ALL TRUE)
+    target_sources(amcore PRIVATE "${AMCORE_COREJSON_SOURCE}")
+    target_include_directories(amcore PRIVATE "${AMCORE_COREJSON_INCLUDE_DIR}")
 
     set(amcore_telemetry_endpoint "${AMCORE_TELEMETRY_ENDPOINT}")
     target_compile_definitions(amcore PRIVATE
@@ -142,9 +154,11 @@ if(AMCORE_BUILD_WASM)
     )
     if(AMCORE_ENABLE_TELEMETRY)
         set_target_properties(amcore_wasm PROPERTIES SUFFIX ".js")
-        target_link_libraries(amcore_wasm PRIVATE cjson)
         target_sources(amcore_wasm PRIVATE
-            src/operation.c src/telemetry.c src/telemetry_fetch.c)
+            src/operation.c src/telemetry.c src/telemetry_fetch.c
+            "${AMCORE_COREJSON_SOURCE}")
+        target_include_directories(amcore_wasm PRIVATE
+            "${AMCORE_COREJSON_INCLUDE_DIR}")
         target_compile_definitions(amcore_wasm PRIVATE
             AMCORE_ENABLE_TELEMETRY
             "AMCORE_TELEMETRY_ENDPOINT=\"${amcore_telemetry_endpoint}\""
@@ -276,8 +290,10 @@ if(BUILD_TESTING)
             target_link_libraries(amcore_operation_field_tests PRIVATE SQLite::SQLite3)
         endif()
         if(AMCORE_ENABLE_TELEMETRY)
-            target_link_libraries(amcore_operation_field_tests PRIVATE cjson)
-            target_sources(amcore_operation_field_tests PRIVATE src/telemetry.c)
+            target_sources(amcore_operation_field_tests PRIVATE
+                src/telemetry.c "${AMCORE_COREJSON_SOURCE}")
+            target_include_directories(amcore_operation_field_tests PRIVATE
+                "${AMCORE_COREJSON_INCLUDE_DIR}")
             target_compile_definitions(amcore_operation_field_tests PRIVATE
                 AMCORE_ENABLE_TELEMETRY)
         endif()
