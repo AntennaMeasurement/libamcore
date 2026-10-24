@@ -25,6 +25,8 @@ static int telemetry_valid = 1;
 #ifdef AMCORE_ENABLE_TELEMETRY
 static int testing_integer_boundaries;
 static int integer_boundaries_valid = 1;
+static int expected_trim_mode;
+static int trim_valid = 1;
 
 void amcore_telemetry_send(const char *json, size_t length)
 {
@@ -41,6 +43,21 @@ void amcore_telemetry_send(const char *json, size_t length)
             strstr(json, "\"executed_at_us\":9223372036854775807") != NULL &&
             strstr(json, "\"duration_ns\":9223372036854775807") != NULL &&
             strstr(json, "\"minimum\":-9223372036854775808") != NULL;
+        return;
+    }
+    if (expected_trim_mode != 0) {
+        trim_valid = trim_valid && length <= AMCORE_TELEMETRY_MAX_BODY_SIZE &&
+            JSON_Validate(json, length) == JSONSuccess;
+        if (expected_trim_mode == 1) {
+            trim_valid = trim_valid &&
+                strstr(json, "\"inputs\":{\"small\":1}") != NULL &&
+                strstr(json, "\"output_is_null\":false") != NULL &&
+                strstr(json, "\"output\":null") != NULL;
+        } else {
+            trim_valid = trim_valid && strstr(json, "\"inputs\":{}") != NULL &&
+                strstr(json, "\"output\":null") != NULL;
+        }
+        ++sent;
         return;
     }
     telemetry_valid = telemetry_valid &&
@@ -109,22 +126,36 @@ static int integer_boundaries(void)
     return integer_boundaries_valid;
 }
 
-static int oversized_body_rejected(void)
+static int oversized_payloads_trimmed(void)
 {
     static char text[AMCORE_TELEMETRY_MAX_BODY_SIZE];
-    const amcore_operation_field inputs[] = {
-        {"oversized", AMCORE_OPERATION_TEXT, text}
+    int64_t small_input = 1;
+    const amcore_operation_field small_inputs[] = {
+        {"small", AMCORE_OPERATION_INT64, &small_input}
     };
-    const amcore_operation_event event = {
-        "oversized_body", inputs, 1, NULL, 0, 0,
+    const amcore_operation_field large_inputs[] = {
+        {"large", AMCORE_OPERATION_TEXT, text}
+    };
+    const amcore_operation_field outputs[] = {
+        {"large", AMCORE_OPERATION_TEXT, text}
+    };
+    const amcore_operation_event output_oversized = {
+        "oversized_output", small_inputs, 1, outputs, 1, 0,
         AMCORE_STATUS_SUCCESS, 0, 0
     };
-    int sent_before = sent;
+    const amcore_operation_event both_oversized = {
+        "oversized_input_and_output", large_inputs, 1, outputs, 1, 0,
+        AMCORE_STATUS_SUCCESS, 0, 0
+    };
 
     memset(text, 'x', sizeof(text) - 1);
     text[sizeof(text) - 1] = '\0';
-    amcore_telemetry_write(&event);
-    return sent == sent_before;
+    expected_trim_mode = 1;
+    amcore_telemetry_write(&output_oversized);
+    expected_trim_mode = 2;
+    amcore_telemetry_write(&both_oversized);
+    expected_trim_mode = 0;
+    return trim_valid && sent == 7;
 }
 #endif
 
@@ -303,7 +334,7 @@ int main(int argc, char **argv)
         invalid_fields();
 #ifdef AMCORE_ENABLE_TELEMETRY
     success = success && sent == 5 && telemetry_valid &&
-              integer_boundaries() && oversized_body_rejected();
+              integer_boundaries() && oversized_payloads_trimmed();
 #endif
 #ifdef AMCORE_ENABLE_OPERATION_LOGGING
     success = success && check_database(argv[1]);

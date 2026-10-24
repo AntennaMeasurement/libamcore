@@ -136,8 +136,17 @@ its validator into the telemetry-enabled library. For offline builds, set
 `FETCHCONTENT_SOURCE_DIR_COREJSON` to a local coreJSON checkout. The telemetry
 encoder escapes strings, preserves exact 64-bit integer literals, and validates
 the completed document with coreJSON. Serialized request bodies are limited to
-1 MiB; larger events are reported to stderr and are not sent, without changing
-calculation results. Installed consumers do not need a coreJSON package.
+1 MiB by default. Set `AMCORE_TELEMETRY_MAX_BODY_SIZE_KB` at CMake
+configuration time to change the limit in KB (1 KB = 1024 bytes), for example:
+
+```sh
+cmake -S . -B build-telemetry -DAMCORE_ENABLE_TELEMETRY=ON -DAMCORE_TELEMETRY_ENDPOINT=http://127.0.0.1:18765/events -DAMCORE_TELEMETRY_MAX_BODY_SIZE_KB=512
+```
+
+If a payload exceeds the configured limit, outputs are omitted first and inputs
+second; an event is reported to stderr and not sent only if the remaining
+metadata still exceeds the limit. Calculation results are unchanged. Installed
+consumers do not need a coreJSON package.
 Desktop telemetry requires libwebsockets 4.3+ configured with HTTP client and
 TLS support. CMake uses its `Libwebsockets` config package and the exported
 `websockets_shared` or `websockets` target. The vcpkg manifest feature is

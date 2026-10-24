@@ -216,8 +216,12 @@ multiple output collections work. Both disabled means descriptor declarations
 and timing compile away. SQLite 3.24+ generates schema/bindings from descriptors;
 The bounded telemetry encoder escapes JSON field values and coreJSON validates
 completed bodies. Int64 fields and timestamps use integer literals to avoid
-double precision loss. Telemetry bodies are capped at 1 MiB; oversized events
-are skipped without changing calculations. Keep each
+double precision loss. Telemetry bodies default to a 1 MiB cap, configurable
+in KB (1 KB = 1024 bytes) with the CMake cache variable
+`AMCORE_TELEMETRY_MAX_BODY_SIZE_KB`; oversized events
+omit outputs first, then inputs if needed, and are skipped only if the
+remaining event metadata still exceeds the cap. This never changes
+calculations. Keep each
 versioned table schema stable within a project version; a new project version
 uses separate tables, leaving prior schemas and records untouched. See the
 instrumenting-new-functions section in CMake integration for pointer lifetimes,

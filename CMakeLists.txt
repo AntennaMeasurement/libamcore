@@ -15,8 +15,20 @@ option(AMCORE_ENABLE_OPERATION_LOGGING "Store desktop function operations in SQL
 option(AMCORE_ENABLE_TELEMETRY "Send calculation events to an HTTP endpoint" OFF)
 set(AMCORE_TELEMETRY_ENDPOINT "" CACHE STRING
     "HTTP(S) endpoint used when AMCORE_ENABLE_TELEMETRY is enabled")
+set(AMCORE_TELEMETRY_MAX_BODY_SIZE_KB "1024" CACHE STRING
+    "Maximum telemetry JSON request body size in kilobytes (1 KB = 1024 bytes)")
 set(AMCORE_TELEMETRY_CA_FILE "" CACHE FILEPATH
     "Optional PEM CA bundle for desktop HTTPS telemetry (empty uses the TLS backend's defaults)")
+if(NOT AMCORE_TELEMETRY_MAX_BODY_SIZE_KB MATCHES "^[0-9]+$")
+    message(FATAL_ERROR "AMCORE_TELEMETRY_MAX_BODY_SIZE_KB must be a positive integer number of kilobytes")
+endif()
+string(REGEX REPLACE "^0+" "" amcore_telemetry_max_body_size_kb
+    "${AMCORE_TELEMETRY_MAX_BODY_SIZE_KB}")
+if(amcore_telemetry_max_body_size_kb STREQUAL "")
+    message(FATAL_ERROR "AMCORE_TELEMETRY_MAX_BODY_SIZE_KB must be greater than zero")
+endif()
+math(EXPR amcore_telemetry_max_body_size
+    "${amcore_telemetry_max_body_size_kb} * 1024")
 include(CTest)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -75,6 +87,7 @@ if(AMCORE_ENABLE_TELEMETRY)
     set(amcore_telemetry_endpoint "${AMCORE_TELEMETRY_ENDPOINT}")
     target_compile_definitions(amcore PRIVATE
         AMCORE_ENABLE_TELEMETRY
+        "AMCORE_TELEMETRY_MAX_BODY_SIZE=${amcore_telemetry_max_body_size}"
         "AMCORE_TELEMETRY_ENDPOINT=\"${amcore_telemetry_endpoint}\"")
 
     if(EMSCRIPTEN OR AMCORE_BUILD_WASM)
@@ -161,6 +174,7 @@ if(AMCORE_BUILD_WASM)
             "${AMCORE_COREJSON_INCLUDE_DIR}")
         target_compile_definitions(amcore_wasm PRIVATE
             AMCORE_ENABLE_TELEMETRY
+            "AMCORE_TELEMETRY_MAX_BODY_SIZE=${amcore_telemetry_max_body_size}"
             "AMCORE_TELEMETRY_ENDPOINT=\"${amcore_telemetry_endpoint}\""
         )
         target_compile_options(amcore_wasm PRIVATE -pthread)
@@ -295,7 +309,8 @@ if(BUILD_TESTING)
             target_include_directories(amcore_operation_field_tests PRIVATE
                 "${AMCORE_COREJSON_INCLUDE_DIR}")
             target_compile_definitions(amcore_operation_field_tests PRIVATE
-                AMCORE_ENABLE_TELEMETRY)
+                AMCORE_ENABLE_TELEMETRY
+                "AMCORE_TELEMETRY_MAX_BODY_SIZE=${amcore_telemetry_max_body_size}")
         endif()
         add_test(NAME amcore_operation_field_tests COMMAND ${CMAKE_COMMAND}
             "-DFIELD_TEST=$<TARGET_FILE:amcore_operation_field_tests>"

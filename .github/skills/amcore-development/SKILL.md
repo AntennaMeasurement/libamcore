@@ -124,9 +124,12 @@ not a substitute for code.
 - Serialize the documented JSON shape in `src/telemetry.c` with a bounded
   encoder validated by coreJSON. Telemetry builds fetch coreJSON v3.3.1 during
   configuration; `FETCHCONTENT_SOURCE_DIR_COREJSON` supports offline builds.
-  Cap each request body at 1 MiB and skip oversized events without changing
-  calculation results. Preserve exact int64 literals and never accept raw user
-  JSON. Failed output is
+  Cap each request body at 1 MiB by default; CMake cache variable
+  `AMCORE_TELEMETRY_MAX_BODY_SIZE_KB` configures the limit in KB (1 KB = 1024
+  bytes). When needed, omit outputs first and inputs second; skip an event only
+  if its remaining metadata
+  still exceeds the cap, without changing calculation results. Preserve exact
+  int64 literals and never accept raw user JSON. Failed output is
   null, non-finite inputs are strings, and pointers/user identifiers are never
   sent. Report errors to stderr with `amcore telemetry:`.
 - Generic fields support double, int64_t, int boolean and UTF-8 text; null

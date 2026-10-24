@@ -7,6 +7,8 @@ All notable changes for each release are documented here.
 ### Changed
 
 - Replace cJSON with coreJSON validation and cap telemetry JSON bodies at 1 MiB.
+- Trim oversized telemetry payloads by omitting outputs first, then inputs.
+- Make the maximum telemetry body size configurable in KB through CMake.
 
 ## [v0.4.1] - 2026-10-23
 

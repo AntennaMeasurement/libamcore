@@ -207,51 +207,75 @@ static int write_fields(json_writer *writer,
     return writer_char(writer, '}');
 }
 
-void amcore_telemetry_write(const amcore_operation_event *event)
+static int write_event(json_writer *writer,
+                       const amcore_operation_event *event,
+                       int include_inputs, int include_outputs)
 {
-    json_writer writer = {0};
     int has_output = event->status == AMCORE_STATUS_SUCCESS &&
                     !(event->output_count == 1 && event->output_is_null);
 
-    if (!writer_char(&writer, '{') ||
-        !writer_string(&writer, "version") || !writer_char(&writer, ':') ||
-        !writer_string(&writer, AMCORE_VERSION) || !writer_char(&writer, ',') ||
-        !writer_string(&writer, "function") || !writer_char(&writer, ':') ||
-        !writer_string(&writer, event->function_name) || !writer_char(&writer, ',') ||
-        !writer_string(&writer, "inputs") || !writer_char(&writer, ':') ||
-        !write_fields(&writer, event->inputs, event->input_count) ||
-        !writer_char(&writer, ',') ||
-        !writer_string(&writer, "output_is_null") || !writer_char(&writer, ':') ||
-        !writer_append(&writer, event->output_is_null ? "true" : "false",
-                       event->output_is_null ? 4 : 5) ||
-        !writer_char(&writer, ',') ||
-        !writer_string(&writer, "return_value") || !writer_char(&writer, ':') ||
-        !writer_format(&writer, "%d", (int)event->status) ||
-        !writer_char(&writer, ',') ||
-        !writer_string(&writer, "output") || !writer_char(&writer, ':') ||
-        (has_output
-            ? !write_fields(&writer, event->outputs, event->output_count)
-            : !writer_append(&writer, "null", 4)) ||
-        !writer_char(&writer, ',') ||
-        !writer_string(&writer, "executed_at_us") || !writer_char(&writer, ':') ||
-        !writer_format(&writer, "%" PRId64, event->executed_at_us) ||
-        !writer_char(&writer, ',') ||
-        !writer_string(&writer, "duration_ns") || !writer_char(&writer, ':') ||
-        !writer_format(&writer, "%" PRId64, event->duration_ns) ||
-        !writer_char(&writer, '}')) {
-        if (writer.too_large) {
-            report_error("calculation event exceeds the 1 MiB JSON body limit");
-        } else {
+    return writer_char(writer, '{') &&
+        writer_string(writer, "version") && writer_char(writer, ':') &&
+        writer_string(writer, AMCORE_VERSION) && writer_char(writer, ',') &&
+        writer_string(writer, "function") && writer_char(writer, ':') &&
+        writer_string(writer, event->function_name) && writer_char(writer, ',') &&
+        writer_string(writer, "inputs") && writer_char(writer, ':') &&
+        (include_inputs
+            ? write_fields(writer, event->inputs, event->input_count)
+            : writer_append(writer, "{}", 2)) &&
+        writer_char(writer, ',') &&
+        writer_string(writer, "output_is_null") && writer_char(writer, ':') &&
+        writer_append(writer, event->output_is_null ? "true" : "false",
+                      event->output_is_null ? 4 : 5) &&
+        writer_char(writer, ',') &&
+        writer_string(writer, "return_value") && writer_char(writer, ':') &&
+        writer_format(writer, "%d", (int)event->status) &&
+        writer_char(writer, ',') &&
+        writer_string(writer, "output") && writer_char(writer, ':') &&
+        (include_outputs && has_output
+            ? write_fields(writer, event->outputs, event->output_count)
+            : writer_append(writer, "null", 4)) &&
+        writer_char(writer, ',') &&
+        writer_string(writer, "executed_at_us") && writer_char(writer, ':') &&
+        writer_format(writer, "%" PRId64, event->executed_at_us) &&
+        writer_char(writer, ',') &&
+        writer_string(writer, "duration_ns") && writer_char(writer, ':') &&
+        writer_format(writer, "%" PRId64, event->duration_ns) &&
+        writer_char(writer, '}');
+}
+
+void amcore_telemetry_write(const amcore_operation_event *event)
+{
+    int include_inputs = 1;
+    int include_outputs = event->status == AMCORE_STATUS_SUCCESS &&
+        !(event->output_count == 1 && event->output_is_null);
+
+    for (;;) {
+        json_writer writer = {0};
+
+        if (write_event(&writer, event, include_inputs, include_outputs)) {
+            if (JSON_Validate(writer.data, writer.length) != JSONSuccess) {
+                report_error("cannot serialize calculation event");
+                free(writer.data);
+                return;
+            }
+            amcore_telemetry_send(writer.data, writer.length);
+            free(writer.data);
+            return;
+        }
+        if (!writer.too_large) {
             report_error("cannot allocate calculation event");
+            free(writer.data);
+            return;
         }
         free(writer.data);
-        return;
+        if (include_outputs) {
+            include_outputs = 0;
+        } else if (include_inputs) {
+            include_inputs = 0;
+        } else {
+            report_error("calculation event exceeds the 1 MiB JSON body limit");
+            return;
+        }
     }
-    if (JSON_Validate(writer.data, writer.length) != JSONSuccess) {
-        report_error("cannot serialize calculation event");
-        free(writer.data);
-        return;
-    }
-    amcore_telemetry_send(writer.data, writer.length);
-    free(writer.data);
 }

@@ -96,7 +96,8 @@ Enable `AMCORE_ENABLE_TELEMETRY` and supply `AMCORE_TELEMETRY_ENDPOINT` at
 configuration time. CMake fetches coreJSON v3.3.1 for JSON validation;
 desktop builds use libwebsockets (vcpkg feature `telemetry`), while Emscripten
 builds use Fetch from pthread worker threads. Serialized request bodies have a
-1 MiB maximum.
+1 MiB maximum by default. Set `AMCORE_TELEMETRY_MAX_BODY_SIZE_KB` at CMake
+configuration time to change the maximum in KB (1 KB = 1024 bytes).
 Embedded support is deferred. See
 [telemetry setup](cmake-integration.md#telemetry) for complete build examples,
 TLS trust, JSON payloads, isolated tests and privacy considerations.

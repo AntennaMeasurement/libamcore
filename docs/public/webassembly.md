@@ -37,7 +37,9 @@ and `malloc`/`free` and the `HEAPF64` memory view are available. The installed C
 Telemetry builds fetch coreJSON v3.3.1 during CMake configuration and compile
 the validator for WebAssembly. For offline builds, point
 `FETCHCONTENT_SOURCE_DIR_COREJSON` at a local coreJSON checkout. The serialized
-request body is capped at 1 MiB.
+request body is capped at 1 MiB by default. Set
+`AMCORE_TELEMETRY_MAX_BODY_SIZE_KB` at CMake configuration time to change the
+limit in KB (1 KB = 1024 bytes).
 
 ```sh
 emcmake cmake -S . -B build-wasm-telemetry \

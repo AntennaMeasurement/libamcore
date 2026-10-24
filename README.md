@@ -143,8 +143,10 @@ Desktop builds require libwebsockets 4.3+ with HTTP client and TLS support
 during CMake configuration for validation; set `FETCHCONTENT_SOURCE_DIR_COREJSON`
 to a local checkout for offline builds. The `telemetry` vcpkg feature provides
 the desktop transport dependency. Serialized telemetry bodies are limited to
-1 MiB. Review dependency licenses before distribution; shared runtime
-dependencies must be distributed separately.
+1 MiB by default; set `AMCORE_TELEMETRY_MAX_BODY_SIZE_KB` at CMake
+configuration time to use a different limit in KB (1 KB = 1024 bytes). Review
+dependency licenses before distribution; shared runtime dependencies must be
+distributed separately.
 
 Every calculation, including failures and nested calls, sends one synchronous
 JSON POST with the library `version`, named inputs, output-pointer nullness,
