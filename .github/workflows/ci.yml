@@ -51,6 +51,8 @@ jobs:
             const tags = (await git('tag', '--list', 'v[0-9]*', '--sort=-version:refname'))
               .split('\n').filter(value => /^v\d+\.\d+\.\d+$/.test(value));
             if (tags[0] !== tag) {
+              await git('config', 'user.name', 'github-actions[bot]');
+              await git('config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com');
               if (tags.includes(tag)) {
                 throw new Error(`Version tag ${tag} already exists; update CMakeLists.txt to a new version`);
               }
@@ -73,8 +75,6 @@ jobs:
                   : `${changelog.slice(0, nextEntry)}${entry}${changelog.slice(nextEntry)}`;
                 fs.writeFileSync(changelogPath, updated.replace(/\n/g, newline));
                 changelog = updated;
-                await git('config', 'user.name', 'github-actions[bot]');
-                await git('config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com');
                 await git('add', '--', changelogPath);
                 await git('commit', '-m', `docs: update changelog for ${tag}`);
               }
