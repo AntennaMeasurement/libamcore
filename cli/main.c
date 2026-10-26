@@ -25,6 +25,9 @@ static int run_utility(int argc, char **argv);
 static int run_farfield(int argc, char **argv);
 static int calculate_wavelength(int argc, char **argv);
 static int calculate_distance(int argc, char **argv);
+static int calculate_line_of_sight(int argc, char **argv);
+static int calculate_radio_horizon(int argc, char **argv);
+static int calculate_path_loss(int argc, char **argv);
 
 static const command commands[] = {
     {"help", "Show this help message", show_help},
@@ -41,6 +44,12 @@ static const command utility_functions[] = {
 static const command farfield_functions[] = {
     {"distance", "Calculate minimum far-field distance in metres",
      calculate_distance},
+    {"line-of-sight", "Calculate line-of-sight range in kilometres",
+     calculate_line_of_sight},
+    {"radio-horizon", "Calculate radio horizon in kilometres",
+     calculate_radio_horizon},
+    {"path-loss", "Calculate free-space path loss in decibels",
+     calculate_path_loss},
 };
 
 static int is_help(const char *argument)
@@ -91,8 +100,8 @@ static int run_farfield(int argc, char **argv)
                       argc, argv);
 }
 
-static int parse_positive_double(const char *text, const char *name,
-                                 double *value)
+static int parse_finite_double(const char *text, const char *name,
+                               double *value)
 {
     char *end;
     double parsed;
@@ -100,13 +109,41 @@ static int parse_positive_double(const char *text, const char *name,
     errno = 0;
     parsed = strtod(text, &end);
     if (end == text || *end != '\0' || errno == ERANGE ||
-        !isfinite(parsed) || parsed <= 0.0) {
-        fprintf(stderr, "amcore: %s must be a positive finite number "
-                        "representable as a double; got '%s'\n", name, text);
+        !isfinite(parsed)) {
+        fprintf(stderr, "amcore: %s must be a finite number representable "
+                        "as a double; got '%s'\n", name, text);
         return EXIT_FAILURE;
     }
 
     *value = parsed;
+    return EXIT_SUCCESS;
+}
+
+static int parse_positive_double(const char *text, const char *name,
+                                 double *value)
+{
+    if (parse_finite_double(text, name, value) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    if (*value <= 0.0) {
+        fprintf(stderr, "amcore: %s must be a positive finite number; "
+                        "got '%s'\n", name, text);
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+
+static int parse_nonnegative_double(const char *text, const char *name,
+                                    double *value)
+{
+    if (parse_finite_double(text, name, value) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    if (*value < 0.0) {
+        fprintf(stderr, "amcore: %s must be a non-negative finite number; "
+                        "got '%s'\n", name, text);
+        return EXIT_FAILURE;
+    }
     return EXIT_SUCCESS;
 }
 
@@ -120,7 +157,7 @@ static int print_result(amcore_status status, double result)
         fputs("amcore: invalid calculation arguments\n", stderr);
         return EXIT_FAILURE;
     case AMCORE_STATUS_OUT_OF_RANGE:
-        fputs("amcore: calculation out of range for a positive finite double\n",
+        fputs("amcore: calculation out of range for a finite double\n",
               stderr);
         return EXIT_FAILURE;
     default:
@@ -183,6 +220,95 @@ static int calculate_distance(int argc, char **argv)
 
     status = amcore_far_field_distance(frequency, aperture, &distance);
     return print_result(status, distance);
+}
+
+static int calculate_line_of_sight(int argc, char **argv)
+{
+    double height;
+    double range = 0.0;
+    amcore_status status;
+
+    if (argc == 1 && is_help(argv[0])) {
+        puts("Usage: amcore farfield line-of-sight <height_m>");
+        puts("Calculate approximate line-of-sight range.");
+        puts("Height must be non-negative and finite.");
+        puts("Output: one numeric value in kilometres.");
+        return EXIT_SUCCESS;
+    }
+    if (argc != 1) {
+        fputs("Usage: amcore farfield line-of-sight <height_m>\n", stderr);
+        return EXIT_FAILURE;
+    }
+    if (parse_nonnegative_double(argv[0], "height_m", &height) !=
+        EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    status = amcore_far_field_line_of_sight_km(height, &range);
+    return print_result(status, range);
+}
+
+static int calculate_radio_horizon(int argc, char **argv)
+{
+    double height;
+    double range = 0.0;
+    amcore_status status;
+
+    if (argc == 1 && is_help(argv[0])) {
+        puts("Usage: amcore farfield radio-horizon <height_m>");
+        puts("Calculate approximate radio horizon.");
+        puts("Height must be non-negative and finite.");
+        puts("Output: one numeric value in kilometres.");
+        return EXIT_SUCCESS;
+    }
+    if (argc != 1) {
+        fputs("Usage: amcore farfield radio-horizon <height_m>\n", stderr);
+        return EXIT_FAILURE;
+    }
+    if (parse_nonnegative_double(argv[0], "height_m", &height) !=
+        EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    status = amcore_far_field_radio_horizon_km(height, &range);
+    return print_result(status, range);
+}
+
+static int calculate_path_loss(int argc, char **argv)
+{
+    double frequency;
+    double range;
+    double transmit_gain;
+    double receive_gain;
+    double path_loss = 0.0;
+    amcore_status status;
+
+    if (argc == 1 && is_help(argv[0])) {
+        puts("Usage: amcore farfield path-loss <frequency_mhz> <range_km> "
+             "<transmit_gain_db> <receive_gain_db>");
+        puts("Calculate free-space path loss under far-field conditions.");
+        puts("Frequency and range must be positive and finite; gains must be finite.");
+        puts("Output: one numeric value in decibels.");
+        return EXIT_SUCCESS;
+    }
+    if (argc != 4) {
+        fputs("Usage: amcore farfield path-loss <frequency_mhz> <range_km> "
+              "<transmit_gain_db> <receive_gain_db>\n", stderr);
+        return EXIT_FAILURE;
+    }
+    if (parse_positive_double(argv[0], "frequency_mhz", &frequency) !=
+            EXIT_SUCCESS ||
+        parse_positive_double(argv[1], "range_km", &range) != EXIT_SUCCESS ||
+        parse_finite_double(argv[2], "transmit_gain_db", &transmit_gain) !=
+            EXIT_SUCCESS ||
+        parse_finite_double(argv[3], "receive_gain_db", &receive_gain) !=
+            EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    status = amcore_far_field_path_loss_db(frequency, range, transmit_gain,
+                                           receive_gain, &path_loss);
+    return print_result(status, path_loss);
 }
 
 static int show_help(int argc, char **argv)

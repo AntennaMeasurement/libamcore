@@ -19,6 +19,9 @@ Implemented calculations:
 - Minimum far-field distance using *IEEE Std 149-2021, IEEE Recommended
   Practice for Antenna Measurements*, section 7.1.2:
   `max(5D, 1.6 lambda, 2D^2/lambda)`.
+- Approximate line-of-sight range and radio horizon from height above ground.
+- Free-space path loss under far-field conditions, using frequency in MHz,
+  range in km, and antenna gains in dB.
 
 Near-field calculations, chamber design, device control, pattern processing,
 and post-processing are not currently exposed.
@@ -29,9 +32,9 @@ and post-processing are not currently exposed.
 | --- | --- |
 | `include/amcore/amcore.h` | Umbrella public header. |
 | `include/amcore/utility.h` | Status enum, export macro, speed-of-light constant, wavelength API. |
-| `include/amcore/farfield.h` | Far-field distance public API. |
+| `include/amcore/farfield.h` | Far-field calculation public API. |
 | `src/utility.c` | Wavelength computation and physical constant. |
-| `src/farfield.c` | Far-field distance computation. |
+| `src/farfield.c` | Far-field distance, line-of-sight, radio-horizon, and path-loss computations. |
 | `cli/main.c` | CLI parsing, module dispatch, diagnostics, and output. |
 | `tests/test_amcore.c` | Library calculations, invalid inputs, and range behavior. |
 | `tests/test_cli.cmake` | CLI integration checks. |
@@ -46,14 +49,15 @@ and post-processing are not currently exposed.
 - Public headers are under `include/amcore/`; `<amcore/amcore.h>` includes
   module headers.
 - Public functions use the `amcore_` prefix and return `amcore_status`.
-- Inputs must be finite and positive. Output pointers must be non-null and are
-  modified only on success.
+- Inputs must be finite and within each function's domain. Output pointers must
+  be non-null and are modified only on success.
 - `AMCORE_STATUS_SUCCESS`, `AMCORE_STATUS_INVALID_ARGUMENT`, and
   `AMCORE_STATUS_OUT_OF_RANGE` are the defined status values.
 - The CLI is a separate C API consumer. Calculation output is numeric-only on
   stdout; errors are written to stderr and return a nonzero exit status.
-- The CLI provides `help`, `version`, `utility wavelength`, and
-  `farfield distance`. It does not provide a `history` command.
+- The CLI provides `help`, `version`, `utility wavelength`, and the far-field
+  commands `distance`, `line-of-sight`, `radio-horizon`, and `path-loss`. It does
+  not provide a `history` command.
 
 The machine-readable manifest documents functions, input schemas, units,
 status codes, and examples. It is not an HTTP API or server implementation.

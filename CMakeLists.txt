@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(libamcore
-    VERSION 0.5.2
+    VERSION 0.5.3
     DESCRIPTION "Core computational routines for antenna measurements"
     LANGUAGES C
 )
@@ -55,7 +55,7 @@ if(AMCORE_BUILD_WASM)
     )
     target_link_options(amcore_wasm PRIVATE
         "-Wl,--no-entry"
-        "-sEXPORTED_FUNCTIONS=_amcore_free_space_wavelength,_amcore_far_field_distance"
+        "-sEXPORTED_FUNCTIONS=_amcore_free_space_wavelength,_amcore_far_field_distance,_amcore_far_field_line_of_sight_km,_amcore_far_field_radio_horizon_km,_amcore_far_field_path_loss_db"
         "-Wl,--export=speed_of_light_m_per_s"
     )
     set_target_properties(amcore_wasm PROPERTIES SUFFIX ".wasm")

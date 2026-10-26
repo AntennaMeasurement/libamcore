@@ -7,6 +7,11 @@ features that are not present in the current branch.
 
 ## [Unreleased]
 
+### Added
+
+- Far-field line-of-sight and radio-horizon estimates, plus free-space path
+  loss calculations, in the C API and CLI.
+
 ## [v0.5.2] - 2026-10-26
 
 ### Changes

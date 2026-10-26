@@ -38,6 +38,65 @@ AMCORE_API amcore_status amcore_far_field_distance(
     double aperture_length_m,
     double *distance_m);
 
+/**
+ * @brief Calculate the approximate line-of-sight range for a given height.
+ *
+ * Uses R = 3.57 * sqrt(height), with height in metres and range in kilometres.
+ *
+ * @param height_m Height above ground in metres; must be finite and
+ *        non-negative.
+ * @param range_km Receives the line-of-sight range in kilometres on success.
+ * @return AMCORE_STATUS_SUCCESS on success, AMCORE_STATUS_INVALID_ARGUMENT for
+ *         invalid inputs (including a null output pointer), or
+ *         AMCORE_STATUS_OUT_OF_RANGE if the result is not finite. On error,
+ *         leaves @p range_km unchanged.
+ */
+AMCORE_API amcore_status amcore_far_field_line_of_sight_km(
+    double height_m,
+    double *range_km);
+
+/**
+ * @brief Calculate the approximate radio horizon for a given height.
+ *
+ * Uses R = 4.12 * sqrt(height), with height in metres and range in kilometres.
+ *
+ * @param height_m Height above ground in metres; must be finite and
+ *        non-negative.
+ * @param range_km Receives the radio horizon in kilometres on success.
+ * @return AMCORE_STATUS_SUCCESS on success, AMCORE_STATUS_INVALID_ARGUMENT for
+ *         invalid inputs (including a null output pointer), or
+ *         AMCORE_STATUS_OUT_OF_RANGE if the result is not finite. On error,
+ *         leaves @p range_km unchanged.
+ */
+AMCORE_API amcore_status amcore_far_field_radio_horizon_km(
+    double height_m,
+    double *range_km);
+
+/**
+ * @brief Calculate free-space path loss under far-field conditions.
+ *
+ * Uses Lp = 32.45 + 20*log10(frequency_MHz * range_km) - tx_gain_dB -
+ * rx_gain_dB. Gains are finite decibel values and may be negative.
+ *
+ * @param frequency_mhz Frequency in megahertz; must be finite and greater than
+ *        zero.
+ * @param range_km Separation in kilometres; must be finite and greater than
+ *        zero.
+ * @param transmit_gain_db Transmit antenna gain in decibels; must be finite.
+ * @param receive_gain_db Receive antenna gain in decibels; must be finite.
+ * @param path_loss_db Receives path loss in decibels on success.
+ * @return AMCORE_STATUS_SUCCESS on success, AMCORE_STATUS_INVALID_ARGUMENT for
+ *         invalid inputs (including a null output pointer), or
+ *         AMCORE_STATUS_OUT_OF_RANGE if the result is not finite. On error,
+ *         leaves @p path_loss_db unchanged.
+ */
+AMCORE_API amcore_status amcore_far_field_path_loss_db(
+    double frequency_mhz,
+    double range_km,
+    double transmit_gain_db,
+    double receive_gain_db,
+    double *path_loss_db);
+
 #ifdef __cplusplus
 }
 #endif

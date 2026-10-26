@@ -1,8 +1,6 @@
 # libamcore
 
-`libamcore` is a portable C library of antenna-measurement calculations. This
-branch includes the calculation API and CLI; operation logging, call history,
-and telemetry are not included.
+`libamcore` is a portable C library of antenna-measurement calculations.
 
 **Library version:** {{ library_version }}
 
@@ -12,6 +10,9 @@ and telemetry are not included.
 | --- | --- | --- |
 | `utility` | `amcore_free_space_wavelength` | Free-space wavelength in metres |
 | `farfield` | `amcore_far_field_distance` | Minimum far-field distance in metres |
+| `farfield` | `amcore_far_field_line_of_sight_km` | Line-of-sight range in kilometres |
+| `farfield` | `amcore_far_field_radio_horizon_km` | Radio horizon in kilometres |
+| `farfield` | `amcore_far_field_path_loss_db` | Free-space path loss in decibels |
 
 All calculations are referenced from the relevant standards and literature. See the [References](#references) section for details.
 
