@@ -7,6 +7,14 @@ features that are not present in the current branch.
 
 ## [Unreleased]
 
+## [v0.5.1] - 2026-10-26
+
+### Changes
+
+- chore: update version to 0.5.1 and enhance documentation with module descriptions and usage examples
+- docs: enhance documentation with versioning support and add hooks for library version
+- docs: update README and getting-started guide with documentation build instructions
+
 ## [v0.5.0] - 2026-10-26
 
 ### Changed
