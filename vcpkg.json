@@ -2,19 +2,5 @@
   "name": "libamcore",
   "version-string": "0.4.1",
   "description": "Core computational routines for antenna measurements",
-  "features": {
-    "telemetry": {
-      "description": "Desktop HTTP client dependency for AMCORE_ENABLE_TELEMETRY; coreJSON is fetched by CMake",
-      "dependencies": [
-        "libwebsockets"
-      ]
-    },
-    "operation-logging": {
-      "description": "SQLite dependency for AMCORE_ENABLE_OPERATION_LOGGING and logging-enabled CLI history",
-      "dependencies": [
-        "sqlite3"
-      ]
-    }
-  },
   "builtin-baseline": "b1b19307e2d2ec1eefbdb7ea069de7d4bcd31f01"
 }

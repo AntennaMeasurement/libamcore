@@ -3,7 +3,7 @@
   "library": "libamcore",
   "library_version": "0.4.1",
   "header": "amcore/amcore.h",
-  "description": "C API metadata for telemetry receivers and server adapters; not an HTTP API or an MCP server.",
+  "description": "Machine-readable metadata for the public C calculation API.",
   "status_codes": {
     "0": {"name": "AMCORE_STATUS_SUCCESS", "description": "Calculation succeeded."},
     "1": {"name": "AMCORE_STATUS_INVALID_ARGUMENT", "description": "Non-finite or non-positive input, or null output pointer."},
@@ -13,7 +13,7 @@
     "c_type": "double",
     "inputs": "Finite and strictly positive; JSON adapters must reject numbers not representable as finite C doubles.",
     "outputs": "Finite and strictly positive; output pointers must be non-null and are written only on success.",
-    "on_error": "C output values remain unchanged; telemetry output is null."
+    "on_error": "C output values remain unchanged."
   },
   "constants": {
     "speed_of_light_m_per_s": {"c_type": "double", "value": 299792458, "unit": "m/s"}
@@ -63,30 +63,5 @@
         "output": {"distance_m": 32}
       }
     }
-  ],
-  "telemetry": {
-    "enabled_by_default": false,
-    "transport": {"method": "POST", "content_type": "application/json", "endpoint": "Configured at build time; no default URL."},
-    "events": "One per calculation call, including failures and nested calls. Far-field calls rejected before wavelength calculation emit no nested event.",
-    "fields": {
-      "version": {"type": "string", "description": "Library version of the emitting build."},
-      "function": {"type": "string", "description": "C function name from functions[].name."},
-      "inputs": {"type": "object", "description": "Named input values; non-finite doubles are strings NaN, +Infinity, or -Infinity. Invalid finite inputs are preserved."},
-      "output_is_null": {"type": "boolean", "description": "Whether the caller supplied a null output pointer; never a pointer address."},
-      "return_value": {"type": "integer", "enum": [0, 1, 2], "description": "Numeric amcore_status."},
-      "output": {"type": ["object", "null"], "description": "Named output value on success; null on failure."},
-      "executed_at_us": {"type": "integer", "format": "int64", "unit": "us", "description": "UTC call-start time since the Unix epoch; parse without loss of integer precision."},
-      "duration_ns": {"type": "integer", "format": "int64", "minimum": 0, "unit": "ns", "description": "Monotonic duration captured before sink dispatch; may include nested calls and their sinks. Parse without loss of integer precision."}
-    },
-    "example": {
-      "version": "0.2.0",
-      "function": "amcore_free_space_wavelength",
-      "inputs": {"frequency_hz": 1000000000},
-      "output_is_null": false,
-      "return_value": 0,
-      "output": {"wavelength_m": 0.299792458},
-      "executed_at_us": 1700000000000000,
-      "duration_ns": 1000
-    }
-  }
+  ]
 }

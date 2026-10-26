@@ -128,8 +128,6 @@ jobs:
       - name: Configure
         run: >-
           cmake -S . -B build -DBUILD_TESTING=ON
-          -DAMCORE_ENABLE_OPERATION_LOGGING=OFF
-          -DAMCORE_ENABLE_TELEMETRY=OFF
           -DAMCORE_BUILD_WASM=OFF
       - name: Build
         run: cmake --build build --config Release

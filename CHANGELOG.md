@@ -2,13 +2,18 @@
 
 All notable changes for each release are documented here.
 
+Entries under released versions are historical release notes and may describe
+features that are not present in the current branch.
+
 ## [Unreleased]
 
 ### Changed
 
-- Replace cJSON with coreJSON validation and cap telemetry JSON bodies at 1 MiB.
-- Trim oversized telemetry payloads by omitting outputs first, then inputs.
-- Make the maximum telemetry body size configurable in KB through CMake.
+- Remove operation logging, telemetry, and CLI call history, including their
+  implementation, build options, dependencies, and tests. Preserve the
+  calculation API, CLI calculations, help, and version commands.
+- Update the user, API, CMake, WebAssembly, and development documentation to
+  describe the calculation-only branch.
 
 ## [v0.4.1] - 2026-10-23
 
