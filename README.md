@@ -91,7 +91,21 @@ target_link_libraries(my_app PRIVATE amcore::amcore)
 
 ## Documentation
 
-The public documentation is built with MkDocs. See [build and install](docs/public/getting-started.md),
+The public documentation is built with MkDocs. From the repository root,
+install the documentation dependencies and build the site:
+
+```sh
+python -m pip install -r requirements-docs.txt
+python -m mkdocs build --strict
+```
+
+The generated site is written to `site/`. To preview it locally while editing:
+
+```sh
+python -m mkdocs serve
+```
+
+Then open the local URL printed by MkDocs. See [build and install](docs/public/getting-started.md),
 [the C API](docs/public/api.md), [the CLI](docs/public/cli.md),
 [CMake integration](docs/public/cmake-integration.md), and
 [WebAssembly](docs/public/webassembly.md).

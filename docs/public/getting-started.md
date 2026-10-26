@@ -42,6 +42,25 @@ cmake --install build --prefix install
 An installed CMake consumer can locate and link the library with
 `find_package(amcore CONFIG REQUIRED)` and `amcore::amcore`.
 
+## Build the documentation
+
+From the repository root, install the MkDocs dependencies listed in
+`requirements-docs.txt` and build the public documentation:
+
+```sh
+python -m pip install -r requirements-docs.txt
+python -m mkdocs build --strict
+```
+
+MkDocs writes the generated site to `site/`. To serve a live preview while
+editing the documentation:
+
+```sh
+python -m mkdocs serve
+```
+
+Open the local URL printed by MkDocs to view the preview.
+
 ## WebAssembly
 
 See [the WebAssembly guide](webassembly.md) for the optional standalone module.
