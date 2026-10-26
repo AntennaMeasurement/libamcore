@@ -66,6 +66,37 @@ check_cli(success "Modules:")
 check_cli(success "Modules:" help)
 check_cli(success "Modules:" -h)
 check_cli(failure "unknown module 'history'" history)
+
+execute_process(
+    COMMAND "${AMCORE_CLI}" nearfield planar
+    RESULT_VARIABLE planar_help_status
+    OUTPUT_VARIABLE planar_help
+    ERROR_VARIABLE planar_help_error
+)
+if(NOT planar_help_status STREQUAL "0" OR NOT planar_help_error STREQUAL "")
+    message(FATAL_ERROR
+        "Could not read planar help: status=${planar_help_status}, stderr='${planar_help_error}'")
+endif()
+set(description_column "")
+foreach(description IN ITEMS
+        "Calculate sampling spacing in metres"
+        "Calculate required scan length in metres"
+        "Calculate angle of view in degrees"
+        "Calculate centered sampling parameters")
+    string(REGEX MATCH "  [^\n]*${description}" help_line "${planar_help}")
+    if(help_line STREQUAL "")
+        message(FATAL_ERROR
+            "Planar help is missing description '${description}': '${planar_help}'")
+    endif()
+    string(FIND "${help_line}" "${description}" current_column)
+    if(description_column STREQUAL "")
+        set(description_column "${current_column}")
+    elseif(NOT "${current_column}" STREQUAL "${description_column}")
+        message(FATAL_ERROR
+            "Planar help descriptions are not aligned: '${planar_help}'")
+    endif()
+endforeach()
+
 foreach(module IN ITEMS utility farfield nearfield)
     check_cli(success "Functions:" ${module})
     foreach(help IN ITEMS help --help -h)

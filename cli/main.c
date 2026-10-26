@@ -96,12 +96,19 @@ static int run_module(const char *module, const command *functions,
                       size_t count, int argc, char **argv)
 {
     size_t i;
+    size_t name_width = 0;
 
     if (argc == 0 || (argc == 1 && is_help(argv[0]))) {
+        for (i = 0; i < count; ++i) {
+            size_t current_width = strlen(functions[i].name);
+            if (current_width > name_width) {
+                name_width = current_width;
+            }
+        }
         printf("Usage: amcore %s <function> [arguments]\n\n", module);
         puts("Functions:");
         for (i = 0; i < count; ++i) {
-            printf("  %-10s %s\n", functions[i].name,
+            printf("  %-*s %s\n", (int)name_width, functions[i].name,
                    functions[i].description);
         }
         printf("\nRun 'amcore %s <function> --help' for arguments.\n", module);
