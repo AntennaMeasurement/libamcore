@@ -121,8 +121,10 @@ Then open the local URL printed by MkDocs. See [build and install](docs/public/g
 
 ## References
 
-[1] [IEEE Std 149-2021](https://standards.ieee.org/standard/149-2021.html) - Standard for Antenna Measurements
+[1] [IEEE Std 149-2021](https://standards.ieee.org/standard/149-2021.html) - IEEE Recommended Practice for Antenna Measurements
 
 [2] [Line-of-sight propagation](https://en.wikipedia.org/wiki/Line-of-sight_propagation) - Approximate line-of-sight range and radio horizon formulas
 
-[3] IEEE Std 1720-2012, section B.2.2, and Warren L. Stutzman and Gary A. Thiele, *Antenna Theory and Design*, 3rd edition, page 43 - Free-space path-loss formula
+[3] [IEEE Std 1720-2012](https://standards.ieee.org/standard/1720-2012.html) - IEEE Recommended Practice for Near-Field Antenna Measurements
+
+[4] Warren L. Stutzman and Gary A. Thiele, *Antenna Theory and Design*, 3rd edition
