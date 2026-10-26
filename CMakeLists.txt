@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(libamcore
-    VERSION 0.4.1
+    VERSION 0.5.0
     DESCRIPTION "Core computational routines for antenna measurements"
     LANGUAGES C
 )

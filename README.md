@@ -95,3 +95,20 @@ The public documentation is built with MkDocs. See [build and install](docs/publ
 [the C API](docs/public/api.md), [the CLI](docs/public/cli.md),
 [CMake integration](docs/public/cmake-integration.md), and
 [WebAssembly](docs/public/webassembly.md).
+
+## Releases
+
+To release a new version, update `project(libamcore VERSION ...)` in
+`CMakeLists.txt` and push to `main`. CI moves the `CHANGELOG.md` Unreleased
+details into the new version's release notes, leaving an empty Unreleased
+section. If there are no pending details, it uses commit subjects instead.
+It also synchronizes `vcpkg.json` (`version-string`) and `docs/public/api.json`
+(`library_version`) with the CMake version, then commits these files before
+creating the release tag. The release workflow packages that tagged commit
+and publishes its versioned changelog entry as the GitHub release notes.
+
+Release preparation regression tests run with Node.js:
+
+```sh
+node --test tests/test_release_workflow.cjs
+```
