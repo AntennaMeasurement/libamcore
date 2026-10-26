@@ -7,6 +7,12 @@ features that are not present in the current branch.
 
 ## [Unreleased]
 
+## [v0.5.2] - 2026-10-26
+
+### Changes
+
+- chore: update version to 0.5.2 and modify CLI test outputs to reflect module terminology
+
 ## [v0.5.1] - 2026-10-26
 
 ### Changes
