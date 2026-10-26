@@ -7,6 +7,8 @@ features that are not present in the current branch.
 
 ## [Unreleased]
 
+## [v0.5.0] - 2026-10-26
+
 ### Changed
 
 - Remove operation logging, telemetry, and CLI call history, including their
