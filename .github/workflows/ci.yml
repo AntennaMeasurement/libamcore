@@ -1,0 +1,151 @@
+# Last content update tag: v0.1.0
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    name: Check project version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    outputs:
+      changed: ${{ steps.version.outputs.changed }}
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check version and tag release
+        id: version
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const cmake = fs.readFileSync('CMakeLists.txt', 'utf8');
+            const project = cmake.match(/\bproject\s*\(\s*libamcore\b([^)]*)\)/i);
+            const version = project?.[1].match(/\bVERSION\s+(\d+\.\d+\.\d+)\b/i)?.[1];
+            if (!version) {
+              throw new Error('Cannot read libamcore VERSION from CMakeLists.txt');
+            }
+            const tag = `v${version}`;
+            core.setOutput('tag', tag);
+            core.setOutput('changed', 'false');
+            if (context.eventName !== 'push' || context.ref !== 'refs/heads/main') {
+              return;
+            }
+
+            const git = async (...args) => {
+              const result = await exec.getExecOutput('git', args);
+              return result.stdout.trim();
+            };
+            const tags = (await git('tag', '--list', 'v[0-9]*', '--sort=-version:refname'))
+              .split('\n').filter(value => /^v\d+\.\d+\.\d+$/.test(value));
+            if (tags[0] !== tag) {
+              await git('config', 'user.name', 'github-actions[bot]');
+              await git('config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com');
+              if (tags.includes(tag)) {
+                throw new Error(`Version tag ${tag} already exists; update CMakeLists.txt to a new version`);
+              }
+              const changelogPath = 'CHANGELOG.md';
+              const original = fs.readFileSync(changelogPath, 'utf8');
+              const newline = original.includes('\r\n') ? '\r\n' : '\n';
+              let changelog = original.replace(/\r\n/g, '\n');
+              const hasEntry = changelog.split('\n').some(line =>
+                line === `## [${tag}]` || line.startsWith(`## [${tag}] `));
+              if (!hasEntry) {
+                const range = tags[0] ? `${tags[0]}..${context.sha}` : context.sha;
+                const subjects = await git('log', '--format=%s', '--no-merges', range);
+                const changes = subjects.split('\n').filter(Boolean)
+                  .map(subject => `- ${subject}`).join('\n') || `- Release ${tag}.`;
+                const date = new Date().toISOString().slice(0, 10);
+                const entry = `## [${tag}] - ${date}\n\n### Changes\n\n${changes}\n\n`;
+                const nextEntry = changelog.search(/^## \[v\d/m);
+                const updated = nextEntry === -1
+                  ? `${changelog.trimEnd()}\n\n${entry}`
+                  : `${changelog.slice(0, nextEntry)}${entry}${changelog.slice(nextEntry)}`;
+                fs.writeFileSync(changelogPath, updated.replace(/\n/g, newline));
+                changelog = updated;
+                await git('add', '--', changelogPath);
+                await git('commit', '-m', `docs: update changelog for ${tag}`);
+              }
+              const lines = changelog.split('\n');
+              const entryStart = lines.findIndex(line =>
+                line === `## [${tag}]` || line.startsWith(`## [${tag}] `));
+              if (entryStart === -1) {
+                throw new Error(`Cannot find CHANGELOG.md entry for ${tag}`);
+              }
+              const nextEntry = lines.findIndex((line, index) =>
+                index > entryStart && line.startsWith('## '));
+              const tagMessage = lines
+                .slice(entryStart, nextEntry === -1 ? undefined : nextEntry)
+                .join('\n')
+                .trim();
+              await git('tag', '-a', tag, '-m', tagMessage, 'HEAD');
+              await git('push', '--atomic', 'origin', 'HEAD:refs/heads/main', `refs/tags/${tag}`);
+              core.setOutput('changed', 'true');
+
+              const runs = await github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
+                ...context.repo,
+                head_sha: context.sha,
+                event: 'push',
+                per_page: 100,
+              });
+              for (const run of runs) {
+                if (run.id !== context.runId && run.status !== 'completed' &&
+                    run.head_branch === context.payload.ref.replace('refs/heads/', '')) {
+                  await github.rest.actions.cancelWorkflowRun({
+                    ...context.repo,
+                    run_id: run.id,
+                  });
+                }
+              }
+              return;
+            }
+
+  build:
+    name: Build and test (${{ matrix.os }})
+    needs: version
+    if: needs.version.outputs.changed == 'true' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.version.outputs.changed == 'true' && needs.version.outputs.tag || github.ref }}
+      - name: Configure
+        run: >-
+          cmake -S . -B build -DBUILD_TESTING=ON
+          -DAMCORE_BUILD_WASM=OFF
+      - name: Build
+        run: cmake --build build --config Release
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+
+  docs:
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/docs.yml
+
+  release:
+    needs: version
+    if: needs.version.outputs.changed == 'true'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/release.yml
+    with:
+      tag: ${{ needs.version.outputs.tag }}
