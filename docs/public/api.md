@@ -6,25 +6,15 @@ declarations use `AMCORE_API`; the API supports both C and C++ callers.
 
 ## Machine-readable manifest
 
-[api.json](api.json) is a compact API manifest for telemetry receivers and
-MCP/server adapters. It includes the library version, functions, input schemas,
-output names and units, numeric status codes, examples, and telemetry fields.
-`manifest_version` versions the metadata format independently of
-`library_version`. Keep the manifest synchronized with the public API and
-telemetry serializer when either changes.
+[api.json](api.json) describes the library version, public functions, input
+schemas, output names and units, status codes, and examples. It is metadata for
+the C API; the library does not provide HTTP routes, runtime JSON parsing, or
+an MCP server.
 
 Each function's `input_schema` uses JSON Schema Draft 2020-12; `x-unit` is an
-annotation for the physical unit. An MCP adapter can map `name`, `description`,
-and `input_schema` to a tool's `name`, `description`, and `inputSchema`.
-The adapter must provide the binding to C, allocate a non-null output, check
-status codes, and validate finite C-double representability. JSON Schema's
-numeric constraints alone do not guarantee C-double representability.
-
-The `telemetry` section describes the existing outgoing event format, including
-failed calls and non-finite input encoding. Its `fields` map is descriptive
-metadata, not a standalone JSON Schema. Parse timestamp and duration integers
-without loss of 64-bit precision. The manifest does not introduce HTTP routes,
-an MCP server, or runtime JSON parsing in the library.
+annotation for the physical unit. An adapter must provide the binding to C,
+allocate a non-null output, check status codes, and validate finite C-double
+representability.
 
 ## Status values
 
@@ -38,29 +28,6 @@ Operations return an `amcore_status`:
 
 Inputs must be finite and positive. Frequency is in hertz. Lengths, wavelength,
 and distances are in metres. Output parameters are modified only on success.
-
-## Optional operation logging
-
-The public C API and status codes are unchanged when
-`AMCORE_ENABLE_OPERATION_LOGGING=ON`. Every call to the two calculation
-functions is recorded, including failed calls and the nested wavelength call
-made by the far-field calculation after validating its aperture and output
-pointer. A far-field call rejected before wavelength calculation produces only
-its own record.
-
-Recording stores named inputs, output-pointer nullness, return status, successful
-numeric output, UTC start time, and monotonic duration in a per-function SQLite
-table. Output values are SQL NULL on failure; the caller's output remains
-untouched. Pointer addresses and previous output contents are not stored.
-Logging failures emit a diagnostic to stderr but do not change API results.
-
-This desktop-only option adds synchronous filesystem access, memory allocation,
-and a SQLite dependency. Leave it off for embedded and WebAssembly targets.
-On desktop Windows, Linux, and macOS, it can be enabled alongside telemetry;
-WebAssembly supports telemetry only, and embedded builds should keep both
-options disabled.
-See [desktop operation logging](cmake-integration.md#desktop-operation-logging)
-for paths, exact columns and units, timing boundaries, and operational limits.
 
 ## Free-space wavelength
 
@@ -89,25 +56,18 @@ amcore_status amcore_free_space_wavelength(
     double *wavelength_m);
 ```
 
-## Minimum far-field distance
+## Far-field distance
 
-`amcore_far_field_distance` calculates the minimum distance using IEEE Std
-149-2021, section 7.1.2:
+`amcore_far_field_distance` implements IEEE Std 149-2021, section 7.1.2:
 
-$$R_{ff} = \max(5D, 1.6 \lambda, 2D^2/\lambda)$$
+`R_ff = max(5D, 1.6 lambda, 2D^2/lambda)`
 
-`D` is the largest antenna aperture length in metres. The wavelength is
-calculated from the provided frequency.
+where `D` is the largest aperture length and `lambda` is the free-space
+wavelength.
 
 ```c
-#include <amcore/amcore.h>
-
 double distance_m;
-amcore_status status =
-    amcore_far_field_distance(1.0e9, 1.0, &distance_m);
-if (status == AMCORE_STATUS_SUCCESS) {
-    /* distance_m is the minimum far-field distance in metres */
-}
+amcore_status status = amcore_far_field_distance(1.0e9, 1.0, &distance_m);
 ```
 
 Signature:

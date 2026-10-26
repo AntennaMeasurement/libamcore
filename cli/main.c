@@ -11,16 +11,6 @@
 #error "AMCORE_VERSION must be defined by the build system"
 #endif
 
-#ifndef AMCORE_CLI_OPERATION_LOGGING
-#error "AMCORE_CLI_OPERATION_LOGGING must be defined by the build system"
-#endif
-#ifndef AMCORE_CLI_TELEMETRY
-#error "AMCORE_CLI_TELEMETRY must be defined by the build system"
-#endif
-#if AMCORE_CLI_OPERATION_LOGGING
-#include "history.h"
-#endif
-
 typedef int (*command_handler)(int argc, char **argv);
 
 typedef struct command {
@@ -35,18 +25,12 @@ static int run_utility(int argc, char **argv);
 static int run_farfield(int argc, char **argv);
 static int calculate_wavelength(int argc, char **argv);
 static int calculate_distance(int argc, char **argv);
-#if AMCORE_CLI_OPERATION_LOGGING
-static int run_history(int argc, char **argv);
-#endif
 
 static const command commands[] = {
     {"help", "Show this help message", show_help},
     {"version", "Show the program version", show_version},
     {"utility", "Utility calculations", run_utility},
     {"farfield", "Far-field calculations", run_farfield},
-#if AMCORE_CLI_OPERATION_LOGGING
-    {"history", "List logged function calls across all versions", run_history},
-#endif
 };
 
 static const command utility_commands[] = {
@@ -65,39 +49,6 @@ static int is_help(const char *argument)
            strcmp(argument, "--help") == 0;
 }
 
-static void show_instrumentation(void)
-{
-    puts("");
-#if AMCORE_CLI_OPERATION_LOGGING
-    puts("Operation logging: enabled (SQLite, compile-time setting).");
-#if defined(_WIN32)
-    puts("Database: %LOCALAPPDATA%\\libamcore\\libamcore.db");
-#elif defined(__APPLE__)
-    puts("Database: $HOME/Library/Application Support/libamcore/libamcore.db");
-#else
-    puts("Database: $XDG_DATA_HOME/libamcore/libamcore.db");
-    puts("Fallback: $HOME/.local/share/libamcore/libamcore.db");
-#endif
-    puts("Records calculation inputs, status, output, UTC start time and duration.");
-    puts("Nested calls are recorded; CLI parsing errors and help/version are not.");
-    puts("Logging errors go to stderr without changing calculation results or exit status.");
-#else
-    puts("Operation logging: disabled (compile-time setting).");
-    puts("Desktop builds can enable it with -DAMCORE_ENABLE_OPERATION_LOGGING=ON.");
-#endif
-    puts("");
-#if AMCORE_CLI_TELEMETRY
-    puts("Telemetry: enabled (compile-time setting).");
-    puts("Endpoint: " AMCORE_TELEMETRY_ENDPOINT);
-    puts("Sends calculation inputs, status, output, UTC start time and duration.");
-    puts("Nested and failed calls are sent; parsing errors and help/version are not.");
-    puts("Synchronous delivery; telemetry errors go to stderr without changing results.");
-#else
-    puts("Telemetry: disabled (compile-time setting).");
-    puts("Enable with -DAMCORE_ENABLE_TELEMETRY=ON and -DAMCORE_TELEMETRY_ENDPOINT=<URL>.");
-#endif
-}
-
 static int run_module(const char *module, const command *subcommands,
                       size_t count, int argc, char **argv)
 {
@@ -111,7 +62,6 @@ static int run_module(const char *module, const command *subcommands,
                    subcommands[i].description);
         }
         printf("\nRun 'amcore %s <subcommand> --help' for arguments.\n", module);
-        show_instrumentation();
         return EXIT_SUCCESS;
     }
 
@@ -140,26 +90,6 @@ static int run_farfield(int argc, char **argv)
                       sizeof(farfield_commands) / sizeof(farfield_commands[0]),
                       argc, argv);
 }
-
-#if AMCORE_CLI_OPERATION_LOGGING
-static int run_history(int argc, char **argv)
-{
-    if (argc == 1 && is_help(argv[0])) {
-        puts("Usage: amcore history [--function <name>] [-l <limit> | --limit <limit>]");
-        puts("       amcore history --function <name> --id <id>");
-        puts("List logged function calls across all versions, newest first.");
-        puts("  -l, --limit  Maximum number of calls (positive integer; default: 10)");
-        puts("  --function   Filter by library function name across all versions");
-        puts("  --id         Show all stored fields for this ID; requires --function");
-        puts("               Matches every version; cannot be combined with --limit.");
-        puts("Output: aligned tables with ID, function, version, UTC epoch microseconds,");
-        puts("        return status and duration in nanoseconds. IDs are per-table.");
-        show_instrumentation();
-        return EXIT_SUCCESS;
-    }
-    return amcore_cli_history(argc, argv);
-}
-#endif
 
 static int parse_positive_double(const char *text, const char *name,
                                  double *value)
@@ -210,7 +140,6 @@ static int calculate_wavelength(int argc, char **argv)
         puts("Usage: amcore utility wavelength <frequency_hz>");
         puts("Calculate free-space wavelength. Frequency must be positive and finite.");
         puts("Output: one numeric value in metres.");
-        show_instrumentation();
         return EXIT_SUCCESS;
     }
     if (argc != 1) {
@@ -238,7 +167,6 @@ static int calculate_distance(int argc, char **argv)
         puts("Calculate minimum far-field distance per IEEE 149-2021, 7.1.2.");
         puts("Frequency (Hz) and largest aperture length (m) must be positive and finite.");
         puts("Output: one numeric value in metres.");
-        show_instrumentation();
         return EXIT_SUCCESS;
     }
     if (argc != 2) {
@@ -282,7 +210,6 @@ static int show_help(int argc, char **argv)
     puts("Options:");
     puts("  -h, --help     Show this help message");
     puts("  -V, --version  Show the program version");
-    show_instrumentation();
     return EXIT_SUCCESS;
 }
 

@@ -5,7 +5,7 @@ docs/standards
 # CMake build output
 /build*
 /cmake-build-*/
-/vcpkg_installed/
+/vcpkg*
 CMakeUserPresets.json
 
 # Generated documentation
