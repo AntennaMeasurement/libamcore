@@ -7,6 +7,8 @@ features that are not present in the current branch.
 
 ## [Unreleased]
 
+## [v0.6.0] - 2026-10-26
+
 ### Added
 
 - Added planar and spherical near-field calculations to the C API, CLI, and
