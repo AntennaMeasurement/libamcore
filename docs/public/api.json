@@ -1,7 +1,7 @@
 {
   "manifest_version": 1,
   "library": "libamcore",
-  "library_version": "0.6.0",
+  "library_version": "0.6.1",
   "header": "amcore/amcore.h",
   "description": "Machine-readable metadata for the public C calculation API.",
   "status_codes": {

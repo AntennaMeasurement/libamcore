@@ -7,6 +7,13 @@ features that are not present in the current branch.
 
 ## [Unreleased]
 
+## [v0.6.1] - 2026-10-26
+
+### Changes
+
+- chore: update version to 0.6.1 and improve README clarity
+- docs: update references to IEEE standards and clarify descriptions
+
 ## [v0.6.0] - 2026-10-26
 
 ### Added
