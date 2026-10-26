@@ -7,6 +7,8 @@ features that are not present in the current branch.
 
 ## [Unreleased]
 
+## [v0.5.3] - 2026-10-26
+
 ### Added
 
 - Far-field line-of-sight and radio-horizon estimates, plus free-space path
