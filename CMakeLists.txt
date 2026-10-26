@@ -1,6 +1,11 @@
 # Last content update tag: v0.1.0
 cmake_minimum_required(VERSION 3.15)
 
+if(WIN32 AND NOT DEFINED CMAKE_INSTALL_PREFIX AND DEFINED ENV{LOCALAPPDATA})
+    set(CMAKE_INSTALL_PREFIX "$ENV{LOCALAPPDATA}/Programs/libamcore" CACHE PATH
+        "Install prefix for libamcore")
+endif()
+
 project(libamcore
     VERSION 0.6.1
     DESCRIPTION "Core computational routines for antenna measurements"

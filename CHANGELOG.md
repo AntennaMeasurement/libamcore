@@ -7,6 +7,11 @@ features that are not present in the current branch.
 
 ## [Unreleased]
 
+### Changed
+
+- Default Windows installations to `%LOCALAPPDATA%\Programs\libamcore` to
+  avoid requiring administrator permissions.
+
 ## [v0.6.1] - 2026-10-26
 
 ### Changes

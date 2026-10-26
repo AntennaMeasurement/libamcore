@@ -36,8 +36,13 @@ ctest --test-dir build-tests -C Release --output-on-failure
 Install the library, public headers, CLI (when enabled), and CMake package:
 
 ```sh
-cmake --install build --prefix install
+cmake --install build
 ```
+
+On Windows, the default install location is
+`%LOCALAPPDATA%\Programs\libamcore`, so installation does not require
+administrator permissions. You can still choose a different location when
+configuring with `-DCMAKE_INSTALL_PREFIX`.
 
 An installed CMake consumer can locate and link the library with
 `find_package(amcore CONFIG REQUIRED)` and `amcore::amcore`.

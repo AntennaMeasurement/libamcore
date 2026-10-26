@@ -90,8 +90,13 @@ The output `amcore.wasm` exports the library's calculation functions.
 Install the library, public headers, CLI (when enabled), and CMake package:
 
 ```sh
-cmake --install build --prefix install
+cmake --install build
 ```
+
+On Windows, the default install location is
+`%LOCALAPPDATA%\Programs\libamcore`, so installation does not require
+administrator permissions. You can still choose a different location when
+configuring with `-DCMAKE_INSTALL_PREFIX`.
 
 Consumers can link the installed package with:
 
