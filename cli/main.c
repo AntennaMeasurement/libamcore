@@ -33,12 +33,12 @@ static const command commands[] = {
     {"farfield", "Far-field calculations", run_farfield},
 };
 
-static const command utility_commands[] = {
+static const command utility_functions[] = {
     {"wavelength", "Calculate free-space wavelength in metres",
      calculate_wavelength},
 };
 
-static const command farfield_commands[] = {
+static const command farfield_functions[] = {
     {"distance", "Calculate minimum far-field distance in metres",
      calculate_distance},
 };
@@ -49,45 +49,45 @@ static int is_help(const char *argument)
            strcmp(argument, "--help") == 0;
 }
 
-static int run_module(const char *module, const command *subcommands,
+static int run_module(const char *module, const command *functions,
                       size_t count, int argc, char **argv)
 {
     size_t i;
 
     if (argc == 0 || (argc == 1 && is_help(argv[0]))) {
-        printf("Usage: amcore %s <subcommand> [arguments]\n\n", module);
-        puts("Subcommands:");
+        printf("Usage: amcore %s <function> [arguments]\n\n", module);
+        puts("Functions:");
         for (i = 0; i < count; ++i) {
-            printf("  %-10s %s\n", subcommands[i].name,
-                   subcommands[i].description);
+            printf("  %-10s %s\n", functions[i].name,
+                   functions[i].description);
         }
-        printf("\nRun 'amcore %s <subcommand> --help' for arguments.\n", module);
+        printf("\nRun 'amcore %s <function> --help' for arguments.\n", module);
         return EXIT_SUCCESS;
     }
 
     for (i = 0; i < count; ++i) {
-        if (strcmp(argv[0], subcommands[i].name) == 0) {
-            return subcommands[i].handler(argc - 1, argv + 1);
+        if (strcmp(argv[0], functions[i].name) == 0) {
+            return functions[i].handler(argc - 1, argv + 1);
         }
     }
 
-    fprintf(stderr, "amcore %s: unknown subcommand '%s'\n", module, argv[0]);
-    fprintf(stderr, "Run 'amcore %s --help' to see available subcommands.\n",
+    fprintf(stderr, "amcore %s: unknown function '%s'\n", module, argv[0]);
+    fprintf(stderr, "Run 'amcore %s --help' to see available functions.\n",
             module);
     return EXIT_FAILURE;
 }
 
 static int run_utility(int argc, char **argv)
 {
-    return run_module("utility", utility_commands,
-                      sizeof(utility_commands) / sizeof(utility_commands[0]),
+    return run_module("utility", utility_functions,
+                      sizeof(utility_functions) / sizeof(utility_functions[0]),
                       argc, argv);
 }
 
 static int run_farfield(int argc, char **argv)
 {
-    return run_module("farfield", farfield_commands,
-                      sizeof(farfield_commands) / sizeof(farfield_commands[0]),
+    return run_module("farfield", farfield_functions,
+                      sizeof(farfield_functions) / sizeof(farfield_functions[0]),
                       argc, argv);
 }
 
@@ -195,10 +195,10 @@ static int show_help(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    puts("Usage: amcore <subcommand> [options]");
+    puts("Usage: amcore <module> [options]");
     puts("       amcore [--help | --version]");
     puts("");
-    puts("Subcommands:");
+    puts("Modules:");
     for (i = 0; i < sizeof(commands) / sizeof(commands[0]); ++i) {
         if (commands[i].handler == show_help ||
             commands[i].handler == show_version) {
@@ -249,7 +249,7 @@ int main(int argc, char **argv)
         }
     }
 
-    fprintf(stderr, "amcore: unknown subcommand '%s'\n", subcommand);
-    fputs("Run 'amcore help' to see available subcommands.\n", stderr);
+    fprintf(stderr, "amcore: unknown module '%s'\n", subcommand);
+    fputs("Run 'amcore help' to see available modules.\n", stderr);
     return EXIT_FAILURE;
 }

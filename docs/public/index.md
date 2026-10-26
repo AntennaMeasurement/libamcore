@@ -13,9 +13,7 @@ and telemetry are not included.
 | `utility` | `amcore_free_space_wavelength` | Free-space wavelength in metres |
 | `farfield` | `amcore_far_field_distance` | Minimum far-field distance in metres |
 
-Far-field distance follows IEEE Std 149-2021, section 7.1.2:
-`R_ff = max(5D, 1.6 lambda, 2D^2/lambda)`, where `D` is the largest antenna
-aperture length and `lambda` is the free-space wavelength.
+All calculations are referenced from the relevant standards and literature. See the [References](#references) section for details.
 
 ## Start here
 
@@ -31,3 +29,7 @@ post-processing are not part of the current public API.
 
 See the [source repository](https://github.com/AntennaMeasurement/libamcore)
 for releases, issues, and contribution information.
+
+## References
+
+[1] [IEEE Std 149-2021](https://standards.ieee.org/standard/149-2021.html) - Standard for Antenna Measurements

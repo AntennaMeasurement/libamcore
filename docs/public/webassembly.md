@@ -11,7 +11,7 @@ emcmake cmake -S . -B build-wasm \
 cmake --build build-wasm --target amcore_wasm
 ```
 
-The build produces `build-wasm/amcore.wasm`, which exports
+The build produces `build-wasm/amcore.wasm`, which exports functions like
 `amcore_free_space_wavelength` and `amcore_far_field_distance` without a
 `main` entry point. The C functions keep their normal signatures; result
 pointers refer to locations in WebAssembly linear memory. When

@@ -2,8 +2,10 @@
 # libamcore
 
 `libamcore` is a portable C library for core antenna-measurement calculations.
-This branch contains the calculation API and the `amcore` command-line tool;
-operation logging, call history, and telemetry are not included.
+Project contains the calculation API and the `amcore` command-line tool.
+
+The public API is available through `<amcore/amcore.h>`. It uses C99, supports
+C++ consumers, and does not require platform-specific runtime dependencies.
 
 ## Calculations
 
@@ -12,13 +14,8 @@ operation logging, call history, and telemetry are not included.
 | `utility` | `amcore_free_space_wavelength` | Computes free-space wavelength from frequency. |
 | `farfield` | `amcore_far_field_distance` | Computes minimum far-field distance from frequency and aperture length. |
 
-Far-field distance follows IEEE Std 149-2021, section 7.1.2:
-`R_ff = max(5D, 1.6 lambda, 2D^2/lambda)`.
+All calculations are referenced from the relevant standards and literature. See the [References](#references) section for details.
 
-The public API is available through `<amcore/amcore.h>`. It uses C99, supports
-C++ consumers, and does not require platform-specific runtime dependencies.
-Inputs must be positive and finite. Output parameters are changed only on
-success.
 
 ## Build
 
@@ -110,19 +107,6 @@ Then open the local URL printed by MkDocs. See [build and install](docs/public/g
 [CMake integration](docs/public/cmake-integration.md), and
 [WebAssembly](docs/public/webassembly.md).
 
-## Releases
+## References
 
-To release a new version, update `project(libamcore VERSION ...)` in
-`CMakeLists.txt` and push to `main`. CI moves the `CHANGELOG.md` Unreleased
-details into the new version's release notes, leaving an empty Unreleased
-section. If there are no pending details, it uses commit subjects instead.
-It also synchronizes `vcpkg.json` (`version-string`) and `docs/public/api.json`
-(`library_version`) with the CMake version, then commits these files before
-creating the release tag. The release workflow packages that tagged commit
-and publishes its versioned changelog entry as the GitHub release notes.
-
-Release preparation regression tests run with Node.js:
-
-```sh
-node --test tests/test_release_workflow.cjs
-```
+[1] [IEEE Std 149-2021](https://standards.ieee.org/standard/149-2021.html) - Standard for Antenna Measurements

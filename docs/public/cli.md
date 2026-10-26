@@ -1,13 +1,33 @@
 # Command-line interface
 
 The `amcore` executable provides help, version information, and the library's
-two calculations:
+calculations. Subcommands correspond to the modules providing these calculations:
 
 ```text
-amcore help
-amcore version
-amcore utility wavelength <frequency_hz>
-amcore farfield distance <frequency_hz> <aperture_length_m>
+Usage: amcore <subcommand> [options]
+       amcore [--help | --version]
+
+Subcommands:
+  utility    Utility calculations
+  farfield   Far-field calculations
+
+Options:
+  -h, --help     Show this help message
+  -V, --version  Show the program version
+```
+
+```
+Usage: amcore utility <subcommand> [arguments]
+
+Subcommands:
+  wavelength Calculate free-space wavelength in metres
+```
+
+```
+Usage: amcore farfield <subcommand> [arguments]
+
+Subcommands:
+  distance  Calculate far-field distance in metres
 ```
 
 Examples:
@@ -28,5 +48,4 @@ The executable, modules, and calculation commands accept `help`, `-h`, and
 `--help`. The CLI is built by default; configure with
 `-DAMCORE_BUILD_CLI=OFF` to omit it.
 
-This branch preserves the calculation commands, help, and version output.
-Operation logging, telemetry, and the `history` subcommand are not included.
+
