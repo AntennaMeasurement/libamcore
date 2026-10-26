@@ -4,6 +4,8 @@
 branch includes the calculation API and CLI; operation logging, call history,
 and telemetry are not included.
 
+**Library version:** {{ library_version }}
+
 ## Supported calculations
 
 | Module | Function | Result |

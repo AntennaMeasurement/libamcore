@@ -6,6 +6,8 @@ repo_name: AntennaMeasurement/libamcore
 
 docs_dir: docs/public
 exclude_docs: LLM_CONTEXT.md
+hooks:
+  - docs/hooks.py
 
 theme:
   name: readthedocs
