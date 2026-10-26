@@ -5,7 +5,9 @@
 Project contains the calculation API and the `amcore` command-line tool.
 
 The public API is available through `<amcore/amcore.h>`. It uses C99, supports
-C++ consumers, and does not require platform-specific runtime dependencies.
+C++ consumers, and does not require nonstandard runtime dependencies. CMake
+links the system math library where it is provided separately (such as `libm`
+on Linux).
 
 ## Calculations
 

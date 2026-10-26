@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(libamcore
-    VERSION 0.6.0
+    VERSION 0.6.1
     DESCRIPTION "Core computational routines for antenna measurements"
     LANGUAGES C
 )
@@ -38,6 +38,9 @@ target_include_directories(amcore
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
+if(UNIX OR EMSCRIPTEN)
+    target_link_libraries(amcore PUBLIC m)
+endif()
 
 if(AMCORE_BUILD_WASM)
     if(NOT EMSCRIPTEN)
@@ -53,6 +56,9 @@ if(AMCORE_BUILD_WASM)
     target_include_directories(amcore_wasm
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
     )
+    if(UNIX OR EMSCRIPTEN)
+        target_link_libraries(amcore_wasm PRIVATE m)
+    endif()
     target_link_options(amcore_wasm PRIVATE
         "-Wl,--no-entry"
         "-sEXPORTED_FUNCTIONS=_amcore_free_space_wavelength,_amcore_far_field_distance,_amcore_far_field_line_of_sight_km,_amcore_far_field_radio_horizon_km,_amcore_far_field_path_loss_db,_amcore_near_field_separation_distance_m,_amcore_near_field_planar_sampling_spacing_m,_amcore_near_field_planar_scan_length_m,_amcore_near_field_planar_angle_of_view_deg,_amcore_near_field_planar_sampling_parameters,_amcore_near_field_spherical_maximum_radius_extent_m"
