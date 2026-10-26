@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(libamcore
-    VERSION 0.5.1
+    VERSION 0.5.2
     DESCRIPTION "Core computational routines for antenna measurements"
     LANGUAGES C
 )
@@ -125,15 +125,15 @@ if(BUILD_TESTING)
         )
         add_test(NAME amcore_cli_default_help COMMAND $<TARGET_FILE:amcore_cli>)
         set_tests_properties(amcore_cli_default_help PROPERTIES
-            PASS_REGULAR_EXPRESSION "Subcommands:"
+            PASS_REGULAR_EXPRESSION "Modules:"
         )
         add_test(NAME amcore_cli_help COMMAND $<TARGET_FILE:amcore_cli> help)
         set_tests_properties(amcore_cli_help PROPERTIES
-            PASS_REGULAR_EXPRESSION "Subcommands:"
+            PASS_REGULAR_EXPRESSION "Modules:"
         )
         add_test(NAME amcore_cli_help_option COMMAND $<TARGET_FILE:amcore_cli> --help)
         set_tests_properties(amcore_cli_help_option PROPERTIES
-            PASS_REGULAR_EXPRESSION "Subcommands:"
+            PASS_REGULAR_EXPRESSION "Modules:"
         )
         add_test(NAME amcore_cli_version COMMAND $<TARGET_FILE:amcore_cli> version)
         set_tests_properties(amcore_cli_version PROPERTIES
@@ -143,8 +143,8 @@ if(BUILD_TESTING)
         set_tests_properties(amcore_cli_version_option PROPERTIES
             PASS_REGULAR_EXPRESSION "amcore ${PROJECT_VERSION}"
         )
-        add_test(NAME amcore_cli_unknown_subcommand COMMAND $<TARGET_FILE:amcore_cli> unknown)
-        set_tests_properties(amcore_cli_unknown_subcommand PROPERTIES
+        add_test(NAME amcore_cli_unknown_module COMMAND $<TARGET_FILE:amcore_cli> unknown)
+        set_tests_properties(amcore_cli_unknown_module PROPERTIES
             WILL_FAIL TRUE
         )
     endif()
