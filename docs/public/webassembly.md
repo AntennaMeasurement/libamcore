@@ -15,7 +15,14 @@ The build produces `build-wasm/amcore.wasm`, which exports the calculation
 functions, including `amcore_free_space_wavelength`,
 `amcore_far_field_distance`, `amcore_far_field_line_of_sight_km`,
 `amcore_far_field_radio_horizon_km`, and `amcore_far_field_path_loss_db`,
-without a `main` entry point. The C functions keep their normal signatures;
+and the near-field functions
+`amcore_near_field_separation_distance_m`,
+`amcore_near_field_planar_sampling_spacing_m`,
+`amcore_near_field_planar_scan_length_m`,
+`amcore_near_field_planar_angle_of_view_deg`,
+`amcore_near_field_planar_sampling_parameters`, and
+`amcore_near_field_spherical_maximum_radius_extent_m`, without a `main` entry
+point. The C functions keep their normal signatures;
 result pointers refer to locations in WebAssembly linear memory. When
 `AMCORE_BUILD_WASM` is enabled, the module is installed into the library
 directory.

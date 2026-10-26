@@ -16,6 +16,12 @@ C++ consumers, and does not require platform-specific runtime dependencies.
 | `farfield` | `amcore_far_field_line_of_sight_km` | Estimates line-of-sight range from height. |
 | `farfield` | `amcore_far_field_radio_horizon_km` | Estimates radio horizon from height. |
 | `farfield` | `amcore_far_field_path_loss_db` | Computes free-space path loss from frequency, range, and antenna gains. |
+| `nearfield` | `amcore_near_field_separation_distance_m` | Computes the recommended near-field measurement separation. |
+| `nearfield` | `amcore_near_field_planar_sampling_spacing_m` | Computes the maximum planar sampling spacing. |
+| `nearfield` | `amcore_near_field_planar_scan_length_m` | Computes planar scan length for a desired angle of view. |
+| `nearfield` | `amcore_near_field_planar_angle_of_view_deg` | Computes planar angle of view for a centered scan. |
+| `nearfield` | `amcore_near_field_planar_sampling_parameters` | Computes centered planar scan endpoints, sample count, and spacing. |
+| `nearfield` | `amcore_near_field_spherical_maximum_radius_extent_m` | Computes spherical maximum radius extent. |
 
 All calculations are referenced from the relevant standards and literature. See the [References](#references) section for details.
 

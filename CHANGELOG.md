@@ -7,6 +7,11 @@ features that are not present in the current branch.
 
 ## [Unreleased]
 
+### Added
+
+- Added planar and spherical near-field calculations to the C API, CLI, and
+  documentation, including the recommended five-wavelength probe separation.
+
 ## [v0.5.3] - 2026-10-26
 
 ### Added

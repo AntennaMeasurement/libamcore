@@ -22,9 +22,13 @@ Implemented calculations:
 - Approximate line-of-sight range and radio horizon from height above ground.
 - Free-space path loss under far-field conditions, using frequency in MHz,
   range in km, and antenna gains in dB.
+- Planar near-field sampling spacing, scan length, angle of view, and centered
+  sampling parameters.
+- Recommended five-wavelength near-field separation distance.
+- Spherical near-field maximum radius extent.
 
-Near-field calculations, chamber design, device control, pattern processing,
-and post-processing are not currently exposed.
+Chamber design, device control, pattern processing, and post-processing are
+not currently exposed.
 
 ## Source map
 
@@ -33,8 +37,10 @@ and post-processing are not currently exposed.
 | `include/amcore/amcore.h` | Umbrella public header. |
 | `include/amcore/utility.h` | Status enum, export macro, speed-of-light constant, wavelength API. |
 | `include/amcore/farfield.h` | Far-field calculation public API. |
+| `include/amcore/nearfield.h` | Near-field calculation public API. |
 | `src/utility.c` | Wavelength computation and physical constant. |
 | `src/farfield.c` | Far-field distance, line-of-sight, radio-horizon, and path-loss computations. |
+| `src/nearfield.c` | Recommended separation distance, planar near-field sampling and scan geometry, and spherical maximum-radius extent. |
 | `cli/main.c` | CLI parsing, module dispatch, diagnostics, and output. |
 | `tests/test_amcore.c` | Library calculations, invalid inputs, and range behavior. |
 | `tests/test_cli.cmake` | CLI integration checks. |
@@ -55,9 +61,10 @@ and post-processing are not currently exposed.
   `AMCORE_STATUS_OUT_OF_RANGE` are the defined status values.
 - The CLI is a separate C API consumer. Calculation output is numeric-only on
   stdout; errors are written to stderr and return a nonzero exit status.
-- The CLI provides `help`, `version`, `utility wavelength`, and the far-field
-  commands `distance`, `line-of-sight`, `radio-horizon`, and `path-loss`. It does
-  not provide a `history` command.
+- The CLI provides `help`, `version`, `utility wavelength`, the far-field
+  commands `distance`, `line-of-sight`, `radio-horizon`, and `path-loss`, and
+  near-field planar and spherical calculations. It does not provide a
+  `history` command.
 
 The machine-readable manifest documents functions, input schemas, units,
 status codes, and examples. It is not an HTTP API or server implementation.

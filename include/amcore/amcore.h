@@ -9,5 +9,6 @@
 
 #include <amcore/utility.h>
 #include <amcore/farfield.h>
+#include <amcore/nearfield.h>
 
 #endif

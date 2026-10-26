@@ -1,7 +1,8 @@
 # C API
 
 Include `<amcore/amcore.h>` to use the full public API, or include a module
-header such as `<amcore/utility.h>` or `<amcore/farfield.h>`. Public
+header such as `<amcore/utility.h>`, `<amcore/farfield.h>`, or
+`<amcore/nearfield.h>`. Public
 declarations use `AMCORE_API`; the API supports both C and C++ callers.
 
 ## Machine-readable manifest
@@ -144,4 +145,108 @@ amcore_status amcore_far_field_path_loss_db(
     double transmit_gain_db,
     double receive_gain_db,
     double *path_loss_db);
+```
+
+## Near-field Module
+
+The near-field module contains planar near-field sampling and scan-geometry
+calculations, plus a spherical near-field extent calculation.
+
+### Recommended separation distance
+
+`amcore_near_field_separation_distance_m` returns five free-space
+wavelengths, following IEEE Std 1720-2012, section 5.3.1.4.
+
+```c
+double separation_m;
+amcore_status status =
+    amcore_near_field_separation_distance_m(10.0e9, &separation_m);
+```
+
+Signature:
+
+```c
+amcore_status amcore_near_field_separation_distance_m(
+    double frequency_hz,
+    double *separation_m);
+```
+
+### Planar sampling spacing
+
+`amcore_near_field_planar_sampling_spacing_m` returns half the free-space
+wavelength, $\Delta = \lambda/2$. This spacing follows IEEE Std 149-2021,
+section 12.5, and IEEE Std 1720-2012, section 5.2.5, equation 25.
+
+```c
+double spacing_m;
+amcore_status status =
+    amcore_near_field_planar_sampling_spacing_m(1.0e9, &spacing_m);
+```
+
+Signature:
+
+```c
+amcore_status amcore_near_field_planar_sampling_spacing_m(
+    double frequency_hz,
+    double *spacing_m);
+```
+
+### Planar scan length and angle of view
+
+`amcore_near_field_planar_scan_length_m` calculates
+$L = 2d\tan(\theta)+a$, where `a` is the antenna cross-section, `d` is the
+probe separation, and $\theta$ is the desired angle along one side. Lengths
+are in metres and the angle is in degrees. The angle must be in $[0,90)$.
+The scan geometry follows IEEE Std 149-2021, section 12.5, equation 99, and
+IEEE Std 1720-2012, section 5.3.1.6, equation 27.
+
+```c
+double scan_length_m;
+amcore_status status = amcore_near_field_planar_scan_length_m(
+    1.0, 2.0, 45.0, &scan_length_m);
+```
+
+`amcore_near_field_planar_angle_of_view_deg` calculates the angle for a
+centered scan using
+$\theta = \operatorname{atan2}(L-a,2d)$, converted to degrees. A scan shorter
+than the antenna cross-section yields a negative angle, as in the defining
+formula.
+
+```c
+double angle_of_view_deg;
+amcore_status status = amcore_near_field_planar_angle_of_view_deg(
+    1.0, 2.0, 5.0, &angle_of_view_deg);
+```
+
+### Planar sampling parameters
+
+`amcore_near_field_planar_sampling_parameters` rounds half-wavelength spacing
+down to whole millimetres, rounds the requested scan length up to whole
+millimetres, and extends the centered half-scan to a whole multiple of the
+spacing. It returns the negative and positive endpoints in metres, sample
+count including both endpoints, and integer spacing in millimetres. It returns
+`AMCORE_STATUS_OUT_OF_RANGE` if the spacing rounds down to zero millimetres or
+the values cannot be represented.
+
+```c
+double scan_start_m;
+double scan_stop_m;
+size_t sample_count;
+size_t spacing_mm;
+amcore_status status = amcore_near_field_planar_sampling_parameters(
+    299792458.0, 1.0, &scan_start_m, &scan_stop_m, &sample_count,
+    &spacing_mm);
+```
+
+### Spherical maximum radius extent
+
+`amcore_near_field_spherical_maximum_radius_extent_m` calculates the
+Euclidean norm of the maximum x, y, and z displacements. Displacements may be
+signed; the result is in metres.
+
+```c
+double extent_m;
+amcore_status status =
+    amcore_near_field_spherical_maximum_radius_extent_m(
+        3.0, 4.0, 12.0, &extent_m);
 ```

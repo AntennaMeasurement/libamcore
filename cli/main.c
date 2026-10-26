@@ -23,17 +23,27 @@ static int show_help(int argc, char **argv);
 static int show_version(int argc, char **argv);
 static int run_utility(int argc, char **argv);
 static int run_farfield(int argc, char **argv);
+static int run_nearfield(int argc, char **argv);
+static int run_nearfield_planar(int argc, char **argv);
+static int run_nearfield_spherical(int argc, char **argv);
 static int calculate_wavelength(int argc, char **argv);
 static int calculate_distance(int argc, char **argv);
 static int calculate_line_of_sight(int argc, char **argv);
 static int calculate_radio_horizon(int argc, char **argv);
 static int calculate_path_loss(int argc, char **argv);
+static int calculate_near_field_separation_distance(int argc, char **argv);
+static int calculate_planar_sampling_spacing(int argc, char **argv);
+static int calculate_planar_scan_length(int argc, char **argv);
+static int calculate_planar_angle_of_view(int argc, char **argv);
+static int calculate_planar_sampling_parameters(int argc, char **argv);
+static int calculate_spherical_maximum_radius_extent(int argc, char **argv);
 
 static const command commands[] = {
     {"help", "Show this help message", show_help},
     {"version", "Show the program version", show_version},
     {"utility", "Utility calculations", run_utility},
     {"farfield", "Far-field calculations", run_farfield},
+    {"nearfield", "Near-field calculations", run_nearfield},
 };
 
 static const command utility_functions[] = {
@@ -50,6 +60,30 @@ static const command farfield_functions[] = {
      calculate_radio_horizon},
     {"path-loss", "Calculate free-space path loss in decibels",
      calculate_path_loss},
+};
+
+static const command nearfield_functions[] = {
+    {"separation-distance", "Calculate recommended near-field separation in metres",
+     calculate_near_field_separation_distance},
+    {"planar", "Planar near-field calculations", run_nearfield_planar},
+    {"spherical", "Spherical near-field calculations",
+     run_nearfield_spherical},
+};
+
+static const command nearfield_planar_functions[] = {
+    {"sampling-spacing", "Calculate sampling spacing in metres",
+     calculate_planar_sampling_spacing},
+    {"scan-length", "Calculate required scan length in metres",
+     calculate_planar_scan_length},
+    {"angle-of-view", "Calculate angle of view in degrees",
+     calculate_planar_angle_of_view},
+    {"sampling-parameters", "Calculate centered sampling parameters",
+     calculate_planar_sampling_parameters},
+};
+
+static const command nearfield_spherical_functions[] = {
+    {"maximum-radius-extent", "Calculate maximum radius extent in metres",
+     calculate_spherical_maximum_radius_extent},
 };
 
 static int is_help(const char *argument)
@@ -97,6 +131,29 @@ static int run_farfield(int argc, char **argv)
 {
     return run_module("farfield", farfield_functions,
                       sizeof(farfield_functions) / sizeof(farfield_functions[0]),
+                      argc, argv);
+}
+
+static int run_nearfield(int argc, char **argv)
+{
+    return run_module("nearfield", nearfield_functions,
+                      sizeof(nearfield_functions) / sizeof(nearfield_functions[0]),
+                      argc, argv);
+}
+
+static int run_nearfield_planar(int argc, char **argv)
+{
+    return run_module("nearfield planar", nearfield_planar_functions,
+                      sizeof(nearfield_planar_functions) /
+                          sizeof(nearfield_planar_functions[0]),
+                      argc, argv);
+}
+
+static int run_nearfield_spherical(int argc, char **argv)
+{
+    return run_module("nearfield spherical", nearfield_spherical_functions,
+                      sizeof(nearfield_spherical_functions) /
+                          sizeof(nearfield_spherical_functions[0]),
                       argc, argv);
 }
 
@@ -309,6 +366,217 @@ static int calculate_path_loss(int argc, char **argv)
     status = amcore_far_field_path_loss_db(frequency, range, transmit_gain,
                                            receive_gain, &path_loss);
     return print_result(status, path_loss);
+}
+
+static int calculate_planar_sampling_spacing(int argc, char **argv)
+{
+    double frequency;
+    double spacing = 0.0;
+    amcore_status status;
+
+    if (argc == 1 && is_help(argv[0])) {
+        puts("Usage: amcore nearfield planar sampling-spacing <frequency_hz>");
+        puts("Calculate half-wavelength sampling spacing.");
+        puts("Frequency must be positive and finite.");
+        puts("Output: one numeric value in metres.");
+        return EXIT_SUCCESS;
+    }
+    if (argc != 1) {
+        fputs("Usage: amcore nearfield planar sampling-spacing "
+              "<frequency_hz>\n", stderr);
+        return EXIT_FAILURE;
+    }
+    if (parse_positive_double(argv[0], "frequency_hz", &frequency) !=
+        EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    status =
+        amcore_near_field_planar_sampling_spacing_m(frequency, &spacing);
+    return print_result(status, spacing);
+}
+
+static int calculate_near_field_separation_distance(int argc, char **argv)
+{
+    double frequency;
+    double separation = 0.0;
+    amcore_status status;
+
+    if (argc == 1 && is_help(argv[0])) {
+        puts("Usage: amcore nearfield separation-distance <frequency_hz>");
+        puts("Calculate the recommended five-wavelength measurement separation.");
+        puts("Frequency must be positive and finite.");
+        puts("Output: one numeric value in metres.");
+        return EXIT_SUCCESS;
+    }
+    if (argc != 1) {
+        fputs("Usage: amcore nearfield separation-distance <frequency_hz>\n",
+              stderr);
+        return EXIT_FAILURE;
+    }
+    if (parse_positive_double(argv[0], "frequency_hz", &frequency) !=
+        EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    status =
+        amcore_near_field_separation_distance_m(frequency, &separation);
+    return print_result(status, separation);
+}
+
+static int calculate_planar_scan_length(int argc, char **argv)
+{
+    double aperture;
+    double separation;
+    double angle;
+    double scan_length = 0.0;
+    amcore_status status;
+
+    if (argc == 1 && is_help(argv[0])) {
+        puts("Usage: amcore nearfield planar scan-length "
+             "<aperture_cross_section_m> <probe_separation_m> "
+             "<angle_of_view_deg>");
+        puts("Calculate the required scan length for a desired angle of view.");
+        puts("Aperture length must be non-negative, separation positive, and "
+             "angle in [0, 90) degrees.");
+        puts("Output: one numeric value in metres.");
+        return EXIT_SUCCESS;
+    }
+    if (argc != 3) {
+        fputs("Usage: amcore nearfield planar scan-length "
+              "<aperture_cross_section_m> <probe_separation_m> "
+              "<angle_of_view_deg>\n", stderr);
+        return EXIT_FAILURE;
+    }
+    if (parse_nonnegative_double(argv[0], "aperture_cross_section_m",
+                                 &aperture) != EXIT_SUCCESS ||
+        parse_positive_double(argv[1], "probe_separation_m", &separation) !=
+            EXIT_SUCCESS ||
+        parse_nonnegative_double(argv[2], "angle_of_view_deg", &angle) !=
+            EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    status = amcore_near_field_planar_scan_length_m(
+        aperture, separation, angle, &scan_length);
+    return print_result(status, scan_length);
+}
+
+static int calculate_planar_angle_of_view(int argc, char **argv)
+{
+    double aperture;
+    double separation;
+    double scan_length;
+    double angle = 0.0;
+    amcore_status status;
+
+    if (argc == 1 && is_help(argv[0])) {
+        puts("Usage: amcore nearfield planar angle-of-view "
+             "<aperture_cross_section_m> <probe_separation_m> "
+             "<scan_length_m>");
+        puts("Calculate the angle of view for a centered scan.");
+        puts("Aperture and scan lengths must be non-negative; separation "
+             "must be positive.");
+        puts("Output: one numeric value in degrees.");
+        return EXIT_SUCCESS;
+    }
+    if (argc != 3) {
+        fputs("Usage: amcore nearfield planar angle-of-view "
+              "<aperture_cross_section_m> <probe_separation_m> "
+              "<scan_length_m>\n", stderr);
+        return EXIT_FAILURE;
+    }
+    if (parse_nonnegative_double(argv[0], "aperture_cross_section_m",
+                                 &aperture) != EXIT_SUCCESS ||
+        parse_positive_double(argv[1], "probe_separation_m", &separation) !=
+            EXIT_SUCCESS ||
+        parse_nonnegative_double(argv[2], "scan_length_m", &scan_length) !=
+            EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    status = amcore_near_field_planar_angle_of_view_deg(
+        aperture, separation, scan_length, &angle);
+    return print_result(status, angle);
+}
+
+static int calculate_planar_sampling_parameters(int argc, char **argv)
+{
+    double frequency;
+    double minimum_scan_length;
+    double scan_start = 0.0;
+    double scan_stop = 0.0;
+    size_t sample_count = 0;
+    size_t spacing_mm = 0;
+    amcore_status status;
+
+    if (argc == 1 && is_help(argv[0])) {
+        puts("Usage: amcore nearfield planar sampling-parameters "
+             "<frequency_hz> <minimum_scan_length_m>");
+        puts("Calculate centered scan endpoints, sample count, and spacing.");
+        puts("Frequency must be positive and scan length non-negative; both "
+             "must be finite.");
+        puts("Output: scan start (m), scan stop (m), sample count, and "
+             "sampling spacing (mm).");
+        return EXIT_SUCCESS;
+    }
+    if (argc != 2) {
+        fputs("Usage: amcore nearfield planar sampling-parameters "
+              "<frequency_hz> <minimum_scan_length_m>\n", stderr);
+        return EXIT_FAILURE;
+    }
+    if (parse_positive_double(argv[0], "frequency_hz", &frequency) !=
+            EXIT_SUCCESS ||
+        parse_nonnegative_double(argv[1], "minimum_scan_length_m",
+                                 &minimum_scan_length) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    status = amcore_near_field_planar_sampling_parameters(
+        frequency, minimum_scan_length, &scan_start, &scan_stop,
+        &sample_count, &spacing_mm);
+    if (status != AMCORE_STATUS_SUCCESS) {
+        return print_result(status, 0.0);
+    }
+    printf("%.17g %.17g %zu %zu\n", scan_start, scan_stop, sample_count,
+           spacing_mm);
+    return EXIT_SUCCESS;
+}
+
+static int calculate_spherical_maximum_radius_extent(int argc, char **argv)
+{
+    double displacement_x;
+    double displacement_y;
+    double displacement_z;
+    double extent = 0.0;
+    amcore_status status;
+
+    if (argc == 1 && is_help(argv[0])) {
+        puts("Usage: amcore nearfield spherical maximum-radius-extent "
+             "<displacement_x_m> <displacement_y_m> <displacement_z_m>");
+        puts("Calculate the Euclidean maximum radius extent.");
+        puts("Displacements must be finite; signed values are accepted.");
+        puts("Output: one numeric value in metres.");
+        return EXIT_SUCCESS;
+    }
+    if (argc != 3) {
+        fputs("Usage: amcore nearfield spherical maximum-radius-extent "
+              "<displacement_x_m> <displacement_y_m> <displacement_z_m>\n",
+              stderr);
+        return EXIT_FAILURE;
+    }
+    if (parse_finite_double(argv[0], "displacement_x_m", &displacement_x) !=
+            EXIT_SUCCESS ||
+        parse_finite_double(argv[1], "displacement_y_m", &displacement_y) !=
+            EXIT_SUCCESS ||
+        parse_finite_double(argv[2], "displacement_z_m", &displacement_z) !=
+            EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    status = amcore_near_field_spherical_maximum_radius_extent_m(
+        displacement_x, displacement_y, displacement_z, &extent);
+    return print_result(status, extent);
 }
 
 static int show_help(int argc, char **argv)

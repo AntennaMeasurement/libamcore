@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(libamcore
-    VERSION 0.5.3
+    VERSION 0.6.0
     DESCRIPTION "Core computational routines for antenna measurements"
     LANGUAGES C
 )
@@ -15,7 +15,7 @@ include(CTest)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-add_library(amcore src/utility.c src/farfield.c)
+add_library(amcore src/utility.c src/farfield.c src/nearfield.c)
 add_library(amcore::amcore ALIAS amcore)
 set_target_properties(amcore PROPERTIES
     VERSION ${PROJECT_VERSION}
@@ -45,7 +45,7 @@ if(AMCORE_BUILD_WASM)
             "AMCORE_BUILD_WASM requires configuring with the Emscripten toolchain")
     endif()
 
-    add_executable(amcore_wasm src/utility.c src/farfield.c)
+    add_executable(amcore_wasm src/utility.c src/farfield.c src/nearfield.c)
     set_target_properties(amcore_wasm PROPERTIES
         OUTPUT_NAME amcore
     )
@@ -55,7 +55,7 @@ if(AMCORE_BUILD_WASM)
     )
     target_link_options(amcore_wasm PRIVATE
         "-Wl,--no-entry"
-        "-sEXPORTED_FUNCTIONS=_amcore_free_space_wavelength,_amcore_far_field_distance,_amcore_far_field_line_of_sight_km,_amcore_far_field_radio_horizon_km,_amcore_far_field_path_loss_db"
+        "-sEXPORTED_FUNCTIONS=_amcore_free_space_wavelength,_amcore_far_field_distance,_amcore_far_field_line_of_sight_km,_amcore_far_field_radio_horizon_km,_amcore_far_field_path_loss_db,_amcore_near_field_separation_distance_m,_amcore_near_field_planar_sampling_spacing_m,_amcore_near_field_planar_scan_length_m,_amcore_near_field_planar_angle_of_view_deg,_amcore_near_field_planar_sampling_parameters,_amcore_near_field_spherical_maximum_radius_extent_m"
         "-Wl,--export=speed_of_light_m_per_s"
     )
     set_target_properties(amcore_wasm PROPERTIES SUFFIX ".wasm")
