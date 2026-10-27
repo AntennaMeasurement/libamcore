@@ -31,7 +31,6 @@ async function prepare({
   const files = {
     'CMakeLists.txt': 'project(libamcore\n VERSION 1.2.3\n LANGUAGES C)\n',
     'CHANGELOG.md': changelog,
-    'vcpkg.json': '{\n  "name": "libamcore",\n  "version-string": "0.1.0"\n}\n',
     'docs/public/api.json': '{\n  "library_version": "0.1.0",\n  "functions": []\n}\n',
     ...overrides,
   };
@@ -81,15 +80,13 @@ test('moves pending notes and synchronizes manifests before committing and taggi
   assert.match(files['CHANGELOG.md'], /## \[Unreleased\]\n\n## \[v1\.2\.3\] - \d{4}-\d{2}-\d{2}/);
   assert.equal(files['CHANGELOG.md'].split('- Pending change.').length, 2);
   assert.ok(files['CHANGELOG.md'].endsWith(history));
-  assert.equal(files['vcpkg.json'],
-    result.original['vcpkg.json'].replace('0.1.0', '1.2.3'));
   assert.equal(files['docs/public/api.json'],
     result.original['docs/public/api.json'].replace('0.1.0', '1.2.3'));
   assert.deepEqual(committed, files);
   assert.deepEqual(outputs, { tag: 'v1.2.3', changed: 'true' });
   assert.equal(calls.some(args => args[0] === 'log'), false);
   assert.deepEqual(calls.find(args => args[0] === 'add'),
-    ['add', '--', 'CHANGELOG.md', 'vcpkg.json', 'docs/public/api.json']);
+    ['add', '--', 'CHANGELOG.md', 'docs/public/api.json']);
   const commitIndex = calls.findIndex(args => args[0] === 'commit');
   const tagIndex = calls.findIndex(args => args[0] === 'tag' && args[1] === '-a');
   assert.ok(commitIndex < tagIndex);
@@ -138,7 +135,6 @@ test('does not create an empty preparation commit', async () => {
   const { calls } = await prepare({
     changelog: `# Changelog\n\n## [Unreleased]\n\n## [v1.2.3]\n\n- Ready.\n\n${history}`,
     overrides: {
-      'vcpkg.json': '{"version-string":"1.2.3"}',
       'docs/public/api.json': '{"library_version":"1.2.3"}',
     },
   });
@@ -159,9 +155,6 @@ test('rejects reused version tags and invalid version metadata', async () => {
   await assert.rejects(prepare({ tags: 'v1.2.4\nv1.2.3' }), /already exists/);
   await assert.rejects(prepare({ overrides: { 'CMakeLists.txt': 'project(libamcore)' } }),
     /Cannot read libamcore VERSION/);
-  await assert.rejects(prepare({ overrides: { 'vcpkg.json': '{}' } }),
-    /Cannot read version-string from vcpkg.json/);
   await assert.rejects(prepare({ overrides: { 'docs/public/api.json': '{}' } }),
     /Cannot read library_version from docs\/public\/api.json/);
-  await assert.rejects(prepare({ overrides: { 'vcpkg.json': '{' } }), /JSON/);
 });

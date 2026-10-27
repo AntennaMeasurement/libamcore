@@ -96,7 +96,6 @@ jobs:
               }
               fs.writeFileSync(changelogPath, changelog.replace(/\n/g, newline));
               for (const [path, field] of [
-                ['vcpkg.json', 'version-string'],
                 ['docs/public/api.json', 'library_version'],
               ]) {
                 const original = fs.readFileSync(path, 'utf8');
@@ -109,7 +108,7 @@ jobs:
                   (_, prefix, suffix) => `${prefix}${version}${suffix}`);
                 fs.writeFileSync(path, updated);
               }
-              await git('add', '--', changelogPath, 'vcpkg.json', 'docs/public/api.json');
+              await git('add', '--', changelogPath, 'docs/public/api.json');
               if (await git('diff', '--cached', '--name-only')) {
                 await git('commit', '-m', `chore: prepare release ${tag}`,
                   '-m', 'Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>');
