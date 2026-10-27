@@ -120,6 +120,9 @@ python -m pip install -r requirements-docs.txt
 python -m mkdocs build --strict
 ```
 
+The documentation reads the library version from the `project()` declaration
+in `CMakeLists.txt`.
+
 The generated site is written to `site/`. To preview it locally while editing:
 
 ```sh
