@@ -7,6 +7,8 @@ features that are not present in the current branch.
 
 ## [Unreleased]
 
+## [v0.7.1] - 2026-10-27
+
 ### Added
 
 - Add `amcore_near_field_cylindrical_y_scan_length_m` to the C API and
