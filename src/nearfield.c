@@ -1,0 +1,266 @@
+/* Last content update tag: v0.1.0 */
+#include <amcore/nearfield.h>
+
+#include <float.h>
+#include <math.h>
+#include <stddef.h>
+#include <stdint.h>
+
+amcore_status amcore_near_field_separation_distance_m(double frequency_hz,
+                                                      double *separation_m)
+{
+    double wavelength;
+    double separation;
+    amcore_status status;
+
+    if (separation_m == NULL) {
+        return AMCORE_STATUS_INVALID_ARGUMENT;
+    }
+
+    status = amcore_free_space_wavelength(frequency_hz, &wavelength);
+    if (status != AMCORE_STATUS_SUCCESS) {
+        return status;
+    }
+
+    separation = 5.0 * wavelength;
+    if (!isfinite(separation) || separation <= 0.0) {
+        return AMCORE_STATUS_OUT_OF_RANGE;
+    }
+
+    *separation_m = separation;
+    return AMCORE_STATUS_SUCCESS;
+}
+
+amcore_status amcore_near_field_planar_sampling_spacing_m(double frequency_hz,
+                                                          double *spacing_m)
+{
+    double wavelength;
+    double spacing;
+    amcore_status status;
+
+    if (spacing_m == NULL) {
+        return AMCORE_STATUS_INVALID_ARGUMENT;
+    }
+
+    status = amcore_free_space_wavelength(frequency_hz, &wavelength);
+    if (status != AMCORE_STATUS_SUCCESS) {
+        return status;
+    }
+
+    spacing = 0.5 * wavelength;
+    if (!isfinite(spacing) || spacing <= 0.0) {
+        return AMCORE_STATUS_OUT_OF_RANGE;
+    }
+
+    *spacing_m = spacing;
+    return AMCORE_STATUS_SUCCESS;
+}
+
+amcore_status amcore_near_field_planar_scan_length_m(
+    double aperture_cross_section_m,
+    double probe_separation_m,
+    double angle_of_view_deg,
+    double *scan_length_m)
+{
+    double pi;
+    double angle_rad;
+    double scan_length;
+
+    if (scan_length_m == NULL || !isfinite(aperture_cross_section_m) ||
+        aperture_cross_section_m < 0.0 || !isfinite(probe_separation_m) ||
+        probe_separation_m <= 0.0 || !isfinite(angle_of_view_deg) ||
+        angle_of_view_deg < 0.0 || angle_of_view_deg >= 90.0) {
+        return AMCORE_STATUS_INVALID_ARGUMENT;
+    }
+
+    pi = acos(-1.0);
+    angle_rad = angle_of_view_deg * (pi / 180.0);
+    scan_length = probe_separation_m * (2.0 * tan(angle_rad));
+    scan_length += aperture_cross_section_m;
+    if (!isfinite(scan_length)) {
+        return AMCORE_STATUS_OUT_OF_RANGE;
+    }
+
+    *scan_length_m = scan_length;
+    return AMCORE_STATUS_SUCCESS;
+}
+
+amcore_status amcore_near_field_planar_angle_of_view_deg(
+    double aperture_cross_section_m,
+    double probe_separation_m,
+    double scan_length_m,
+    double *angle_of_view_deg)
+{
+    double angle;
+
+    if (angle_of_view_deg == NULL ||
+        !isfinite(aperture_cross_section_m) ||
+        aperture_cross_section_m < 0.0 || !isfinite(probe_separation_m) ||
+        probe_separation_m <= 0.0 || !isfinite(scan_length_m) ||
+        scan_length_m < 0.0) {
+        return AMCORE_STATUS_INVALID_ARGUMENT;
+    }
+
+    if (probe_separation_m <= DBL_MAX / 2.0) {
+        angle = atan2(scan_length_m - aperture_cross_section_m,
+                      2.0 * probe_separation_m);
+    } else {
+        angle = atan2(0.5 * (scan_length_m - aperture_cross_section_m),
+                      probe_separation_m);
+    }
+    angle *= 180.0 / acos(-1.0);
+    if (!isfinite(angle)) {
+        return AMCORE_STATUS_OUT_OF_RANGE;
+    }
+
+    *angle_of_view_deg = angle;
+    return AMCORE_STATUS_SUCCESS;
+}
+
+static int double_to_size_t(double value, size_t *result)
+{
+    if (!isfinite(value) || value < 0.0 || value >= (double)SIZE_MAX) {
+        return 0;
+    }
+
+    *result = (size_t)value;
+    return 1;
+}
+
+amcore_status amcore_near_field_planar_sampling_parameters(
+    double frequency_hz,
+    double minimum_scan_length_m,
+    double *scan_start_m,
+    double *scan_stop_m,
+    size_t *sample_count,
+    size_t *sampling_spacing_mm)
+{
+    double spacing_m;
+    double spacing_mm_value;
+    double scan_length_mm_value;
+    size_t spacing_mm;
+    size_t scan_length_mm;
+    size_t half_scan_mm;
+    size_t remainder;
+    size_t adjustment;
+    size_t interval_count;
+    size_t count;
+    double start;
+    double stop;
+    amcore_status status;
+
+    if (scan_start_m == NULL || scan_stop_m == NULL ||
+        sample_count == NULL || sampling_spacing_mm == NULL ||
+        !isfinite(minimum_scan_length_m) || minimum_scan_length_m < 0.0) {
+        return AMCORE_STATUS_INVALID_ARGUMENT;
+    }
+
+    status = amcore_near_field_planar_sampling_spacing_m(frequency_hz,
+                                                         &spacing_m);
+    if (status != AMCORE_STATUS_SUCCESS) {
+        return status;
+    }
+
+    spacing_mm_value = floor(spacing_m * 1000.0);
+    scan_length_mm_value = ceil(minimum_scan_length_m * 1000.0);
+    if (!double_to_size_t(spacing_mm_value, &spacing_mm) ||
+        spacing_mm == 0 ||
+        !double_to_size_t(scan_length_mm_value, &scan_length_mm)) {
+        return AMCORE_STATUS_OUT_OF_RANGE;
+    }
+
+    half_scan_mm = scan_length_mm / 2 + scan_length_mm % 2;
+    remainder = half_scan_mm % spacing_mm;
+    adjustment = remainder == 0 ? 0 : spacing_mm - remainder;
+    if (half_scan_mm > SIZE_MAX - adjustment) {
+        return AMCORE_STATUS_OUT_OF_RANGE;
+    }
+    half_scan_mm += adjustment;
+
+    interval_count = half_scan_mm / spacing_mm;
+    if (interval_count > (SIZE_MAX - 1) / 2) {
+        return AMCORE_STATUS_OUT_OF_RANGE;
+    }
+    count = 2 * interval_count + 1;
+    start = -((double)half_scan_mm / 1000.0);
+    stop = (double)half_scan_mm / 1000.0;
+    if (!isfinite(start) || !isfinite(stop)) {
+        return AMCORE_STATUS_OUT_OF_RANGE;
+    }
+
+    *scan_start_m = start;
+    *scan_stop_m = stop;
+    *sample_count = count;
+    *sampling_spacing_mm = spacing_mm;
+    return AMCORE_STATUS_SUCCESS;
+}
+
+amcore_status amcore_near_field_cylindirical_y_scan_length(
+    double antenna_height_m,
+    double probe_longest_edge_m,
+    double probe_radius_m,
+    double maximum_radial_extent_m,
+    double azimuth_max_deg,
+    double elevation_max_deg,
+    double *scan_length_m)
+{
+    double radians_per_degree;
+    double azimuth_cos;
+    double elevation_scale;
+    double extension;
+    double scan_length;
+
+    if (scan_length_m == NULL ||
+        !isfinite(antenna_height_m) || antenna_height_m < 0.0 ||
+        !isfinite(probe_longest_edge_m) || probe_longest_edge_m < 0.0 ||
+        !isfinite(probe_radius_m) || !isfinite(maximum_radial_extent_m) ||
+        maximum_radial_extent_m < 0.0 ||
+        probe_radius_m <= maximum_radial_extent_m ||
+        !isfinite(azimuth_max_deg) || azimuth_max_deg < 0.0 ||
+        azimuth_max_deg > 180.0 || !isfinite(elevation_max_deg) ||
+        elevation_max_deg < 0.0 || elevation_max_deg >= 90.0) {
+        return AMCORE_STATUS_INVALID_ARGUMENT;
+    }
+
+    radians_per_degree = acos(-1.0) / 180.0;
+    azimuth_cos = cos(azimuth_max_deg * radians_per_degree);
+    elevation_scale = 2.0 * tan(elevation_max_deg * radians_per_degree);
+    if (azimuth_cos >= 0.0) {
+        extension = (probe_radius_m -
+                     maximum_radial_extent_m * azimuth_cos) * elevation_scale;
+    } else {
+        /* Scale before adding to avoid overflow in Z - R cos(Az). */
+        extension = probe_radius_m * elevation_scale +
+                    maximum_radial_extent_m * (-azimuth_cos * elevation_scale);
+    }
+    scan_length = antenna_height_m + probe_longest_edge_m + extension;
+    if (!isfinite(scan_length)) {
+        return AMCORE_STATUS_OUT_OF_RANGE;
+    }
+
+    *scan_length_m = scan_length;
+    return AMCORE_STATUS_SUCCESS;
+}
+
+amcore_status amcore_near_field_spherical_maximum_radius_extent_m(
+    double displacement_x_m,
+    double displacement_y_m,
+    double displacement_z_m,
+    double *extent_m)
+{
+    double extent;
+
+    if (extent_m == NULL || !isfinite(displacement_x_m) ||
+        !isfinite(displacement_y_m) || !isfinite(displacement_z_m)) {
+        return AMCORE_STATUS_INVALID_ARGUMENT;
+    }
+
+    extent = hypot(hypot(displacement_x_m, displacement_y_m),
+                   displacement_z_m);
+    if (!isfinite(extent)) {
+        return AMCORE_STATUS_OUT_OF_RANGE;
+    }
+
+    *extent_m = extent;
+    return AMCORE_STATUS_SUCCESS;
+}

@@ -1,0 +1,19 @@
+# Last content update tag: v0.1.0
+# Ignore proprietary PDF files under doc/standards
+docs/standards
+
+# CMake build output
+/build*
+/cmake-build-*/
+/vcpkg*
+CMakeUserPresets.json
+
+# Generated documentation
+/docs/html/
+/docs/latex/
+/site/
+/docs/__pycache__
+
+# IDE and platform files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,7 @@
+// Last content update: Unreleased (latest tag: v0.1.0)
+{
+    "recommendations": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools"
+    ]
+}
