@@ -12,7 +12,7 @@ cmake --build build-wasm --target amcore_wasm
 ```
 
 The build produces `build-wasm/amcore.wasm`, which exports the calculation
-functions, including `amcore_free_space_wavelength`,
+functions, including `amcore_free_space_wavelength_m`,
 `amcore_far_field_distance`, `amcore_far_field_line_of_sight_km`,
 `amcore_far_field_radio_horizon_km`, and `amcore_far_field_path_loss_db`,
 and the near-field functions

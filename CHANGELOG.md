@@ -9,7 +9,7 @@ features that are not present in the current branch.
 
 ### Added
 
-- Add `amcore_near_field_cylindirical_y_scan_length` to the C API and
+- Add `amcore_near_field_cylindrical_y_scan_length_m` to the C API and
   WebAssembly exports, using NSI 2000 cylindrical scan geometry. Accept
   azimuth in [0, 180] degrees and elevation in [0, 90) degrees without a
   warning above 60 degrees. Test against the NSI2000 reference scan length

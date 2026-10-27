@@ -148,7 +148,7 @@ AMCORE_API amcore_status amcore_near_field_planar_sampling_parameters(
  *         AMCORE_STATUS_OUT_OF_RANGE if the result is not finite.
  *         On error, leaves the output unchanged.
  */
-AMCORE_API amcore_status amcore_near_field_cylindirical_y_scan_length(
+AMCORE_API amcore_status amcore_near_field_cylindrical_y_scan_length_m(
     double antenna_height_m,
     double probe_longest_edge_m,
     double probe_radius_m,

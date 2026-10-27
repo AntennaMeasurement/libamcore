@@ -8,7 +8,7 @@
 
 | Module | Function | Result |
 | --- | --- | --- |
-| `utility` | `amcore_free_space_wavelength` | Free-space wavelength in metres |
+| `utility` | `amcore_free_space_wavelength_m` | Free-space wavelength in metres |
 | `farfield` | `amcore_far_field_distance` | Minimum far-field distance in metres |
 | `farfield` | `amcore_far_field_line_of_sight_km` | Line-of-sight range in kilometres |
 | `farfield` | `amcore_far_field_radio_horizon_km` | Radio horizon in kilometres |
@@ -18,7 +18,7 @@
 | `nearfield` | `amcore_near_field_planar_scan_length_m` | Planar scan length in metres |
 | `nearfield` | `amcore_near_field_planar_angle_of_view_deg` | Planar angle of view in degrees |
 | `nearfield` | `amcore_near_field_planar_sampling_parameters` | Centered planar sampling parameters |
-| `nearfield` | `amcore_near_field_cylindirical_y_scan_length` | Cylindrical Y scan length in metres |
+| `nearfield` | `amcore_near_field_cylindrical_y_scan_length_m` | Cylindrical Y scan length in metres |
 | `nearfield` | `amcore_near_field_spherical_maximum_radius_extent_m` | Spherical maximum radius extent in metres |
 
 All calculations are referenced from the relevant standards and literature. See the [References](#references) section for details.

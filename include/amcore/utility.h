@@ -50,7 +50,7 @@ AMCORE_API extern const double speed_of_light_m_per_s;
  *         result is not representable as a positive finite double, returns an
  *         error status and leaves @p wavelength_m unchanged.
  */
-AMCORE_API amcore_status amcore_free_space_wavelength(
+AMCORE_API amcore_status amcore_free_space_wavelength_m(
     double frequency_hz,
     double *wavelength_m);
 

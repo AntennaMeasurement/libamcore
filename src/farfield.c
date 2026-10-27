@@ -19,7 +19,7 @@ amcore_status amcore_far_field_distance(double frequency_hz,
         return AMCORE_STATUS_INVALID_ARGUMENT;
     }
 
-    status = amcore_free_space_wavelength(frequency_hz, &wavelength);
+    status = amcore_free_space_wavelength_m(frequency_hz, &wavelength);
     if (status != AMCORE_STATUS_SUCCESS) {
         return status;
     }

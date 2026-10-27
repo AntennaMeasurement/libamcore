@@ -6,7 +6,7 @@
 
 const double speed_of_light_m_per_s = 299792458.0;
 
-amcore_status amcore_free_space_wavelength(double frequency_hz,
+amcore_status amcore_free_space_wavelength_m(double frequency_hz,
                                            double *wavelength_m)
 {
     double wavelength;

@@ -25,14 +25,14 @@ The utility module provides common calculations that are frequently used in ante
 
 ### Free-space wavelength
 
-`amcore_free_space_wavelength` computes wavelength from frequency $\lambda = c / f$ where `c` is the exported constant `speed_of_light_m_per_s` and `f` is the
+`amcore_free_space_wavelength_m` computes wavelength from frequency $\lambda = c / f$ where `c` is the exported constant `speed_of_light_m_per_s` and `f` is the
 frequency in hertz.
 
 ```c
 #include <amcore/amcore.h>
 
 double wavelength_m;
-amcore_status status = amcore_free_space_wavelength(1.0e9, &wavelength_m);
+amcore_status status = amcore_free_space_wavelength_m(1.0e9, &wavelength_m);
 if (status == AMCORE_STATUS_SUCCESS) {
     /* wavelength_m is approximately 0.2998 metres */
 }
@@ -41,7 +41,7 @@ if (status == AMCORE_STATUS_SUCCESS) {
 Signature:
 
 ```c
-amcore_status amcore_free_space_wavelength(
+amcore_status amcore_free_space_wavelength_m(
     double frequency_hz,
     double *wavelength_m);
 ```
@@ -235,7 +235,7 @@ amcore_status status = amcore_near_field_planar_sampling_parameters(
 
 ### Cylindrical Y scan length
 
-`amcore_near_field_cylindirical_y_scan_length` implements the NSI 2000
+`amcore_near_field_cylindrical_y_scan_length_m` implements the NSI 2000
 (Near-field Edition), Version 4, Software Operating Manual geometry:
 
 $$L_{\mathrm{y}} = H_{\mathrm{AUT}} + H_{\mathrm{probe}} + 2(R_{\mathrm{probe}} - MRE\cos(\mathrm{Az}_{max}))\tan(\mathrm{El}_{max})$$
@@ -249,12 +249,10 @@ extent.
 Azimuth must be finite and in [0, 180] degrees; elevation must be finite and
 in [0, 90) degrees. Elevations above 60 degrees are accepted without a warning.
 The output pointer is required and the output remains unchanged on error.
-The function name retains the
-`cylindirical` spelling.
 
 ```c
 double scan_length_m;
-amcore_status status = amcore_near_field_cylindirical_y_scan_length(
+amcore_status status = amcore_near_field_cylindrical_y_scan_length_m(
     1.0, 0.2, 2.0, 1.0, 60.0, 45.0,
     &scan_length_m);
 /* On success: scan_length_m is approximately 4.2. */
@@ -263,7 +261,7 @@ amcore_status status = amcore_near_field_cylindirical_y_scan_length(
 Signature:
 
 ```c
-amcore_status amcore_near_field_cylindirical_y_scan_length(
+amcore_status amcore_near_field_cylindrical_y_scan_length_m(
     double antenna_height_m,
     double probe_longest_edge_m,
     double probe_radius_m,

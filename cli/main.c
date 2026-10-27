@@ -252,7 +252,7 @@ static int calculate_wavelength(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    status = amcore_free_space_wavelength(frequency, &wavelength);
+    status = amcore_free_space_wavelength_m(frequency, &wavelength);
     return print_result(status, wavelength);
 }
 

@@ -17,7 +17,7 @@ amcore_status amcore_near_field_separation_distance_m(double frequency_hz,
         return AMCORE_STATUS_INVALID_ARGUMENT;
     }
 
-    status = amcore_free_space_wavelength(frequency_hz, &wavelength);
+    status = amcore_free_space_wavelength_m(frequency_hz, &wavelength);
     if (status != AMCORE_STATUS_SUCCESS) {
         return status;
     }
@@ -42,7 +42,7 @@ amcore_status amcore_near_field_planar_sampling_spacing_m(double frequency_hz,
         return AMCORE_STATUS_INVALID_ARGUMENT;
     }
 
-    status = amcore_free_space_wavelength(frequency_hz, &wavelength);
+    status = amcore_free_space_wavelength_m(frequency_hz, &wavelength);
     if (status != AMCORE_STATUS_SUCCESS) {
         return status;
     }
@@ -195,7 +195,7 @@ amcore_status amcore_near_field_planar_sampling_parameters(
     return AMCORE_STATUS_SUCCESS;
 }
 
-amcore_status amcore_near_field_cylindirical_y_scan_length(
+amcore_status amcore_near_field_cylindrical_y_scan_length_m(
     double antenna_height_m,
     double probe_longest_edge_m,
     double probe_radius_m,
