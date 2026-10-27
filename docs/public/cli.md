@@ -40,6 +40,7 @@ Usage: amcore nearfield <subcommand> [arguments]
 Subcommands:
   separation-distance  Calculate recommended near-field separation in metres
   planar               Planar near-field calculations
+  cylindrical          Cylindrical near-field calculations
   spherical            Spherical near-field calculations
 ```
 
@@ -51,6 +52,13 @@ Subcommands:
   scan-length          Calculate required scan length in metres
   angle-of-view        Calculate angle of view in degrees
   sampling-parameters  Calculate centered sampling parameters
+```
+
+```
+Usage: amcore nearfield cylindrical <subcommand> [arguments]
+
+Subcommands:
+  y-scan-length  Calculate cylindrical Y scan length in metres
 ```
 
 ```
@@ -73,6 +81,7 @@ amcore nearfield separation-distance 1e10
 amcore nearfield planar scan-length 1 2 45
 amcore nearfield planar angle-of-view 1 2 5
 amcore nearfield planar sampling-parameters 299792458 1
+amcore nearfield cylindrical y-scan-length 1 0.2 2 1 60 45
 amcore nearfield spherical maximum-radius-extent 3 4 12
 ```
 
@@ -89,7 +98,11 @@ cross-section, probe separation, and scan length in metres.
 `sampling-parameters` accepts frequency in hertz and minimum scan length in
 metres; its one output line contains start position (m), stop position (m),
 sample count, and spacing (mm). Spherical `maximum-radius-extent` accepts
-signed x, y, and z maximum displacements in metres.
+signed x, y, and z maximum displacements in metres. Cylindrical
+`y-scan-length` accepts antenna height, probe longest edge, probe radius, and
+maximum radial extent in metres, followed by maximum azimuth and elevation in
+degrees. Lengths must be non-negative, probe radius must exceed maximum radial
+extent, azimuth must be in [0, 180], and elevation in [0, 90).
 `separation-distance` accepts frequency in hertz and returns five free-space
 wavelengths in metres.
 
@@ -98,5 +111,6 @@ unit to standard output. Invalid arguments and out-of-range results print a
 diagnostic to standard error and return a nonzero exit status.
 
 The executable, modules, and calculation commands accept `help`, `-h`, and
-`--help`. The CLI is built by default; configure with
+`--help`. Module help lists available subcommands and the help options.
+The CLI is built by default; configure with
 `-DAMCORE_BUILD_CLI=OFF` to omit it.
