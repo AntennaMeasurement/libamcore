@@ -31,7 +31,6 @@ async function prepare({
   const files = {
     'CMakeLists.txt': 'project(libamcore\n VERSION 1.2.3\n LANGUAGES C)\n',
     'CHANGELOG.md': changelog,
-    'docs/public/api.json': '{\n  "library_version": "0.1.0",\n  "functions": []\n}\n',
     ...overrides,
   };
   const original = { ...files };
@@ -74,19 +73,17 @@ async function prepare({
   return { files, original, calls, outputs, committed, fileSystem };
 }
 
-test('moves pending notes and synchronizes manifests before committing and tagging', async () => {
+test('moves pending notes before committing and tagging without an API manifest', async () => {
   const result = await prepare();
   const { files, calls, committed, outputs } = result;
   assert.match(files['CHANGELOG.md'], /## \[Unreleased\]\n\n## \[v1\.2\.3\] - \d{4}-\d{2}-\d{2}/);
   assert.equal(files['CHANGELOG.md'].split('- Pending change.').length, 2);
   assert.ok(files['CHANGELOG.md'].endsWith(history));
-  assert.equal(files['docs/public/api.json'],
-    result.original['docs/public/api.json'].replace('0.1.0', '1.2.3'));
   assert.deepEqual(committed, files);
   assert.deepEqual(outputs, { tag: 'v1.2.3', changed: 'true' });
   assert.equal(calls.some(args => args[0] === 'log'), false);
   assert.deepEqual(calls.find(args => args[0] === 'add'),
-    ['add', '--', 'CHANGELOG.md', 'docs/public/api.json']);
+    ['add', '--', 'CHANGELOG.md']);
   const commitIndex = calls.findIndex(args => args[0] === 'commit');
   const tagIndex = calls.findIndex(args => args[0] === 'tag' && args[1] === '-a');
   assert.ok(commitIndex < tagIndex);
@@ -128,15 +125,11 @@ test('merges pending notes into a prewritten release without duplicating its hea
   assert.equal(files['CHANGELOG.md'].split('## [v1.2.3]').length, 2);
   assert.match(files['CHANGELOG.md'], /## \[Unreleased\]\n\n## \[v1\.2\.3\]\n\n- Pending\./);
   assert.match(files['CHANGELOG.md'], /- Written notes\./);
-  assert.equal(JSON.parse(files['docs/public/api.json']).library_version, '1.2.3');
 });
 
 test('does not create an empty preparation commit', async () => {
   const { calls } = await prepare({
     changelog: `# Changelog\n\n## [Unreleased]\n\n## [v1.2.3]\n\n- Ready.\n\n${history}`,
-    overrides: {
-      'docs/public/api.json': '{"library_version":"1.2.3"}',
-    },
   });
   assert.equal(calls.some(args => args[0] === 'commit'), false);
   assert.ok(calls.some(args => args[0] === 'tag' && args[1] === '-a'));
@@ -155,6 +148,4 @@ test('rejects reused version tags and invalid version metadata', async () => {
   await assert.rejects(prepare({ tags: 'v1.2.4\nv1.2.3' }), /already exists/);
   await assert.rejects(prepare({ overrides: { 'CMakeLists.txt': 'project(libamcore)' } }),
     /Cannot read libamcore VERSION/);
-  await assert.rejects(prepare({ overrides: { 'docs/public/api.json': '{}' } }),
-    /Cannot read library_version from docs\/public\/api.json/);
 });
