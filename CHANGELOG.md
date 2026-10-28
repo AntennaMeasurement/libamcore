@@ -5,8 +5,6 @@ All notable changes for each release are documented here.
 Entries under released versions are historical release notes and may describe
 features that are not present in the current branch.
 
-## [Unreleased]
-
 ## [v0.8.0] - 2026-10-28
 
 ### Changes

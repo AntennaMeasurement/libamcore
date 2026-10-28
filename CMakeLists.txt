@@ -1,16 +1,29 @@
 # Last content update tag: v0.1.0
 cmake_minimum_required(VERSION 3.15)
 
-if(WIN32 AND NOT DEFINED CMAKE_INSTALL_PREFIX AND DEFINED ENV{LOCALAPPDATA})
-    set(CMAKE_INSTALL_PREFIX "$ENV{LOCALAPPDATA}/Programs/libamcore" CACHE PATH
-        "Install prefix for libamcore")
-endif()
+# Read version from VERSION file
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" PROJECT_VERSION)
+string(STRIP "${PROJECT_VERSION}" PROJECT_VERSION)
 
 project(libamcore
-    VERSION 0.8.0
+    VERSION ${PROJECT_VERSION}
     DESCRIPTION "Core computational routines for antenna measurements written in C"
     LANGUAGES C
 )
+
+# project() initializes the prefix, so only replace CMake's default.
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    if(WIN32 AND DEFINED ENV{LOCALAPPDATA} AND NOT "$ENV{LOCALAPPDATA}" STREQUAL "")
+        file(TO_CMAKE_PATH "$ENV{LOCALAPPDATA}/Programs/libamcore" _default_install_prefix)
+    elseif(UNIX AND DEFINED ENV{HOME} AND NOT "$ENV{HOME}" STREQUAL "")
+        set(_default_install_prefix "$ENV{HOME}/.local")
+    endif()
+    if(DEFINED _default_install_prefix)
+        set(CMAKE_INSTALL_PREFIX "${_default_install_prefix}" CACHE PATH
+            "Install prefix for libamcore" FORCE)
+        unset(_default_install_prefix)
+    endif()
+endif()
 
 option(BUILD_SHARED_LIBS "Build amcore as a shared library" OFF)
 option(BUILD_TESTING "Build the amcore test executable" OFF)
@@ -24,7 +37,7 @@ add_library(amcore src/utility.c src/farfield.c src/nearfield.c)
 add_library(amcore::amcore ALIAS amcore)
 set_target_properties(amcore PROPERTIES
     VERSION ${PROJECT_VERSION}
-    SOVERSION ${PROJECT_VERSION_MAJOR}
+    SOVERSION ${PROJECT_VERSION}
     C_EXTENSIONS OFF
 )
 
