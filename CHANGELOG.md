@@ -7,6 +7,16 @@ features that are not present in the current branch.
 
 ## [Unreleased]
 
+## [v0.7.2] - 2026-10-28
+
+### Changes
+
+- Update project version to 0.7.2 and enhance description in CMakeLists.txt
+- Add shared documentation dependencies
+- Initial plan
+- Fix CLI missing-argument failures
+- Initial plan
+
 ## [v0.7.1] - 2026-10-27
 
 ### Added
