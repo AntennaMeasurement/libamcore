@@ -258,7 +258,7 @@ static int calculate_wavelength(int argc, char **argv)
     double wavelength = 0.0;
     amcore_status status;
 
-    if ((argc == 1 && is_help(argv[0])) || argc == 0) {
+    if (argc == 1 && is_help(argv[0])) {
         puts("Usage: amcore utility wavelength <frequency_hz>");
         puts("");
         puts("Arguments:");
@@ -291,7 +291,7 @@ static int calculate_distance(int argc, char **argv)
     double distance = 0.0;
     amcore_status status;
 
-    if ((argc == 1 && is_help(argv[0])) || argc == 0) {
+    if (argc == 1 && is_help(argv[0])) {
         puts("Usage: amcore farfield distance <frequency_hz> <aperture_length_m>");
         puts("");
         puts("Arguments:");
@@ -328,7 +328,7 @@ static int calculate_line_of_sight(int argc, char **argv)
     double range = 0.0;
     amcore_status status;
 
-    if ((argc == 1 && is_help(argv[0])) || argc == 0) {
+    if (argc == 1 && is_help(argv[0])) {
         puts("Usage: amcore farfield line-of-sight <height_m>");
         puts("");
         puts("Arguments:");
@@ -361,7 +361,7 @@ static int calculate_radio_horizon(int argc, char **argv)
     double range = 0.0;
     amcore_status status;
 
-    if ((argc == 1 && is_help(argv[0])) || argc == 0) {
+    if (argc == 1 && is_help(argv[0])) {
         puts("Usage: amcore farfield radio-horizon <height_m>");
         puts("");
         puts("Arguments:");
@@ -397,7 +397,7 @@ static int calculate_path_loss(int argc, char **argv)
     double path_loss = 0.0;
     amcore_status status;
 
-    if ((argc == 1 && is_help(argv[0])) || argc == 0) {
+    if (argc == 1 && is_help(argv[0])) {
         puts("Usage: amcore farfield path-loss <frequency_mhz> <range_km> "
              "<transmit_gain_db> <receive_gain_db>");
         puts("");
@@ -441,7 +441,7 @@ static int calculate_planar_sampling_spacing(int argc, char **argv)
     double spacing = 0.0;
     amcore_status status;
 
-    if ((argc == 1 && is_help(argv[0])) || argc == 0) {
+    if (argc == 1 && is_help(argv[0])) {
         puts("Usage: amcore nearfield planar sampling-spacing <frequency_hz>");
         puts("Calculate half-wavelength sampling spacing.");
         puts("");
@@ -476,7 +476,7 @@ static int calculate_near_field_separation_distance(int argc, char **argv)
     double separation = 0.0;
     amcore_status status;
 
-    if ((argc == 1 && is_help(argv[0])) || argc == 0) {
+    if (argc == 1 && is_help(argv[0])) {
         puts("Usage: amcore nearfield separation-distance <frequency_hz>");
         puts("Calculate the recommended five-wavelength measurement separation.");
         puts("Arguments:");
@@ -512,7 +512,7 @@ static int calculate_planar_scan_length(int argc, char **argv)
     double scan_length = 0.0;
     amcore_status status;
 
-    if ((argc == 1 && is_help(argv[0])) || argc == 0) {
+    if (argc == 1 && is_help(argv[0])) {
         puts("Usage: amcore nearfield planar scan-length "
              "<aperture_cross_section_m> <probe_separation_m> "
              "<angle_of_view_deg>");
@@ -558,7 +558,7 @@ static int calculate_planar_angle_of_view(int argc, char **argv)
     double angle = 0.0;
     amcore_status status;
 
-    if ((argc == 1 && is_help(argv[0])) || argc == 0) {
+    if (argc == 1 && is_help(argv[0])) {
         puts("Usage: amcore nearfield planar angle-of-view "
              "<aperture_cross_section_m> <probe_separation_m> "
              "<scan_length_m>");
@@ -606,7 +606,7 @@ static int calculate_planar_sampling_parameters(int argc, char **argv)
     size_t spacing_mm = 0;
     amcore_status status;
 
-    if ((argc == 1 && is_help(argv[0])) || argc == 0) {
+    if (argc == 1 && is_help(argv[0])) {
         puts("Usage: amcore nearfield planar sampling-parameters "
              "<frequency_hz> <minimum_scan_length_m>");
         puts("Calculate centered scan endpoints, sample count, and spacing.");
@@ -654,7 +654,7 @@ static int calculate_spherical_maximum_radius_extent(int argc, char **argv)
     double extent = 0.0;
     amcore_status status;
 
-    if ((argc == 1 && is_help(argv[0])) || argc == 0) {
+    if (argc == 1 && is_help(argv[0])) {
         puts("Usage: amcore nearfield spherical maximum-radius-extent "
              "<displacement_x_m> <displacement_y_m> <displacement_z_m>");
         puts("Calculate the Euclidean maximum radius extent.");
@@ -702,7 +702,7 @@ static int calculate_cylindrical_y_scan_length(int argc, char **argv)
     double scan_length = 0.0;
     amcore_status status;
 
-    if ((argc == 1 && is_help(argv[0])) || argc == 0) {
+    if (argc == 1 && is_help(argv[0])) {
         puts("Usage: amcore nearfield cylindrical y-scan-length "
              "<antenna_height_m> <probe_longest_edge_m> <probe_radius_m> "
              "<maximum_radial_extent_m> <azimuth_max_deg> "
