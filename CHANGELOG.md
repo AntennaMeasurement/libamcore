@@ -7,6 +7,12 @@ features that are not present in the current branch.
 
 ## [Unreleased]
 
+## [v0.7.3] - 2026-10-28
+
+### Changes
+
+- Update project version to 0.7.3 in CMakeLists.txt
+
 ## [v0.7.2] - 2026-10-28
 
 ### Changes

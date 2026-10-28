@@ -58,6 +58,19 @@ Running `amcore_tests` directly prints a PASS/FAIL list and a final summary.
 All tests run even if one fails; any failure produces a nonzero exit status.
 Use CTest's `--verbose` option to also see this list for successful runs.
 
+## Releases
+
+Releases are managed manually by developers:
+
+1. Update the project version in `CMakeLists.txt` and the release notes in
+   `CHANGELOG.md`, then commit and push those changes.
+2. Create and push the matching version tag (for example, `v0.7.2`).
+3. Create the GitHub release for that tag and provide its release notes and
+   any package assets.
+
+CI builds and tests pushes to `main` and version tags. Changing the CMake
+version does not create tags, publish releases, or update the changelog.
+
 ## Command-line interface
 
 The CLI is enabled by default. Its calculation output is numeric-only on

@@ -17,4 +17,4 @@ mkdocs:
 # Use the same documentation dependencies as local and GitHub Actions builds.
 python:
   install:
-    - requirements: requirements-docs.txt
+    - requirements: docs/requirements.txt

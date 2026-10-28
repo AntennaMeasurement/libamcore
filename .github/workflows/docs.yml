@@ -1,8 +1,11 @@
 name: Documentation
 
 on:
-  workflow_call:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
 
 permissions:
   contents: read
