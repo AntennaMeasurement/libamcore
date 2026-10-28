@@ -60,16 +60,41 @@ Use CTest's `--verbose` option to also see this list for successful runs.
 
 ## Releases
 
-Releases are managed manually by developers:
+Releases are published explicitly with Bash (including Git Bash on Windows),
+Git, and an authenticated [GitHub CLI](https://cli.github.com/):
 
-1. Update the project version in `CMakeLists.txt` and the release notes in
-   `CHANGELOG.md`, then commit and push those changes.
-2. Create and push the matching version tag (for example, `v0.7.2`).
-3. Create the GitHub release for that tag and provide its release notes and
-   any package assets.
+1. Update the project version in `CMakeLists.txt`. Optionally add release notes
+   under `## [Unreleased]` in `CHANGELOG.md`.
+2. Commit all changes and check out the branch to publish. The working tree
+   must be clean, including untracked files.
+3. Preview, then publish:
 
-CI builds and tests pushes to `main` and version tags. Changing the CMake
-version does not create tags, publish releases, or update the changelog.
+   ```sh
+   bash scripts/release.sh --dry-run
+   bash scripts/release.sh
+   ```
+
+The script uses the CMake project version as the tag (for example, `v0.7.4`).
+It preserves an existing changelog entry for that version. Otherwise, it moves
+`Unreleased` notes into a dated release entry, leaving `Unreleased` empty.
+If there are no notes, it uses non-merge commit subjects since the nearest
+reachable version tag (or all commits for the first release).
+
+Before tagging, it commits the changelog update if needed. It then atomically
+pushes the current branch and annotated tag to `origin` and creates a GitHub
+release using that entry as the release notes. No binary assets are built or
+uploaded. Existing tags are rejected; changing the CMake version alone does
+not publish anything. Dry runs require no GitHub authentication or network
+access and do not modify the repository.
+
+If publishing fails, the script reports the error and retains local commits
+and tags. After fixing the cause, push them manually if necessary and create
+the GitHub release using the matching changelog entry; rerunning the script
+will reject the existing tag.
+
+Run the release-script integration tests with `bash tests/test_release.sh`.
+They use temporary local Git repositories and a stub GitHub CLI; no GitHub
+releases are published.
 
 ## Command-line interface
 

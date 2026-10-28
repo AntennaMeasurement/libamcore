@@ -7,7 +7,7 @@ if(WIN32 AND NOT DEFINED CMAKE_INSTALL_PREFIX AND DEFINED ENV{LOCALAPPDATA})
 endif()
 
 project(libamcore
-    VERSION 0.7.3
+    VERSION 0.8.0
     DESCRIPTION "Core computational routines for antenna measurements written in C"
     LANGUAGES C
 )
