@@ -60,7 +60,7 @@ else
         printf '## [v%s] - %s\n%s\n\n' "$VERSION" "$(date +%Y-%m-%d)" "$CHANGELOG"
         tail -n "+$line" -- CHANGELOG.md
     } > "$tmp" && mv -- "$tmp" CHANGELOG.md
-    git add CHANGELOG.md
+    git add .
     git commit -m "Update CHANGELOG for v$VERSION"
     git push origin HEAD
     git tag "v$VERSION"

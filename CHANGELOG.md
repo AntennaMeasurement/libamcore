@@ -5,6 +5,9 @@ All notable changes for each release are documented here.
 Entries under released versions are historical release notes and may describe
 features that are not present in the current branch.
 
+## [v0.8.2] - 2026-10-28
+
+
 ## [v0.8.1] - 2026-10-28
 - chore: update CHANGELOG and versioning in CMakeLists.txt for v0.8.0 release
 
