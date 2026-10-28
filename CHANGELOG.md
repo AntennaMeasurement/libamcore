@@ -7,6 +7,15 @@ features that are not present in the current branch.
 
 ## [Unreleased]
 
+## [v0.8.0] - 2026-10-28
+
+### Changes
+
+- chore: update project version to 0.8.0 and add release script with tests
+- chore: remove CI and documentation workflows, and associated tests
+- chore: update project version to 0.7.3, enhance CI workflows, and improve documentation
+- ci: remove test step from CI workflow and update WebAssembly documentation
+
 ## [v0.7.3] - 2026-10-28
 
 ### Changes
