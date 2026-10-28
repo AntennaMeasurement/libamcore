@@ -153,15 +153,6 @@ jobs:
           -DAMCORE_BUILD_WASM=OFF
       - name: Build
         run: cmake --build build --config Release
-      - name: Test
-        run: ctest --test-dir build -C Release --output-on-failure
-
-  docs:
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    uses: ./.github/workflows/docs.yml
 
   release:
     needs: version

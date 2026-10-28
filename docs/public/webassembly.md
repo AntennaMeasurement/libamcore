@@ -20,7 +20,8 @@ and the near-field functions
 `amcore_near_field_planar_sampling_spacing_m`,
 `amcore_near_field_planar_scan_length_m`,
 `amcore_near_field_planar_angle_of_view_deg`,
-`amcore_near_field_planar_sampling_parameters`, and
+`amcore_near_field_planar_sampling_parameters`,
+`amcore_near_field_cylindrical_y_scan_length_m` and
 `amcore_near_field_spherical_maximum_radius_extent_m`, without a `main` entry
 point. The C functions keep their normal signatures;
 result pointers refer to locations in WebAssembly linear memory. When
