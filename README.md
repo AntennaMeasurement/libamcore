@@ -82,8 +82,9 @@ reachable version tag (or all commits for the first release).
 
 Before tagging, it commits the changelog update if needed. It then atomically
 pushes the current branch and annotated tag to `origin` and creates a GitHub
-release using that entry as the release notes. No binary assets are built or
-uploaded. Existing tags are rejected; changing the CMake version alone does
+release using that entry as the release notes. The CI release workflow then
+builds and uploads the native binaries and the standalone `amcore.wasm` library.
+Existing tags are rejected; changing the CMake version alone does
 not publish anything. Dry runs require no GitHub authentication or network
 access and do not modify the repository.
 
@@ -126,7 +127,10 @@ emcmake cmake -S . -B build-wasm \
 cmake --build build-wasm --target amcore_wasm
 ```
 
-The output `amcore.wasm` exports the library's calculation functions.
+The output `amcore.wasm` exports the library's calculation functions, not the
+CLI. GitHub releases include this module alongside the native binaries.
+See the [WebAssembly documentation](docs/public/webassembly.md) for runtime
+requirements and the API smoke test.
 
 ## Install and consume
 
