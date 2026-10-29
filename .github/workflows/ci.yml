@@ -21,15 +21,15 @@ jobs:
           - os: ubuntu-latest
             name: linux
             binary-path: build/ci/amcore
-            binary-name: amcore
+            binary-name: amcore-linux
           - os: macos-latest
             name: macos
             binary-path: build/ci/amcore
-            binary-name: amcore
+            binary-name: amcore-macos
           - os: windows-latest
             name: windows
             binary-path: build/ci/Release/amcore.exe
-            binary-name: amcore.exe
+            binary-name: amcore-windows.exe
 
     steps:
       - name: Check out repository
