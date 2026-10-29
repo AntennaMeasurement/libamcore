@@ -51,6 +51,21 @@ jobs:
           cmake -E make_directory release-assets
           cmake -E copy "${{ matrix.binary-path }}" "release-assets/${{ matrix.binary-name }}"
 
+      - name: Set up Emscripten
+        if: github.event_name == 'release' && matrix.name == 'linux'
+        uses: mymindstorm/setup-emsdk@v14
+
+      - name: Build and test WASM distribution
+        if: github.event_name == 'release' && matrix.name == 'linux'
+        run: |
+          emcc -O2 -std=c89 -Iinclude \
+            src/jsmn.c src/json_schema.c src/amcore_cli.c \
+            -o release-assets/amcore-wasm.js \
+            -s ALLOW_MEMORY_GROWTH=1 \
+            -s EXIT_RUNTIME=1
+          output=$(node release-assets/amcore-wasm.js '{"name":"Ada"}')
+          echo "$output" | grep -F '"name"'
+
       - name: Upload release binary
         if: github.event_name == 'release'
         uses: actions/upload-artifact@v4
