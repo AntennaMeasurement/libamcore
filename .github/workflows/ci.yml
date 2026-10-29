@@ -20,16 +20,16 @@ jobs:
         include:
           - os: ubuntu-latest
             name: linux
-            binary-path: build/ci/json-to-schema
-            binary-name: json-to-schema-linux
+            binary-path: build/ci/amcore
+            binary-name: amcore
           - os: macos-latest
             name: macos
-            binary-path: build/ci/json-to-schema
-            binary-name: json-to-schema-macos
+            binary-path: build/ci/amcore
+            binary-name: amcore
           - os: windows-latest
             name: windows
-            binary-path: build/ci/Release/json-to-schema.exe
-            binary-name: json-to-schema-windows.exe
+            binary-path: build/ci/Release/amcore.exe
+            binary-name: amcore.exe
 
     steps:
       - name: Check out repository

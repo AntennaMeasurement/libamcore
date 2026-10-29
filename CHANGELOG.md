@@ -5,6 +5,9 @@ All notable changes for each release are documented here.
 Entries under released versions are historical release notes and may describe
 features that are not present in the current branch.
 
+## [v0.8.4] - 2026-10-29
+
+
 ## [v0.8.3] - 2026-10-29
 - chore: add CI workflow and release script
 
