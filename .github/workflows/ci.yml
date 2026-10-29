@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            name: linux
+            binary-path: build/ci/json-to-schema
+            binary-name: json-to-schema-linux
+          - os: macos-latest
+            name: macos
+            binary-path: build/ci/json-to-schema
+            binary-name: json-to-schema-macos
+          - os: windows-latest
+            name: windows
+            binary-path: build/ci/Release/json-to-schema.exe
+            binary-name: json-to-schema-windows.exe
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: cmake -S . -B build/ci -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build/ci --config Release --parallel
+
+      - name: Run tests
+        if: github.event_name != 'release'
+        run: ctest --test-dir build/ci -C Release --output-on-failure
+
+      - name: Stage release binary
+        if: github.event_name == 'release'
+        run: |
+          cmake -E make_directory release-assets
+          cmake -E copy "${{ matrix.binary-path }}" "release-assets/${{ matrix.binary-name }}"
+
+      - name: Upload release binary
+        if: github.event_name == 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.name }}
+          path: release-assets/*
+          if-no-files-found: error
+
+  publish-release:
+    name: Publish release binaries
+    if: github.event_name == 'release'
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download release binaries
+        uses: actions/download-artifact@v4
+        with:
+          pattern: binary-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Upload binaries to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          files: release-assets/*
+          fail_on_unmatched_files: true
