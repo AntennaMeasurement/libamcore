@@ -49,7 +49,7 @@ Usage: amcore nearfield planar <subcommand> [arguments]
 
 Subcommands:
   ideal-step-size      Calculate ideal step size in metres
-  scan-length          Calculate required scan length in metres
+  ideal-scan-length    Calculate ideal scan length in metres
   angle-of-view        Calculate angle of view in degrees
   sampling-parameters  Calculate centered sampling parameters
 ```
@@ -79,7 +79,7 @@ amcore farfield radio-horizon 100
 amcore farfield path-loss 100 1 0 0
 amcore nearfield planar ideal-step-size 1e9
 amcore nearfield separation-distance 1e10
-amcore nearfield planar scan-length 1 2 45
+amcore nearfield planar ideal-scan-length 1 2 45
 amcore nearfield planar angle-of-view 1 2 5
 amcore nearfield planar sampling-parameters 299792458 1
 amcore nearfield cylindrical ideal-y-scan-length 1 0.2 2 1 60 45
@@ -93,7 +93,7 @@ frequency in megahertz, range in kilometres, and transmit and receive gains in
 decibels. Frequency and range must be positive; gains may be signed. All inputs
 must be finite; scientific notation is supported.
 
-Planar `ideal-step-size` accepts frequency in hertz. `scan-length` accepts
+Planar `ideal-step-size` accepts frequency in hertz. `ideal-scan-length` accepts
 antenna cross-section and probe separation in metres followed by an angle in
 degrees from 0 inclusive to 90 exclusive. `angle-of-view` accepts antenna
 cross-section, probe separation, and scan length in metres.

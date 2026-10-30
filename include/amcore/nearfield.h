@@ -49,7 +49,7 @@ AMCORE_API amcore_status amcore_near_field_planar_ideal_step_size_m(
     double *step_size_m);
 
 /**
- * @brief Calculate the required planar scan length for an angle of view.
+ * @brief Calculate the ideal planar scan length for an angle of view.
  *
  * Uses L = 2 d tan(theta) + a, where a is the antenna cross-section, d is the
  * probe separation, and theta is the desired angle of view along one side.
@@ -60,13 +60,13 @@ AMCORE_API amcore_status amcore_near_field_planar_ideal_step_size_m(
  *        greater than zero.
  * @param angle_of_view_deg Desired angle of view in degrees; must be finite
  *        and in the range [0, 90).
- * @param scan_length_m Receives the required scan length in metres on success.
+ * @param scan_length_m Receives the ideal scan length in metres on success.
  * @return AMCORE_STATUS_SUCCESS on success, AMCORE_STATUS_INVALID_ARGUMENT
  *         for invalid inputs (including a null output pointer), or
  *         AMCORE_STATUS_OUT_OF_RANGE if the result is not finite. On error,
  *         leaves @p scan_length_m unchanged.
  */
-AMCORE_API amcore_status amcore_near_field_planar_scan_length_m(
+AMCORE_API amcore_status amcore_near_field_planar_ideal_scan_length_m(
     double aperture_cross_section_m,
     double probe_separation_m,
     double angle_of_view_deg,

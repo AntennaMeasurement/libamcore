@@ -23,7 +23,7 @@ functions, including `amcore_free_space_wavelength_m`,
 and the near-field functions
 `amcore_near_field_separation_distance_m`,
 `amcore_near_field_planar_ideal_step_size_m`,
-`amcore_near_field_planar_scan_length_m`,
+`amcore_near_field_planar_ideal_scan_length_m`,
 `amcore_near_field_planar_angle_of_view_deg`,
 `amcore_near_field_planar_sampling_parameters`,
 `amcore_near_field_cylindrical_ideal_y_scan_length_m`,

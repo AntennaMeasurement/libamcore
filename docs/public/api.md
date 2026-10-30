@@ -186,9 +186,9 @@ amcore_status amcore_near_field_planar_ideal_step_size_m(
     double *step_size_m);
 ```
 
-### Planar scan length and angle of view
+### Planar ideal scan length and angle of view
 
-`amcore_near_field_planar_scan_length_m` calculates
+`amcore_near_field_planar_ideal_scan_length_m` calculates
 $L = 2d\tan(\theta)+a$, where `a` is the antenna cross-section, `d` is the
 probe separation, and $\theta$ is the desired angle along one side. Lengths
 are in metres and the angle is in degrees. The angle must be in $[0,90)$.
@@ -197,7 +197,7 @@ IEEE Std 1720-2012, section 5.3.1.6, equation 27.
 
 ```c
 double scan_length_m;
-amcore_status status = amcore_near_field_planar_scan_length_m(
+amcore_status status = amcore_near_field_planar_ideal_scan_length_m(
     1.0, 2.0, 45.0, &scan_length_m);
 ```
 

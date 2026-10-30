@@ -57,7 +57,7 @@ amcore_status amcore_near_field_planar_ideal_step_size_m(
     return AMCORE_STATUS_SUCCESS;
 }
 
-amcore_status amcore_near_field_planar_scan_length_m(
+amcore_status amcore_near_field_planar_ideal_scan_length_m(
     double aperture_cross_section_m,
     double probe_separation_m,
     double angle_of_view_deg,

@@ -40,7 +40,7 @@ const cases = [
     ['amcore_far_field_path_loss_db', [100, 1, 2, 3], 67.45],
     ['amcore_near_field_separation_distance_m', [1e9], 5 * lightSpeed / 1e9],
     ['amcore_near_field_planar_ideal_step_size_m', [1e9], lightSpeed / 2e9],
-    ['amcore_near_field_planar_scan_length_m', [1, 2, 45], 5],
+    ['amcore_near_field_planar_ideal_scan_length_m', [1, 2, 45], 5],
     ['amcore_near_field_planar_angle_of_view_deg', [1, 2, 5], 45],
     ['amcore_near_field_cylindrical_ideal_y_scan_length_m', [1, 0.5, 2, 1, 0, 45], 3.5],
     ['amcore_near_field_cylindrical_ideal_y_step_size_m', [1e9], lightSpeed / 2e9],
