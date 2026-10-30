@@ -29,6 +29,7 @@ and the near-field functions
 `amcore_near_field_cylindrical_ideal_y_scan_length_m`,
 `amcore_near_field_cylindrical_ideal_y_step_size_m`,
 `amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg` and
+`amcore_near_field_cylindrical_elevation_sampling_parameters` and
 `amcore_near_field_spherical_maximum_radius_extent_m`, without a `main` entry
 point. It also exports `malloc` and `free` for allocating result storage.
 The C functions keep their normal signatures;

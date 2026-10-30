@@ -41,6 +41,8 @@ static int calculate_cylindrical_ideal_y_scan_length(int argc, char **argv);
 static int calculate_cylindrical_ideal_y_step_size(int argc, char **argv);
 static int calculate_cylindrical_ideal_elevation_angle_of_view(int argc,
                                                                char **argv);
+static int calculate_cylindrical_elevation_sampling_parameters(int argc,
+                                                               char **argv);
 static int calculate_spherical_maximum_radius_extent(int argc, char **argv);
 
 static const command commands[] = {
@@ -101,6 +103,9 @@ static const command nearfield_cylindrical_functions[] = {
     {"ideal-elevation-angle-of-view",
      "Calculate ideal cylindrical elevation angle of view in degrees",
      calculate_cylindrical_ideal_elevation_angle_of_view},
+    {"elevation-sampling-parameters",
+     "Calculate centered cylindrical elevation sampling parameters",
+     calculate_cylindrical_elevation_sampling_parameters},
 };
 
 static int is_help(const char *argument)
@@ -888,6 +893,61 @@ static int calculate_cylindrical_ideal_elevation_angle_of_view(int argc,
         aut_height, probe_longest_edge, probe_radius, maximum_radial_extent,
         azimuth_max, scan_length, &angle_of_view);
     return print_result(status, angle_of_view);
+}
+
+static int calculate_cylindrical_elevation_sampling_parameters(int argc,
+                                                               char **argv)
+{
+    double frequency;
+    double minimum_scan_length;
+    double scan_length = 0.0;
+    double scan_start = 0.0;
+    double scan_stop = 0.0;
+    size_t sample_count = 0;
+    size_t step_size_mm = 0;
+    amcore_status status;
+
+    if (argc == 1 && is_help(argv[0])) {
+        puts("Usage: amcore nearfield cylindrical "
+             "elevation-sampling-parameters "
+             "<frequency_hz> <minimum_scan_length_m>");
+        puts("Calculate centered elevation scan size, endpoints, and sample "
+             "count.");
+        puts("Arguments:");
+        puts("  <frequency_hz>          Frequency in hertz");
+        puts("  <minimum_scan_length_m> Minimum scan length in metres");
+        puts("");
+        puts("Options:");
+        puts("  -h, --help         Show this help message and exit");
+        puts("");
+        puts("Frequency must be positive and scan length non-negative; both "
+             "must be finite.");
+        puts("Output: step size (mm), scan length (m), scan start (m), "
+             "scan stop (m), and sample count; lengths use 3 decimal places.");
+        return EXIT_SUCCESS;
+    }
+    if (argc != 2) {
+        fputs("Usage: amcore nearfield cylindrical "
+              "elevation-sampling-parameters "
+              "<frequency_hz> <minimum_scan_length_m>\n", stderr);
+        return EXIT_FAILURE;
+    }
+    if (parse_positive_double(argv[0], "frequency_hz", &frequency) !=
+            EXIT_SUCCESS ||
+        parse_nonnegative_double(argv[1], "minimum_scan_length_m",
+                                 &minimum_scan_length) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    status = amcore_near_field_cylindrical_elevation_sampling_parameters(
+        frequency, minimum_scan_length, &step_size_mm, &scan_length,
+        &scan_start, &scan_stop, &sample_count);
+    if (status != AMCORE_STATUS_SUCCESS) {
+        return print_result(status, 0.0);
+    }
+    printf("%zu %.3f %.3f %.3f %zu\n", step_size_mm, scan_length,
+           scan_start, scan_stop, sample_count);
+    return EXIT_SUCCESS;
 }
 
 static int show_help(int argc, char **argv)

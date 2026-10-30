@@ -347,6 +347,44 @@ amcore_status amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg(
     double *angle_of_view_deg);
 ```
 
+### Cylindrical elevation sampling parameters
+
+`amcore_near_field_cylindrical_elevation_sampling_parameters` calculates
+centered elevation sampling parameters using half-wavelength spacing rounded
+down to whole millimetres. It rounds the requested minimum scan length up to
+whole millimetres, then extends the centered half-scan to a whole multiple of
+the step size. The outputs are step size in millimetres, calculated scan
+length, negative and positive endpoints in metres, and sample count including
+both endpoints. It returns `AMCORE_STATUS_OUT_OF_RANGE` if the step size
+rounds down to zero millimetres or the values cannot be represented. All
+outputs remain unchanged on error.
+
+```c
+size_t step_size_mm;
+double scan_length_m;
+double scan_start_m;
+double scan_stop_m;
+size_t sample_count;
+amcore_status status =
+    amcore_near_field_cylindrical_elevation_sampling_parameters(
+        299792458.0, 1.0, &step_size_mm, &scan_length_m, &scan_start_m,
+        &scan_stop_m, &sample_count);
+/* On success: 500 mm step, 1 m scan from -0.5 m to 0.5 m, 3 samples. */
+```
+
+Signature:
+
+```c
+amcore_status amcore_near_field_cylindrical_elevation_sampling_parameters(
+    double frequency_hz,
+    double minimum_scan_length_m,
+    size_t *step_size_mm,
+    double *scan_length_m,
+    double *scan_start_m,
+    double *scan_stop_m,
+    size_t *sample_count);
+```
+
 ### Spherical maximum radius extent
 
 `amcore_near_field_spherical_maximum_radius_extent_m` calculates the

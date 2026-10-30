@@ -72,6 +72,25 @@ close(memory.getFloat64(output + 16, true), -0.596);
 close(memory.getFloat64(output + 24, true), 0.596);
 assert.equal(memory.getUint32(output + 32, true), 9);
 assert.equal(
+    api.amcore_near_field_cylindrical_elevation_sampling_parameters(
+        lightSpeed, 1, output, output + 8, output + 16, output + 24,
+        output + 32,
+    ),
+    0,
+);
+assert.equal(memory.getUint32(output, true), 500);
+close(memory.getFloat64(output + 8, true), 1);
+close(memory.getFloat64(output + 16, true), -0.5);
+close(memory.getFloat64(output + 24, true), 0.5);
+assert.equal(memory.getUint32(output + 32, true), 3);
+assert.equal(
+    api.amcore_near_field_cylindrical_elevation_sampling_parameters(
+        lightSpeed, 1, 0, output + 8, output + 16, output + 24,
+        output + 32,
+    ),
+    1,
+);
+assert.equal(
     api.amcore_near_field_planar_sampling_parameters(
         1e9, 1, 0, output + 8, output + 16, output + 24,
         output + 32,

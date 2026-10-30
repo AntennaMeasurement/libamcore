@@ -9,6 +9,10 @@ features that are not present in the current branch.
 
 ### Added
 
+- Add `amcore_near_field_cylindrical_elevation_sampling_parameters` to the C
+  API, CLI (`nearfield cylindrical elevation-sampling-parameters`), and
+  WebAssembly exports. It returns centered elevation scan step size, scan
+  length, endpoints, and sample count.
 - Add `amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg` to the
   C API, CLI (`nearfield cylindrical ideal-elevation-angle-of-view`), and
   WebAssembly exports to calculate the elevation half range angle for a

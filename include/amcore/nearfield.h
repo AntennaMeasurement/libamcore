@@ -220,6 +220,33 @@ AMCORE_API amcore_status amcore_near_field_cylindrical_ideal_elevation_angle_of_
     double *angle_of_view_deg);
 
 /**
+ * @brief Calculate the ideal cylindrical near-field elevation sampling
+ *        parameters.
+ *
+ * @param frequency_hz Frequency in hertz; must be finite and greater than zero.
+ * @param minimum_scan_length_m Minimum scan length in metres; must be finite
+ *        and non-negative.
+ * @param step_size_mm Receives the step size in millimetres on success.
+ * @param scan_length_m Receives the scan length in metres on success.
+ * @param scan_start_m Receives the scan start position in metres on success.
+ * @param scan_stop_m Receives the scan stop position in metres on success.
+ * @param sample_count Receives the number of samples on success.
+ * @return AMCORE_STATUS_SUCCESS on success, AMCORE_STATUS_INVALID_ARGUMENT
+ *         for invalid inputs (including a null output pointer), or
+ *         AMCORE_STATUS_OUT_OF_RANGE if the step size rounds down to zero
+ *         millimetres or a result cannot be represented. On error, leaves all
+ *         outputs unchanged.
+ */
+AMCORE_API amcore_status amcore_near_field_cylindrical_elevation_sampling_parameters(
+    double frequency_hz,
+    double minimum_scan_length_m,
+    size_t *step_size_mm,
+    double *scan_length_m,
+    double *scan_start_m,
+    double *scan_stop_m,
+    size_t *sample_count);
+
+/**
  * @brief Calculate the spherical near-field maximum radius extent.
  *
  * Uses the Euclidean norm of the maximum displacements along the three axes.

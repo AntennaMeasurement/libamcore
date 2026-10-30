@@ -423,6 +423,83 @@ static int test_near_field_sampling_parameters(void)
     return 0;
 }
 
+static int test_near_field_cylindrical_elevation_sampling_parameters(void)
+{
+    double scan_length = 0.0;
+    double scan_start = 0.0;
+    double scan_stop = 0.0;
+    size_t sample_count = 0;
+    size_t step_size_mm = 0;
+
+    if (amcore_near_field_cylindrical_elevation_sampling_parameters(
+            299792458.0, 1.0, &step_size_mm, &scan_length, &scan_start,
+            &scan_stop, &sample_count) != AMCORE_STATUS_SUCCESS ||
+        step_size_mm != 500 || scan_length != 1.0 ||
+        scan_start != -0.5 || scan_stop != 0.5 || sample_count != 3) {
+        return 1;
+    }
+    if (amcore_near_field_cylindrical_elevation_sampling_parameters(
+            299792458.0 / 0.6, 0.8, &step_size_mm, &scan_length,
+            &scan_start, &scan_stop, &sample_count) != AMCORE_STATUS_SUCCESS ||
+        step_size_mm != 300 || scan_length != 1.2 ||
+        scan_start != -0.6 || scan_stop != 0.6 || sample_count != 5) {
+        return 1;
+    }
+    if (amcore_near_field_cylindrical_elevation_sampling_parameters(
+            299792458.0, 0.0, &step_size_mm, &scan_length, &scan_start,
+            &scan_stop, &sample_count) != AMCORE_STATUS_SUCCESS ||
+        step_size_mm != 500 || scan_length != 0.0 ||
+        scan_start != 0.0 || scan_stop != 0.0 || sample_count != 1) {
+        return 1;
+    }
+    return 0;
+}
+
+static int test_near_field_cylindrical_elevation_sampling_errors(void)
+{
+    double scan_length = 234.0;
+    double scan_start = 123.0;
+    double scan_stop = 456.0;
+    size_t sample_count = 789;
+    size_t step_size_mm = 321;
+
+    if (amcore_near_field_cylindrical_elevation_sampling_parameters(
+            1.0, 1.0, NULL, &scan_length, &scan_start, &scan_stop,
+            &sample_count) != AMCORE_STATUS_INVALID_ARGUMENT ||
+        amcore_near_field_cylindrical_elevation_sampling_parameters(
+            1.0, 1.0, &step_size_mm, NULL, &scan_start, &scan_stop,
+            &sample_count) != AMCORE_STATUS_INVALID_ARGUMENT ||
+        amcore_near_field_cylindrical_elevation_sampling_parameters(
+            1.0, 1.0, &step_size_mm, &scan_length, NULL, &scan_stop,
+            &sample_count) != AMCORE_STATUS_INVALID_ARGUMENT ||
+        amcore_near_field_cylindrical_elevation_sampling_parameters(
+            1.0, 1.0, &step_size_mm, &scan_length, &scan_start, NULL,
+            &sample_count) != AMCORE_STATUS_INVALID_ARGUMENT ||
+        amcore_near_field_cylindrical_elevation_sampling_parameters(
+            1.0, 1.0, &step_size_mm, &scan_length, &scan_start, &scan_stop,
+            NULL) != AMCORE_STATUS_INVALID_ARGUMENT) {
+        return 1;
+    }
+    if (amcore_near_field_cylindrical_elevation_sampling_parameters(
+            0.0, 1.0, &step_size_mm, &scan_length, &scan_start, &scan_stop,
+            &sample_count) != AMCORE_STATUS_INVALID_ARGUMENT ||
+        amcore_near_field_cylindrical_elevation_sampling_parameters(
+            299792458.0, -1.0, &step_size_mm, &scan_length, &scan_start,
+            &scan_stop, &sample_count) != AMCORE_STATUS_INVALID_ARGUMENT ||
+        step_size_mm != 321 || scan_length != 234.0 ||
+        scan_start != 123.0 || scan_stop != 456.0 || sample_count != 789) {
+        return 1;
+    }
+    if (amcore_near_field_cylindrical_elevation_sampling_parameters(
+            2.0e11, 1.0, &step_size_mm, &scan_length, &scan_start, &scan_stop,
+            &sample_count) != AMCORE_STATUS_OUT_OF_RANGE ||
+        step_size_mm != 321 || scan_length != 234.0 ||
+        scan_start != 123.0 || scan_stop != 456.0 || sample_count != 789) {
+        return 1;
+    }
+    return 0;
+}
+
 static int test_near_field_invalid_arguments(void)
 {
     const double invalid_values[] = {-1.0, INFINITY, -INFINITY, NAN};
@@ -884,6 +961,8 @@ int main(void)
         TEST_CASE(test_near_field_planar),
         TEST_CASE(test_near_field_attached_measurement_cases),
         TEST_CASE(test_near_field_sampling_parameters),
+        TEST_CASE(test_near_field_cylindrical_elevation_sampling_parameters),
+        TEST_CASE(test_near_field_cylindrical_elevation_sampling_errors),
         TEST_CASE(test_near_field_invalid_arguments),
         TEST_CASE(test_near_field_out_of_range),
         TEST_CASE(test_near_field_cylindrical_ideal_y_scan_length),

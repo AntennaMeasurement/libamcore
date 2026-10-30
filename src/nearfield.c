@@ -311,6 +311,25 @@ amcore_status amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg(
     return AMCORE_STATUS_SUCCESS;
 }
 
+amcore_status amcore_near_field_cylindrical_elevation_sampling_parameters(
+    double frequency_hz,
+    double minimum_scan_length_m,
+    size_t *step_size_mm,
+    double *scan_length_m,
+    double *scan_start_m,
+    double *scan_stop_m,
+    size_t *sample_count)
+{
+    return amcore_near_field_planar_sampling_parameters(
+        frequency_hz,
+        minimum_scan_length_m,
+        step_size_mm,
+        scan_length_m,
+        scan_start_m,
+        scan_stop_m,
+        sample_count);
+}
+
 amcore_status amcore_near_field_spherical_maximum_radius_extent_m(
     double displacement_x_m,
     double displacement_y_m,
