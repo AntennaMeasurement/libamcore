@@ -192,30 +192,32 @@ amcore_status amcore_near_field_planar_ideal_step_size_m(
 ### Planar ideal scan length and angle of view
 
 `amcore_near_field_planar_ideal_scan_length_m` calculates
-$L = 2d\tan(\theta)+a$, where AUT means Antenna Under Test, `a` is its maximum
-edge length, `d` is the probe-to-aperture measurement distance, and $\theta$ is
-the desired angle along one side. Lengths are in metres and the angle is in
-degrees. The angle must be in $[0,90)$.
+$L = 2d\tan(\theta)+a+p$, where AUT means Antenna Under Test, `a` is its
+maximum edge length, `p` is the probe maximum edge length, `d` is the
+probe-to-aperture measurement distance, and $\theta$ is the desired angle along
+one side. Lengths are in metres and the angle is in degrees. The angle must be
+in $[0,90)$; both edge lengths must be finite and non-negative.
 The scan geometry follows IEEE Std 149-2021, section 12.5, equation 99, and
 IEEE Std 1720-2012, section 5.3.1.6, equation 27.
 
 ```c
 double scan_length_m;
 amcore_status status = amcore_near_field_planar_ideal_scan_length_m(
-    1.0, 2.0, 45.0, &scan_length_m);
+    1.0, 0.5, 2.0, 45.0, &scan_length_m);
 ```
 
 `amcore_near_field_planar_ideal_angle_of_view_deg` calculates the ideal angle
 for a centered scan using
-$\theta = \operatorname{atan2}(L-a,2d)$, where `a` is the AUT maximum edge
-length and `d` is the probe-to-aperture measurement distance; the result is
-converted to degrees. A scan shorter than the AUT maximum edge length yields a
-negative angle, as in the defining formula.
+$\theta = \operatorname{atan2}(L-a-p,2d)$, where `a` is the AUT maximum edge
+length, `p` is the probe maximum edge length, and `d` is the probe-to-aperture
+measurement distance; the result is converted to degrees. A scan shorter than
+the sum of the AUT and probe maximum edge lengths yields a negative angle, as
+in the defining formula.
 
 ```c
 double angle_of_view_deg;
 amcore_status status = amcore_near_field_planar_ideal_angle_of_view_deg(
-    1.0, 2.0, 5.0, &angle_of_view_deg);
+    1.0, 0.5, 2.0, 5.5, &angle_of_view_deg);
 ```
 
 ### Planar sampling parameters

@@ -14,6 +14,12 @@ features that are not present in the current branch.
   It returns half a wavelength in metres without rounding, including
   submillimetre steps. The unused Python scan-size argument is omitted.
 
+### Changed
+
+- Include the probe maximum edge length in planar ideal scan-length
+  calculations, and use it in the inverse angle-of-view calculation. The C
+  APIs and corresponding CLI commands now accept the probe edge length.
+
 ## [v0.8.7] - 2026-10-29
 
 ### Changed

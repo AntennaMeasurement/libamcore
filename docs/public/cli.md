@@ -80,8 +80,8 @@ amcore farfield path-loss 100 1 0 0
 amcore nearfield planar ideal-step-size 1e9
 amcore nearfield measurement-distance 1e10
 amcore nearfield measurement-distance 1e10 2.5
-amcore nearfield planar ideal-scan-length 1 2 45
-amcore nearfield planar ideal-angle-of-view 1 2 5
+amcore nearfield planar ideal-scan-length 1 0.5 2 45
+amcore nearfield planar ideal-angle-of-view 1 0.5 2 5.5
 amcore nearfield planar sampling-parameters 299792458 1
 amcore nearfield cylindrical ideal-y-scan-length 1 0.2 2 1 60 45
 amcore nearfield cylindrical ideal-y-step-size 1e9
@@ -95,9 +95,11 @@ decibels. Frequency and range must be positive; gains may be signed. All inputs
 must be finite; scientific notation is supported.
 
 Planar `ideal-step-size` accepts frequency in hertz. `ideal-scan-length` accepts
-the Antenna Under Test (AUT) maximum edge length and probe-to-aperture
-measurement distance in metres, followed by an angle in degrees from 0
-inclusive to 90 exclusive. `ideal-angle-of-view` accepts the AUT maximum edge
+the Antenna Under Test (AUT) maximum edge length, probe maximum edge length,
+and probe-to-aperture measurement distance in metres, followed by an angle in
+degrees from 0 inclusive to 90 exclusive. It calculates
+`2 * distance * tan(angle) + AUT edge length + probe edge length`.
+`ideal-angle-of-view` accepts the AUT maximum edge length, probe maximum edge
 length, probe-to-aperture measurement distance, and scan length in metres.
 `sampling-parameters` accepts frequency in hertz and minimum scan length in
 metres; its one output line contains start position (m), stop position (m),
