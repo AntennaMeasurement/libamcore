@@ -553,38 +553,40 @@ static int calculate_near_field_measurement_distance(int argc, char **argv)
 static int calculate_planar_ideal_scan_length(int argc, char **argv)
 {
     double aperture;
-    double separation;
+    double measurement_distance;
     double angle;
     double scan_length = 0.0;
     amcore_status status;
 
     if (argc == 1 && is_help(argv[0])) {
         puts("Usage: amcore nearfield planar ideal-scan-length "
-             "<aperture_cross_section_m> <probe_separation_m> "
+             "<aperture_cross_section_m> <measurement_distance_m> "
              "<angle_of_view_deg>");
         puts("Calculate the required scan length for a desired angle of view.");
         puts("Arguments:");
         puts("  <aperture_cross_section_m> Aperture cross-section in metres");
-        puts("  <probe_separation_m>       Probe separation in metres");
+        puts("  <measurement_distance_m>   Probe-to-aperture distance in metres");
         puts("  <angle_of_view_deg>        Angle of view in degrees");
         puts("");
         puts("Options:");
         puts("  -h, --help         Show this help message and exit");
         puts("");
-        puts("Aperture length must be non-negative, separation positive, and "
+        puts("Aperture length must be non-negative, measurement distance "
+             "positive, and "
              "angle in [0, 90) degrees.");
         puts("Output: one numeric value in metres.");
         return EXIT_SUCCESS;
     }
     if (argc != 3) {
         fputs("Usage: amcore nearfield planar ideal-scan-length "
-              "<aperture_cross_section_m> <probe_separation_m> "
+              "<aperture_cross_section_m> <measurement_distance_m> "
               "<angle_of_view_deg>\n", stderr);
         return EXIT_FAILURE;
     }
     if (parse_nonnegative_double(argv[0], "aperture_cross_section_m",
                                  &aperture) != EXIT_SUCCESS ||
-        parse_positive_double(argv[1], "probe_separation_m", &separation) !=
+        parse_positive_double(argv[1], "measurement_distance_m",
+                              &measurement_distance) !=
             EXIT_SUCCESS ||
         parse_nonnegative_double(argv[2], "angle_of_view_deg", &angle) !=
             EXIT_SUCCESS) {
@@ -592,45 +594,47 @@ static int calculate_planar_ideal_scan_length(int argc, char **argv)
     }
 
     status = amcore_near_field_planar_ideal_scan_length_m(
-        aperture, separation, angle, &scan_length);
+        aperture, measurement_distance, angle, &scan_length);
     return print_result(status, scan_length);
 }
 
 static int calculate_planar_ideal_angle_of_view(int argc, char **argv)
 {
     double aperture;
-    double separation;
+    double measurement_distance;
     double scan_length;
     double angle = 0.0;
     amcore_status status;
 
     if (argc == 1 && is_help(argv[0])) {
         puts("Usage: amcore nearfield planar ideal-angle-of-view "
-             "<aperture_cross_section_m> <probe_separation_m> "
+             "<aperture_cross_section_m> <measurement_distance_m> "
              "<scan_length_m>");
         puts("Calculate the ideal angle of view for a centered scan.");
         puts("Arguments:");
         puts("  <aperture_cross_section_m> Aperture cross-section in metres");
-        puts("  <probe_separation_m>      Probe separation in metres");
+        puts("  <measurement_distance_m>  Probe-to-aperture distance in metres");
         puts("  <scan_length_m>           Scan length in metres");
         puts("");
         puts("Options:");
         puts("  -h, --help         Show this help message and exit");
         puts("");
-        puts("Aperture and scan lengths must be non-negative; separation "
+        puts("Aperture and scan lengths must be non-negative; measurement "
+             "distance "
              "must be positive.");
         puts("Output: one numeric value in degrees.");
         return EXIT_SUCCESS;
     }
     if (argc != 3) {
         fputs("Usage: amcore nearfield planar ideal-angle-of-view "
-              "<aperture_cross_section_m> <probe_separation_m> "
+              "<aperture_cross_section_m> <measurement_distance_m> "
               "<scan_length_m>\n", stderr);
         return EXIT_FAILURE;
     }
     if (parse_nonnegative_double(argv[0], "aperture_cross_section_m",
                                  &aperture) != EXIT_SUCCESS ||
-        parse_positive_double(argv[1], "probe_separation_m", &separation) !=
+        parse_positive_double(argv[1], "measurement_distance_m",
+                              &measurement_distance) !=
             EXIT_SUCCESS ||
         parse_nonnegative_double(argv[2], "scan_length_m", &scan_length) !=
             EXIT_SUCCESS) {
@@ -638,7 +642,7 @@ static int calculate_planar_ideal_angle_of_view(int argc, char **argv)
     }
 
     status = amcore_near_field_planar_ideal_angle_of_view_deg(
-        aperture, separation, scan_length, &angle);
+        aperture, measurement_distance, scan_length, &angle);
     return print_result(status, angle);
 }
 

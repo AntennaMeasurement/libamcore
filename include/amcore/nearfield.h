@@ -56,12 +56,13 @@ AMCORE_API amcore_status amcore_near_field_planar_ideal_step_size_m(
  * @brief Calculate the ideal planar scan length for an angle of view.
  *
  * Uses L = 2 d tan(theta) + a, where a is the antenna cross-section, d is the
- * probe separation, and theta is the desired angle of view along one side.
+ * probe-to-aperture measurement distance, and theta is the desired angle of
+ * view along one side.
  *
  * @param aperture_cross_section_m Antenna cross-section length in metres; must
  *        be finite and non-negative.
- * @param probe_separation_m Probe separation in metres; must be finite and
- *        greater than zero.
+ * @param measurement_distance_m Probe-to-aperture measurement distance in
+ *        metres; must be finite and greater than zero.
  * @param angle_of_view_deg Desired angle of view in degrees; must be finite
  *        and in the range [0, 90).
  * @param scan_length_m Receives the ideal scan length in metres on success.
@@ -72,7 +73,7 @@ AMCORE_API amcore_status amcore_near_field_planar_ideal_step_size_m(
  */
 AMCORE_API amcore_status amcore_near_field_planar_ideal_scan_length_m(
     double aperture_cross_section_m,
-    double probe_separation_m,
+    double measurement_distance_m,
     double angle_of_view_deg,
     double *scan_length_m);
 
@@ -84,8 +85,8 @@ AMCORE_API amcore_status amcore_near_field_planar_ideal_scan_length_m(
  *
  * @param aperture_cross_section_m Antenna cross-section length in metres; must
  *        be finite and non-negative.
- * @param probe_separation_m Probe separation in metres; must be finite and
- *        greater than zero.
+ * @param measurement_distance_m Probe-to-aperture measurement distance in
+ *        metres; must be finite and greater than zero.
  * @param scan_length_m Scan length in metres; must be finite and non-negative.
  * @param angle_of_view_deg Receives the angle of view in degrees on success.
  * @return AMCORE_STATUS_SUCCESS on success, AMCORE_STATUS_INVALID_ARGUMENT
@@ -95,7 +96,7 @@ AMCORE_API amcore_status amcore_near_field_planar_ideal_scan_length_m(
  */
 AMCORE_API amcore_status amcore_near_field_planar_ideal_angle_of_view_deg(
     double aperture_cross_section_m,
-    double probe_separation_m,
+    double measurement_distance_m,
     double scan_length_m,
     double *angle_of_view_deg);
 

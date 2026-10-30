@@ -193,7 +193,8 @@ amcore_status amcore_near_field_planar_ideal_step_size_m(
 
 `amcore_near_field_planar_ideal_scan_length_m` calculates
 $L = 2d\tan(\theta)+a$, where `a` is the antenna cross-section, `d` is the
-probe separation, and $\theta$ is the desired angle along one side. Lengths
+probe-to-aperture measurement distance, and $\theta$ is the desired angle along
+one side. Lengths
 are in metres and the angle is in degrees. The angle must be in $[0,90)$.
 The scan geometry follows IEEE Std 149-2021, section 12.5, equation 99, and
 IEEE Std 1720-2012, section 5.3.1.6, equation 27.
@@ -206,7 +207,8 @@ amcore_status status = amcore_near_field_planar_ideal_scan_length_m(
 
 `amcore_near_field_planar_ideal_angle_of_view_deg` calculates the ideal angle
 for a centered scan using
-$\theta = \operatorname{atan2}(L-a,2d)$, converted to degrees. A scan shorter
+$\theta = \operatorname{atan2}(L-a,2d)$, where `d` is the probe-to-aperture
+measurement distance, converted to degrees. A scan shorter
 than the antenna cross-section yields a negative angle, as in the defining
 formula.
 
