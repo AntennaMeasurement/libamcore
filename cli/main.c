@@ -35,7 +35,7 @@ static int calculate_path_loss(int argc, char **argv);
 static int calculate_near_field_separation_distance(int argc, char **argv);
 static int calculate_planar_ideal_step_size(int argc, char **argv);
 static int calculate_planar_ideal_scan_length(int argc, char **argv);
-static int calculate_planar_angle_of_view(int argc, char **argv);
+static int calculate_planar_ideal_angle_of_view(int argc, char **argv);
 static int calculate_planar_sampling_parameters(int argc, char **argv);
 static int calculate_cylindrical_ideal_y_scan_length(int argc, char **argv);
 static int calculate_cylindrical_ideal_y_step_size(int argc, char **argv);
@@ -80,8 +80,8 @@ static const command nearfield_planar_functions[] = {
      calculate_planar_ideal_step_size},
     {"ideal-scan-length", "Calculate ideal scan length in metres",
      calculate_planar_ideal_scan_length},
-    {"angle-of-view", "Calculate angle of view in degrees",
-     calculate_planar_angle_of_view},
+    {"ideal-angle-of-view", "Calculate ideal angle of view in degrees",
+     calculate_planar_ideal_angle_of_view},
     {"sampling-parameters", "Calculate centered sampling parameters",
      calculate_planar_sampling_parameters},
 };
@@ -588,7 +588,7 @@ static int calculate_planar_ideal_scan_length(int argc, char **argv)
     return print_result(status, scan_length);
 }
 
-static int calculate_planar_angle_of_view(int argc, char **argv)
+static int calculate_planar_ideal_angle_of_view(int argc, char **argv)
 {
     double aperture;
     double separation;
@@ -597,10 +597,10 @@ static int calculate_planar_angle_of_view(int argc, char **argv)
     amcore_status status;
 
     if (argc == 1 && is_help(argv[0])) {
-        puts("Usage: amcore nearfield planar angle-of-view "
+        puts("Usage: amcore nearfield planar ideal-angle-of-view "
              "<aperture_cross_section_m> <probe_separation_m> "
              "<scan_length_m>");
-        puts("Calculate the angle of view for a centered scan.");
+        puts("Calculate the ideal angle of view for a centered scan.");
         puts("Arguments:");
         puts("  <aperture_cross_section_m> Aperture cross-section in metres");
         puts("  <probe_separation_m>      Probe separation in metres");
@@ -615,7 +615,7 @@ static int calculate_planar_angle_of_view(int argc, char **argv)
         return EXIT_SUCCESS;
     }
     if (argc != 3) {
-        fputs("Usage: amcore nearfield planar angle-of-view "
+        fputs("Usage: amcore nearfield planar ideal-angle-of-view "
               "<aperture_cross_section_m> <probe_separation_m> "
               "<scan_length_m>\n", stderr);
         return EXIT_FAILURE;
@@ -629,7 +629,7 @@ static int calculate_planar_angle_of_view(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    status = amcore_near_field_planar_angle_of_view_deg(
+    status = amcore_near_field_planar_ideal_angle_of_view_deg(
         aperture, separation, scan_length, &angle);
     return print_result(status, angle);
 }

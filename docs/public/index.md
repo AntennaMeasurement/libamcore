@@ -16,7 +16,7 @@
 | `nearfield` | `amcore_near_field_separation_distance_m` | Recommended near-field separation in metres |
 | `nearfield` | `amcore_near_field_planar_ideal_step_size_m` | Ideal planar step size in metres |
 | `nearfield` | `amcore_near_field_planar_ideal_scan_length_m` | Ideal planar scan length in metres |
-| `nearfield` | `amcore_near_field_planar_angle_of_view_deg` | Planar angle of view in degrees |
+| `nearfield` | `amcore_near_field_planar_ideal_angle_of_view_deg` | Ideal planar angle of view in degrees |
 | `nearfield` | `amcore_near_field_planar_sampling_parameters` | Centered planar sampling parameters |
 | `nearfield` | `amcore_near_field_cylindrical_ideal_y_scan_length_m` | Ideal cylindrical Y scan length in metres |
 | `nearfield` | `amcore_near_field_cylindrical_ideal_y_step_size_m` | Ideal cylindrical Y step size (half wavelength) in metres |

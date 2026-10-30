@@ -73,7 +73,7 @@ AMCORE_API amcore_status amcore_near_field_planar_ideal_scan_length_m(
     double *scan_length_m);
 
 /**
- * @brief Calculate the planar near-field angle of view.
+ * @brief Calculate the ideal planar near-field angle of view.
  *
  * The scan region is assumed to be centered on the antenna. Uses
  * theta = atan2(scan_length - a, 2 d), converted to degrees.
@@ -89,7 +89,7 @@ AMCORE_API amcore_status amcore_near_field_planar_ideal_scan_length_m(
  *         AMCORE_STATUS_OUT_OF_RANGE if the result is not finite. On error,
  *         leaves @p angle_of_view_deg unchanged.
  */
-AMCORE_API amcore_status amcore_near_field_planar_angle_of_view_deg(
+AMCORE_API amcore_status amcore_near_field_planar_ideal_angle_of_view_deg(
     double aperture_cross_section_m,
     double probe_separation_m,
     double scan_length_m,

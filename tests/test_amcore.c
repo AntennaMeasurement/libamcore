@@ -309,19 +309,19 @@ static int test_near_field_planar(void)
         fabs(scan_length - 5.0) > 1.0e-12) {
         return 1;
     }
-    if (amcore_near_field_planar_angle_of_view_deg(1.0, 2.0, 5.0,
+    if (amcore_near_field_planar_ideal_angle_of_view_deg(1.0, 2.0, 5.0,
                                                   &angle) !=
             AMCORE_STATUS_SUCCESS ||
         fabs(angle - 45.0) > 1.0e-12) {
         return 1;
     }
-    if (amcore_near_field_planar_angle_of_view_deg(1.0, 2.0, 0.0,
+    if (amcore_near_field_planar_ideal_angle_of_view_deg(1.0, 2.0, 0.0,
                                                   &angle) !=
             AMCORE_STATUS_SUCCESS ||
         angle >= 0.0) {
         return 1;
     }
-    if (amcore_near_field_planar_angle_of_view_deg(
+    if (amcore_near_field_planar_ideal_angle_of_view_deg(
             0.0, nextafter(0.0, 1.0), nextafter(0.0, 1.0), &angle) !=
             AMCORE_STATUS_SUCCESS ||
         fabs(angle - atan2(1.0, 2.0) * (180.0 / acos(-1.0))) > 1.0e-12) {
@@ -365,7 +365,7 @@ static int test_near_field_attached_measurement_cases(void)
         spacing_mm != 49) {
         return 1;
     }
-    if (amcore_near_field_planar_angle_of_view_deg(20.0, 10.0, 54.64,
+    if (amcore_near_field_planar_ideal_angle_of_view_deg(20.0, 10.0, 54.64,
                                                   &angle) !=
             AMCORE_STATUS_SUCCESS ||
         fabs(angle - 60.0) > 0.005) {
@@ -427,7 +427,7 @@ static int test_near_field_invalid_arguments(void)
             AMCORE_STATUS_INVALID_ARGUMENT ||
         amcore_near_field_planar_ideal_scan_length_m(1.0, 1.0, 45.0, NULL) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
-        amcore_near_field_planar_angle_of_view_deg(1.0, 1.0, 1.0, NULL) !=
+        amcore_near_field_planar_ideal_angle_of_view_deg(1.0, 1.0, 1.0, NULL) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
         amcore_near_field_spherical_maximum_radius_extent_m(
             1.0, 1.0, 1.0, NULL) != AMCORE_STATUS_INVALID_ARGUMENT ||
@@ -455,7 +455,7 @@ static int test_near_field_invalid_arguments(void)
         amcore_near_field_planar_ideal_scan_length_m(1.0, 0.0, 45.0, &result) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
         result != 123.0 ||
-        amcore_near_field_planar_angle_of_view_deg(1.0, 0.0, 1.0,
+        amcore_near_field_planar_ideal_angle_of_view_deg(1.0, 0.0, 1.0,
                                                   &result) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
         result != 123.0 ||

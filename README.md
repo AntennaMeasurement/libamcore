@@ -21,7 +21,7 @@ on Linux).
 | `nearfield` | `amcore_near_field_separation_distance_m` | Computes the recommended near-field measurement separation. |
 | `nearfield` | `amcore_near_field_planar_ideal_step_size_m` | Computes the ideal planar step size (half wavelength). |
 | `nearfield` | `amcore_near_field_planar_ideal_scan_length_m` | Computes ideal planar scan length for a desired angle of view. |
-| `nearfield` | `amcore_near_field_planar_angle_of_view_deg` | Computes planar angle of view for a centered scan. |
+| `nearfield` | `amcore_near_field_planar_ideal_angle_of_view_deg` | Computes ideal planar angle of view for a centered scan. |
 | `nearfield` | `amcore_near_field_planar_sampling_parameters` | Computes centered planar scan endpoints, sample count, and spacing. |
 | `nearfield` | `amcore_near_field_cylindrical_ideal_y_scan_length_m` | Computes ideal cylindrical Y scan length. |
 | `nearfield` | `amcore_near_field_spherical_maximum_radius_extent_m` | Computes spherical maximum radius extent. |

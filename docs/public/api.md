@@ -201,15 +201,15 @@ amcore_status status = amcore_near_field_planar_ideal_scan_length_m(
     1.0, 2.0, 45.0, &scan_length_m);
 ```
 
-`amcore_near_field_planar_angle_of_view_deg` calculates the angle for a
-centered scan using
+`amcore_near_field_planar_ideal_angle_of_view_deg` calculates the ideal angle
+for a centered scan using
 $\theta = \operatorname{atan2}(L-a,2d)$, converted to degrees. A scan shorter
 than the antenna cross-section yields a negative angle, as in the defining
 formula.
 
 ```c
 double angle_of_view_deg;
-amcore_status status = amcore_near_field_planar_angle_of_view_deg(
+amcore_status status = amcore_near_field_planar_ideal_angle_of_view_deg(
     1.0, 2.0, 5.0, &angle_of_view_deg);
 ```
 
