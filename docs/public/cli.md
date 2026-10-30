@@ -59,6 +59,7 @@ Usage: amcore nearfield cylindrical <subcommand> [arguments]
 
 Subcommands:
   ideal-y-scan-length  Calculate ideal cylindrical Y scan length in metres
+  ideal-y-step-size    Calculate ideal cylindrical Y step size in metres
 ```
 
 ```
@@ -82,6 +83,7 @@ amcore nearfield planar scan-length 1 2 45
 amcore nearfield planar angle-of-view 1 2 5
 amcore nearfield planar sampling-parameters 299792458 1
 amcore nearfield cylindrical ideal-y-scan-length 1 0.2 2 1 60 45
+amcore nearfield cylindrical ideal-y-step-size 1e9
 amcore nearfield spherical maximum-radius-extent 3 4 12
 ```
 
@@ -103,6 +105,11 @@ signed x, y, and z maximum displacements in metres. Cylindrical
 maximum radial extent in metres, followed by maximum azimuth and elevation in
 degrees. Lengths must be non-negative, probe radius must exceed maximum radial
 extent, azimuth must be in [0, 180], and elevation in [0, 90).
+`ideal-y-step-size` accepts positive finite frequency in hertz and returns
+half the free-space wavelength without rounding, expressed in metres
+(for example, 0.149896229 m at 1 GHz). Submillimetre steps are supported.
+It reports an out-of-range error if the wavelength or step size cannot be
+represented as a positive finite double.
 `separation-distance` accepts frequency in hertz and returns five free-space
 wavelengths in metres.
 

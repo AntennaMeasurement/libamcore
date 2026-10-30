@@ -654,6 +654,76 @@ static int test_near_field_cylindrical_out_of_range(void)
     return 0;
 }
 
+static int test_near_field_cylindrical_ideal_y_step_size(void)
+{
+    const struct {
+        double frequency_hz;
+        double expected_m;
+    } cases[] = {
+        {1.0e9, 0.149896229},
+        {3.0e9, 299792458.0 / 3.0e9 / 2.0},
+        {10.0e9, 0.0149896229},
+        {299792458.0, 0.5},
+        {149896229000.0, 0.001},
+        {150.0e9, 299792458.0 / 150.0e9 / 2.0},
+        {DBL_MAX, (299792458.0 / DBL_MAX) / 2.0},
+        {299792458.0 / 1.0e200, 5.0e199},
+        {299792458.0 / (DBL_MAX * 0.5), DBL_MAX * 0.25}
+    };
+    double step_size = -1.0;
+    size_t i;
+
+    for (i = 0; i < sizeof(cases) / sizeof(cases[0]); ++i) {
+        if (amcore_near_field_cylindrical_ideal_y_step_size_m(
+                cases[i].frequency_hz, &step_size) != AMCORE_STATUS_SUCCESS ||
+            !isfinite(step_size) ||
+            fabs(step_size / cases[i].expected_m - 1.0) > 1.0e-12) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int test_near_field_cylindrical_step_size_invalid_arguments(void)
+{
+    const double invalid_frequencies[] = {0.0, -1.0, INFINITY, -INFINITY, NAN};
+    double step_size = 123.0;
+    size_t i;
+
+    if (amcore_near_field_cylindrical_ideal_y_step_size_m(1.0e9, NULL) !=
+        AMCORE_STATUS_INVALID_ARGUMENT) {
+        return 1;
+    }
+    for (i = 0; i < sizeof(invalid_frequencies) / sizeof(invalid_frequencies[0]);
+         ++i) {
+        if (amcore_near_field_cylindrical_ideal_y_step_size_m(
+                invalid_frequencies[i], &step_size) !=
+                AMCORE_STATUS_INVALID_ARGUMENT ||
+            step_size != 123.0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int test_near_field_cylindrical_step_size_out_of_range(void)
+{
+    const double frequencies[] = {
+        DBL_MIN
+    };
+    double step_size = 123.0;
+    size_t i;
+
+    for (i = 0; i < sizeof(frequencies) / sizeof(frequencies[0]); ++i) {
+        if (amcore_near_field_cylindrical_ideal_y_step_size_m(
+                frequencies[i], &step_size) != AMCORE_STATUS_OUT_OF_RANGE ||
+            step_size != 123.0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 static int test_near_field_spherical(void)
 {
     double extent = -1.0;
@@ -692,6 +762,9 @@ int main(void)
         TEST_CASE(test_near_field_cylindrical_ideal_y_scan_length),
         TEST_CASE(test_near_field_cylindrical_invalid_arguments),
         TEST_CASE(test_near_field_cylindrical_out_of_range),
+        TEST_CASE(test_near_field_cylindrical_ideal_y_step_size),
+        TEST_CASE(test_near_field_cylindrical_step_size_invalid_arguments),
+        TEST_CASE(test_near_field_cylindrical_step_size_out_of_range),
         TEST_CASE(test_near_field_spherical)
 #undef TEST_CASE
     };

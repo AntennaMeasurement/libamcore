@@ -158,6 +158,24 @@ AMCORE_API amcore_status amcore_near_field_cylindrical_ideal_y_scan_length_m(
     double *scan_length_m);
 
 /**
+ * @brief Calculate the ideal cylindrical near-field Y step size.
+ *
+ * Uses half the free-space wavelength without rounding. The step size is
+ * independent of the scan length.
+ *
+ * @param frequency_hz Frequency in hertz; must be finite and greater than zero.
+ * @param step_size_m Receives the Y step size in metres on success.
+ * @return AMCORE_STATUS_SUCCESS on success, AMCORE_STATUS_INVALID_ARGUMENT
+ *         for invalid inputs (including a null output pointer), or
+ *         AMCORE_STATUS_OUT_OF_RANGE if the wavelength or step size is not
+ *         representable as a positive finite double. On error, leaves
+ *         @p step_size_m unchanged.
+ */
+AMCORE_API amcore_status amcore_near_field_cylindrical_ideal_y_step_size_m(
+    double frequency_hz,
+    double *step_size_m);
+
+/**
  * @brief Calculate the spherical near-field maximum radius extent.
  *
  * Uses the Euclidean norm of the maximum displacements along the three axes.

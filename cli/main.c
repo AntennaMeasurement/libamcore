@@ -38,6 +38,7 @@ static int calculate_planar_scan_length(int argc, char **argv);
 static int calculate_planar_angle_of_view(int argc, char **argv);
 static int calculate_planar_sampling_parameters(int argc, char **argv);
 static int calculate_cylindrical_ideal_y_scan_length(int argc, char **argv);
+static int calculate_cylindrical_ideal_y_step_size(int argc, char **argv);
 static int calculate_spherical_maximum_radius_extent(int argc, char **argv);
 
 static const command commands[] = {
@@ -93,6 +94,8 @@ static const command nearfield_spherical_functions[] = {
 static const command nearfield_cylindrical_functions[] = {
     {"ideal-y-scan-length", "Calculate ideal cylindrical Y scan length in metres",
      calculate_cylindrical_ideal_y_scan_length},
+    {"ideal-y-step-size", "Calculate ideal cylindrical Y step size in metres",
+     calculate_cylindrical_ideal_y_step_size},
 };
 
 static int is_help(const char *argument)
@@ -468,6 +471,41 @@ static int calculate_planar_sampling_spacing(int argc, char **argv)
     status =
         amcore_near_field_planar_sampling_spacing_m(frequency, &spacing);
     return print_result(status, spacing);
+}
+
+static int calculate_cylindrical_ideal_y_step_size(int argc, char **argv)
+{
+    double frequency;
+    double step_size = 0.0;
+    amcore_status status;
+
+    if (argc == 1 && is_help(argv[0])) {
+        puts("Usage: amcore nearfield cylindrical ideal-y-step-size <frequency_hz>");
+        puts("Calculate half-wavelength Y spacing without rounding.");
+        puts("");
+        puts("Arguments:");
+        puts("  <frequency_hz> Frequency in hertz");
+        puts("");
+        puts("Options:");
+        puts("  -h, --help         Show this help message and exit");
+        puts("");
+        puts("Frequency must be positive and finite.");
+        puts("Output: one numeric value in metres.");
+        return EXIT_SUCCESS;
+    }
+    if (argc != 1) {
+        fputs("Usage: amcore nearfield cylindrical ideal-y-step-size "
+              "<frequency_hz>\n", stderr);
+        return EXIT_FAILURE;
+    }
+    if (parse_positive_double(argv[0], "frequency_hz", &frequency) !=
+        EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    status = amcore_near_field_cylindrical_ideal_y_step_size_m(
+        frequency, &step_size);
+    return print_result(status, step_size);
 }
 
 static int calculate_near_field_separation_distance(int argc, char **argv)

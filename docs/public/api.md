@@ -233,6 +233,34 @@ amcore_status status = amcore_near_field_planar_sampling_parameters(
     &spacing_mm);
 ```
 
+### Ideal cylindrical Y step size
+
+`amcore_near_field_cylindrical_ideal_y_step_size_m` returns half the free-space
+wavelength without rounding, expressed in metres:
+
+$$\Delta_Y = \frac{\lambda}{2}$$
+
+The step size depends only on frequency, so the unused `scan_size` argument
+from the Python calculation is omitted. Frequency must be finite and positive.
+Submillimetre steps are supported. The API returns `AMCORE_STATUS_OUT_OF_RANGE`
+if the wavelength or step size is not representable as a positive finite
+`double`. The output is unchanged on error.
+
+```c
+double step_size_m;
+amcore_status status =
+    amcore_near_field_cylindrical_ideal_y_step_size_m(1.0e9, &step_size_m);
+/* On success, step_size_m is 0.149896229 metres. */
+```
+
+Signature:
+
+```c
+amcore_status amcore_near_field_cylindrical_ideal_y_step_size_m(
+    double frequency_hz,
+    double *step_size_m);
+```
+
 ### Ideal cylindrical Y scan length
 
 `amcore_near_field_cylindrical_ideal_y_scan_length_m` calculates the ideal

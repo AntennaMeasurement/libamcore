@@ -242,6 +242,14 @@ amcore_status amcore_near_field_cylindrical_ideal_y_scan_length_m(
     return AMCORE_STATUS_SUCCESS;
 }
 
+amcore_status amcore_near_field_cylindrical_ideal_y_step_size_m(
+    double frequency_hz,
+    double *step_size_m)
+{
+    return amcore_near_field_planar_sampling_spacing_m(frequency_hz,
+                                                       step_size_m);
+}
+
 amcore_status amcore_near_field_spherical_maximum_radius_extent_m(
     double displacement_x_m,
     double displacement_y_m,

@@ -5,6 +5,15 @@ All notable changes for each release are documented here.
 Entries under released versions are historical release notes and may describe
 features that are not present in the current branch.
 
+## [Unreleased]
+
+### Added
+
+- Add `amcore_near_field_cylindrical_ideal_y_step_size_m` to the C API,
+  CLI (`nearfield cylindrical ideal-y-step-size`), and WebAssembly exports.
+  It returns half a wavelength in metres without rounding, including
+  submillimetre steps. The unused Python scan-size argument is omitted.
+
 ## [v0.8.7] - 2026-10-29
 
 ### Changed
