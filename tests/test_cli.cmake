@@ -49,7 +49,7 @@ check_cli(success "^0\\.014989622[0-9]*[\r\n]+$" nearfield measurement-distance 
 check_cli(success "^0\\.149896228[0-9]*[\r\n]+$" nearfield measurement-distance 1e10)
 check_cli(success "^0\\.049965409[0-9]*[\r\n]+$" nearfield planar ideal-step-size 3e9)
 check_cli(success "^54\\.641016151[0-9]*[\r\n]+$" nearfield planar ideal-scan-length 20 0 10 60)
-check_cli(success "^-0\\.53900000000000003 0\\.53900000000000003 23 49[\r\n]+" nearfield planar sampling-parameters 3e9 1)
+check_cli(success "^49 1\\.078 -0\\.539 0\\.539 23[\r\n]+" nearfield planar sampling-parameters 3e9 1)
 check_cli(success "^59\\.999272219[0-9]*[\r\n]+$" nearfield planar ideal-angle-of-view 20 0 10 54.64)
 check_cli(success "^13[\r\n]+$" nearfield spherical maximum-radius-extent 3 4 12)
 check_cli(success "^4\\.199[0-9]*[\r\n]+$" nearfield cylindrical ideal-y-scan-length 1 0.2 2 1 60 45)
@@ -68,7 +68,7 @@ foreach(frequency IN ITEMS 0 -1 nan inf invalid)
     check_cli(failure "frequency_hz" nearfield cylindrical ideal-y-step-size ${frequency})
 endforeach()
 check_cli(success "^45[\r\n]+$" nearfield planar ideal-angle-of-view 1 0 2 5)
-check_cli(success "^-0\\.5 0\\.5 3 500[\r\n]+" nearfield planar sampling-parameters 299792458 1)
+check_cli(success "^500 1\\.000 -0\\.500 0\\.500 3[\r\n]+" nearfield planar sampling-parameters 299792458 1)
 
 check_cli(success "utility" --help)
 check_cli(success "farfield" --help)
@@ -101,7 +101,7 @@ foreach(description IN ITEMS
         "Calculate ideal step size in metres"
         "Calculate ideal scan length in metres"
         "Calculate ideal angle of view in degrees"
-        "Calculate centered sampling parameters")
+        "Calculate centered planar scan parameters")
     string(REGEX MATCH "  [^\n]*${description}" help_line "${planar_help}")
     if(help_line STREQUAL "")
         message(FATAL_ERROR

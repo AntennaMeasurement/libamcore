@@ -146,10 +146,11 @@ static int double_to_size_t(double value, size_t *result)
 amcore_status amcore_near_field_planar_sampling_parameters(
     double frequency_hz,
     double minimum_scan_length_m,
+    size_t *step_size_mm,
+    double *scan_length_m,
     double *scan_start_m,
     double *scan_stop_m,
-    size_t *sample_count,
-    size_t *sampling_spacing_mm)
+    size_t *sample_count)
 {
     double spacing_m;
     double spacing_mm_value;
@@ -161,12 +162,14 @@ amcore_status amcore_near_field_planar_sampling_parameters(
     size_t adjustment;
     size_t interval_count;
     size_t count;
+    double scan_length;
     double start;
     double stop;
     amcore_status status;
 
-    if (scan_start_m == NULL || scan_stop_m == NULL ||
-        sample_count == NULL || sampling_spacing_mm == NULL ||
+    if (step_size_mm == NULL || scan_length_m == NULL ||
+        scan_start_m == NULL || scan_stop_m == NULL ||
+        sample_count == NULL ||
         !isfinite(minimum_scan_length_m) || minimum_scan_length_m < 0.0) {
         return AMCORE_STATUS_INVALID_ARGUMENT;
     }
@@ -200,14 +203,16 @@ amcore_status amcore_near_field_planar_sampling_parameters(
     count = 2 * interval_count + 1;
     start = -((double)half_scan_mm / 1000.0);
     stop = (double)half_scan_mm / 1000.0;
-    if (!isfinite(start) || !isfinite(stop)) {
+    scan_length = 2 * stop;
+    if (!isfinite(start) || !isfinite(stop) || !isfinite(scan_length)) {
         return AMCORE_STATUS_OUT_OF_RANGE;
     }
 
+    *step_size_mm = spacing_mm;
+    *scan_length_m = scan_length;
     *scan_start_m = start;
     *scan_stop_m = stop;
     *sample_count = count;
-    *sampling_spacing_mm = spacing_mm;
     return AMCORE_STATUS_SUCCESS;
 }
 

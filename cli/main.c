@@ -82,7 +82,7 @@ static const command nearfield_planar_functions[] = {
      calculate_planar_ideal_scan_length},
     {"ideal-angle-of-view", "Calculate ideal angle of view in degrees",
      calculate_planar_ideal_angle_of_view},
-    {"sampling-parameters", "Calculate centered sampling parameters",
+    {"sampling-parameters", "Calculate centered planar scan parameters",
      calculate_planar_sampling_parameters},
 };
 
@@ -664,16 +664,17 @@ static int calculate_planar_sampling_parameters(int argc, char **argv)
 {
     double frequency;
     double minimum_scan_length;
+    double scan_length = 0.0;
     double scan_start = 0.0;
     double scan_stop = 0.0;
     size_t sample_count = 0;
-    size_t spacing_mm = 0;
+    size_t step_size_mm = 0;
     amcore_status status;
 
     if (argc == 1 && is_help(argv[0])) {
         puts("Usage: amcore nearfield planar sampling-parameters "
              "<frequency_hz> <minimum_scan_length_m>");
-        puts("Calculate centered scan endpoints, sample count, and spacing.");
+        puts("Calculate centered scan size, endpoints, and sample count.");
         puts("Arguments:");
         puts("  <frequency_hz>          Frequency in hertz");
         puts("  <minimum_scan_length_m> Minimum scan length in metres");
@@ -683,8 +684,8 @@ static int calculate_planar_sampling_parameters(int argc, char **argv)
         puts("");
         puts("Frequency must be positive and scan length non-negative; both "
              "must be finite.");
-        puts("Output: scan start (m), scan stop (m), sample count, and "
-             "sampling spacing (mm).");
+        puts("Output: step size (mm), scan length (m), scan start (m), "
+             "scan stop (m), and sample count; lengths use 3 decimal places.");
         return EXIT_SUCCESS;
     }
     if (argc != 2) {
@@ -700,13 +701,13 @@ static int calculate_planar_sampling_parameters(int argc, char **argv)
     }
 
     status = amcore_near_field_planar_sampling_parameters(
-        frequency, minimum_scan_length, &scan_start, &scan_stop,
-        &sample_count, &spacing_mm);
+        frequency, minimum_scan_length, &step_size_mm, &scan_length,
+        &scan_start, &scan_stop, &sample_count);
     if (status != AMCORE_STATUS_SUCCESS) {
         return print_result(status, 0.0);
     }
-    printf("%.17g %.17g %zu %zu\n", scan_start, scan_stop, sample_count,
-           spacing_mm);
+    printf("%zu %.3f %.3f %.3f %zu\n", step_size_mm, scan_length,
+           scan_start, scan_stop, sample_count);
     return EXIT_SUCCESS;
 }
 

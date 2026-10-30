@@ -341,11 +341,12 @@ static int test_near_field_attached_measurement_cases(void)
     double spacing = -1.0;
     double scan_length = -1.0;
     double angle = -1.0;
+    double sampling_scan_length = 0.0;
     double extent = -1.0;
     double scan_start = 0.0;
     double scan_stop = 0.0;
     size_t sample_count = 0;
-    size_t spacing_mm = 0;
+    size_t step_size_mm = 0;
 
     if (amcore_near_field_measurement_distance_m(10.0e9, 0.0, &separation) !=
             AMCORE_STATUS_SUCCESS ||
@@ -369,10 +370,10 @@ static int test_near_field_attached_measurement_cases(void)
         return 1;
     }
     if (amcore_near_field_planar_sampling_parameters(
-            3.0e9, 1.0, &scan_start, &scan_stop, &sample_count,
-            &spacing_mm) != AMCORE_STATUS_SUCCESS ||
-        scan_start != -0.539 || scan_stop != 0.539 || sample_count != 23 ||
-        spacing_mm != 49) {
+            3.0e9, 1.0, &step_size_mm, &sampling_scan_length, &scan_start,
+            &scan_stop, &sample_count) != AMCORE_STATUS_SUCCESS ||
+        step_size_mm != 49 || fabs(sampling_scan_length - 1.078) > 1.0e-12 ||
+        scan_start != -0.539 || scan_stop != 0.539 || sample_count != 23) {
         return 1;
     }
     if (amcore_near_field_planar_ideal_angle_of_view_deg(
@@ -392,30 +393,31 @@ static int test_near_field_attached_measurement_cases(void)
 
 static int test_near_field_sampling_parameters(void)
 {
+    double scan_length = 123.0;
     double scan_start = 123.0;
     double scan_stop = 456.0;
     size_t sample_count = 789;
-    size_t spacing_mm = 321;
+    size_t step_size_mm = 321;
 
     if (amcore_near_field_planar_sampling_parameters(
-            299792458.0, 1.0, &scan_start, &scan_stop, &sample_count,
-            &spacing_mm) != AMCORE_STATUS_SUCCESS ||
-        scan_start != -0.5 || scan_stop != 0.5 || sample_count != 3 ||
-        spacing_mm != 500) {
+            299792458.0, 1.0, &step_size_mm, &scan_length, &scan_start,
+            &scan_stop, &sample_count) != AMCORE_STATUS_SUCCESS ||
+        step_size_mm != 500 || scan_length != 1.0 ||
+        scan_start != -0.5 || scan_stop != 0.5 || sample_count != 3) {
         return 1;
     }
     if (amcore_near_field_planar_sampling_parameters(
-            299792458.0 / 0.6, 0.8, &scan_start, &scan_stop, &sample_count,
-            &spacing_mm) != AMCORE_STATUS_SUCCESS ||
-        scan_start != -0.6 || scan_stop != 0.6 || sample_count != 5 ||
-        spacing_mm != 300) {
+            299792458.0 / 0.6, 0.8, &step_size_mm, &scan_length,
+            &scan_start, &scan_stop, &sample_count) != AMCORE_STATUS_SUCCESS ||
+        step_size_mm != 300 || scan_length != 1.2 ||
+        scan_start != -0.6 || scan_stop != 0.6 || sample_count != 5) {
         return 1;
     }
     if (amcore_near_field_planar_sampling_parameters(
-            299792458.0, 0.0, &scan_start, &scan_stop, &sample_count,
-            &spacing_mm) != AMCORE_STATUS_SUCCESS ||
-        scan_start != 0.0 || scan_stop != 0.0 || sample_count != 1 ||
-        spacing_mm != 500) {
+            299792458.0, 0.0, &step_size_mm, &scan_length, &scan_start,
+            &scan_stop, &sample_count) != AMCORE_STATUS_SUCCESS ||
+        step_size_mm != 500 || scan_length != 0.0 ||
+        scan_start != 0.0 || scan_stop != 0.0 || sample_count != 1) {
         return 1;
     }
     return 0;
@@ -425,10 +427,11 @@ static int test_near_field_invalid_arguments(void)
 {
     const double invalid_values[] = {-1.0, INFINITY, -INFINITY, NAN};
     double result = 123.0;
+    double scan_length = 234.0;
     double scan_start = 123.0;
     double scan_stop = 456.0;
     size_t sample_count = 789;
-    size_t spacing_mm = 321;
+    size_t step_size_mm = 321;
     size_t i;
 
     if (amcore_near_field_planar_ideal_step_size_m(1.0, NULL) !=
@@ -444,17 +447,24 @@ static int test_near_field_invalid_arguments(void)
         amcore_near_field_spherical_maximum_radius_extent_m(
             1.0, 1.0, 1.0, NULL) != AMCORE_STATUS_INVALID_ARGUMENT ||
         amcore_near_field_planar_sampling_parameters(
-            1.0, 1.0, NULL, &scan_stop, &sample_count, &spacing_mm) !=
+            1.0, 1.0, NULL, &scan_length, &scan_start, &scan_stop,
+            &sample_count) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
         amcore_near_field_planar_sampling_parameters(
-            1.0, 1.0, &scan_start, NULL, &sample_count, &spacing_mm) !=
+            1.0, 1.0, &step_size_mm, NULL, &scan_start, &scan_stop,
+            &sample_count) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
         amcore_near_field_planar_sampling_parameters(
-            1.0, 1.0, &scan_start, &scan_stop, NULL, &spacing_mm) !=
+            1.0, 1.0, &step_size_mm, &scan_length, NULL, &scan_stop,
+            &sample_count) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
         amcore_near_field_planar_sampling_parameters(
-            1.0, 1.0, &scan_start, &scan_stop, &sample_count, NULL) !=
-            AMCORE_STATUS_INVALID_ARGUMENT) {
+            1.0, 1.0, &step_size_mm, &scan_length, &scan_start, NULL,
+            &sample_count) !=
+            AMCORE_STATUS_INVALID_ARGUMENT ||
+        amcore_near_field_planar_sampling_parameters(
+            1.0, 1.0, &step_size_mm, &scan_length, &scan_start, &scan_stop,
+            NULL) != AMCORE_STATUS_INVALID_ARGUMENT) {
         return 1;
     }
 
@@ -473,10 +483,10 @@ static int test_near_field_invalid_arguments(void)
             AMCORE_STATUS_INVALID_ARGUMENT ||
         result != 123.0 ||
         amcore_near_field_planar_sampling_parameters(
-            299792458.0, -1.0, &scan_start, &scan_stop, &sample_count,
-            &spacing_mm) != AMCORE_STATUS_INVALID_ARGUMENT ||
-        scan_start != 123.0 || scan_stop != 456.0 || sample_count != 789 ||
-        spacing_mm != 321) {
+            299792458.0, -1.0, &step_size_mm, &scan_length, &scan_start,
+            &scan_stop, &sample_count) != AMCORE_STATUS_INVALID_ARGUMENT ||
+        step_size_mm != 321 || scan_length != 234.0 ||
+        scan_start != 123.0 || scan_stop != 456.0 || sample_count != 789) {
         return 1;
     }
 
@@ -533,10 +543,11 @@ static int test_near_field_invalid_arguments(void)
 static int test_near_field_out_of_range(void)
 {
     double result = 123.0;
+    double scan_length = 5.0;
     double scan_start = 1.0;
     double scan_stop = 2.0;
     size_t sample_count = 3;
-    size_t spacing_mm = 4;
+    size_t step_size_mm = 4;
 
     if (amcore_near_field_planar_ideal_scan_length_m(
             DBL_MAX, DBL_MAX, DBL_MAX, 45.0, &result) !=
@@ -549,15 +560,15 @@ static int test_near_field_out_of_range(void)
             DBL_MAX, DBL_MAX, DBL_MAX, &result) != AMCORE_STATUS_OUT_OF_RANGE ||
         result != 123.0 ||
         amcore_near_field_planar_sampling_parameters(
-            2.0e11, 1.0, &scan_start, &scan_stop, &sample_count,
-            &spacing_mm) != AMCORE_STATUS_OUT_OF_RANGE ||
-        scan_start != 1.0 || scan_stop != 2.0 || sample_count != 3 ||
-        spacing_mm != 4 ||
+            2.0e11, 1.0, &step_size_mm, &scan_length, &scan_start, &scan_stop,
+            &sample_count) != AMCORE_STATUS_OUT_OF_RANGE ||
+        step_size_mm != 4 || scan_length != 5.0 || scan_start != 1.0 ||
+        scan_stop != 2.0 || sample_count != 3 ||
         amcore_near_field_planar_sampling_parameters(
-            299792458.0, DBL_MAX, &scan_start, &scan_stop, &sample_count,
-            &spacing_mm) != AMCORE_STATUS_OUT_OF_RANGE ||
-        scan_start != 1.0 || scan_stop != 2.0 || sample_count != 3 ||
-        spacing_mm != 4) {
+            299792458.0, DBL_MAX, &step_size_mm, &scan_length, &scan_start,
+            &scan_stop, &sample_count) != AMCORE_STATUS_OUT_OF_RANGE ||
+        step_size_mm != 4 || scan_length != 5.0 || scan_start != 1.0 ||
+        scan_stop != 2.0 || sample_count != 3) {
         return 1;
     }
     return 0;

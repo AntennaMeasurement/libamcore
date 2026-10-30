@@ -110,7 +110,7 @@ AMCORE_API amcore_status amcore_near_field_planar_ideal_angle_of_view_deg(
     double *angle_of_view_deg);
 
 /**
- * @brief Calculate centered planar near-field sampling parameters.
+ * @brief Calculate centered planar near-field sampling parameters within millimeter resolution.
  *
  * The half-wavelength spacing is rounded down to whole millimetres. The
  * requested scan length is rounded up to whole millimetres, converted to a
@@ -121,11 +121,11 @@ AMCORE_API amcore_status amcore_near_field_planar_ideal_angle_of_view_deg(
  * @param frequency_hz Frequency in hertz; must be finite and greater than zero.
  * @param minimum_scan_length_m Desired minimum scan length in metres; must be
  *        finite and non-negative.
+ * @param step_size_mm Receives calculated step size in millimetres.
+ * @param scan_length_m Receives the calculated scan length in metres.
  * @param scan_start_m Receives the negative scan endpoint in metres.
  * @param scan_stop_m Receives the positive scan endpoint in metres.
  * @param sample_count Receives the number of samples.
- * @param sampling_spacing_mm Receives the integer sampling spacing in
- *        millimetres.
  * @return AMCORE_STATUS_SUCCESS on success, AMCORE_STATUS_INVALID_ARGUMENT
  *         for invalid inputs (including a null output pointer), or
  *         AMCORE_STATUS_OUT_OF_RANGE if the spacing rounds to zero or the
@@ -135,10 +135,11 @@ AMCORE_API amcore_status amcore_near_field_planar_ideal_angle_of_view_deg(
 AMCORE_API amcore_status amcore_near_field_planar_sampling_parameters(
     double frequency_hz,
     double minimum_scan_length_m,
+    size_t *step_size_mm,
+    double *scan_length_m,
     double *scan_start_m,
     double *scan_stop_m,
-    size_t *sample_count,
-    size_t *sampling_spacing_mm);
+    size_t *sample_count);
 
 /**
  * @brief Calculate the ideal cylindrical near-field Y scan length.

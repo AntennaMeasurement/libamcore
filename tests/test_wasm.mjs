@@ -16,7 +16,7 @@ wasi.initialize(instance);
 assert.ok(api.memory instanceof WebAssembly.Memory);
 assert.equal(typeof api.malloc, 'function');
 assert.equal(typeof api.free, 'function');
-const output = api.malloc(24);
+const output = api.malloc(40);
 assert.notEqual(output, 0, 'Result storage allocation must succeed');
 assert.equal(output % 8, 0, 'Result storage must be aligned for doubles');
 const memory = new DataView(api.memory.buffer);
@@ -60,17 +60,20 @@ for (const [name, args, expected] of cases) {
 
 assert.equal(
     api.amcore_near_field_planar_sampling_parameters(
-        1e9, 1, output, output + 8, output + 16, output + 20,
+        1e9, 1, output, output + 8, output + 16, output + 24,
+        output + 32,
     ),
     0,
 );
-close(memory.getFloat64(output, true), -0.596);
-close(memory.getFloat64(output + 8, true), 0.596);
-assert.equal(memory.getUint32(output + 16, true), 9);
-assert.equal(memory.getUint32(output + 20, true), 149);
+assert.equal(memory.getUint32(output, true), 149);
+close(memory.getFloat64(output + 8, true), 1.192);
+close(memory.getFloat64(output + 16, true), -0.596);
+close(memory.getFloat64(output + 24, true), 0.596);
+assert.equal(memory.getUint32(output + 32, true), 9);
 assert.equal(
     api.amcore_near_field_planar_sampling_parameters(
-        1e9, 1, 0, output + 8, output + 16, output + 20,
+        1e9, 1, 0, output + 8, output + 16, output + 24,
+        output + 32,
     ),
     1,
 );

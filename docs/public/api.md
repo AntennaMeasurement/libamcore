@@ -222,22 +222,23 @@ amcore_status status = amcore_near_field_planar_ideal_angle_of_view_deg(
 
 ### Planar sampling parameters
 
-`amcore_near_field_planar_sampling_parameters` rounds half-wavelength spacing
-down to whole millimetres, rounds the requested scan length up to whole
+`amcore_near_field_planar_sampling_parameters` rounds half-wavelength step
+size down to whole millimetres, rounds the requested scan length up to whole
 millimetres, and extends the centered half-scan to a whole multiple of the
-spacing. It returns the negative and positive endpoints in metres, sample
-count including both endpoints, and integer spacing in millimetres. It returns
-`AMCORE_STATUS_OUT_OF_RANGE` if the spacing rounds down to zero millimetres or
-the values cannot be represented.
+step size. It returns the integer step size in millimetres, calculated scan
+length, negative and positive endpoints in metres, and sample count including
+both endpoints. It returns `AMCORE_STATUS_OUT_OF_RANGE` if the step size
+rounds down to zero millimetres or the values cannot be represented.
 
 ```c
+size_t step_size_mm;
+double scan_length_m;
 double scan_start_m;
 double scan_stop_m;
 size_t sample_count;
-size_t spacing_mm;
 amcore_status status = amcore_near_field_planar_sampling_parameters(
-    299792458.0, 1.0, &scan_start_m, &scan_stop_m, &sample_count,
-    &spacing_mm);
+    299792458.0, 1.0, &step_size_mm, &scan_length_m, &scan_start_m,
+    &scan_stop_m, &sample_count);
 ```
 
 ### Ideal cylindrical Y step size

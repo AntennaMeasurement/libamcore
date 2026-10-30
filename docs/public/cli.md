@@ -51,7 +51,7 @@ Subcommands:
   ideal-step-size      Calculate ideal step size in metres
   ideal-scan-length    Calculate ideal scan length in metres
   ideal-angle-of-view  Calculate ideal angle of view in degrees
-  sampling-parameters  Calculate centered sampling parameters
+  sampling-parameters  Calculate centered planar scan parameters
 ```
 
 ```
@@ -102,8 +102,11 @@ degrees from 0 inclusive to 90 exclusive. It calculates
 `ideal-angle-of-view` accepts the AUT maximum edge length, probe maximum edge
 length, probe-to-aperture measurement distance, and scan length in metres.
 `sampling-parameters` accepts frequency in hertz and minimum scan length in
-metres; its one output line contains start position (m), stop position (m),
-sample count, and spacing (mm). Spherical `maximum-radius-extent` accepts
+metres; its one output line contains step size (mm), calculated scan length
+(m), start position (m), stop position (m), and sample count. Scan length and
+endpoints are printed to three decimal places; step size and sample count are
+integers.
+Spherical `maximum-radius-extent` accepts
 signed x, y, and z maximum displacements in metres. Cylindrical
 `ideal-y-scan-length` accepts antenna height, probe longest edge, probe radius, and
 maximum radial extent in metres, followed by maximum azimuth and elevation in
