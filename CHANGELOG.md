@@ -5,28 +5,20 @@ All notable changes for each release are documented here.
 Entries under released versions are historical release notes and may describe
 features that are not present in the current branch.
 
-## [Unreleased]
-
-### Added
-
-- Add `amcore_near_field_cylindrical_elevation_sampling_parameters` to the C
-  API, CLI (`nearfield cylindrical elevation-sampling-parameters`), and
-  WebAssembly exports. It returns centered elevation scan step size, scan
-  length, endpoints, and sample count.
-- Add `amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg` to the
-  C API, CLI (`nearfield cylindrical ideal-elevation-angle-of-view`), and
-  WebAssembly exports to calculate the elevation half range angle for a
-  centered cylindrical scan.
-- Add `amcore_near_field_cylindrical_ideal_y_step_size_m` to the C API,
-  CLI (`nearfield cylindrical ideal-y-step-size`), and WebAssembly exports.
-  It returns half a wavelength in metres without rounding, including
-  submillimetre steps. The unused Python scan-size argument is omitted.
-
-### Changed
-
-- Include the probe maximum edge length in planar ideal scan-length
-  calculations, and use it in the inverse angle-of-view calculation. The C
-  APIs and corresponding CLI commands now accept the probe edge length.
+## [v0.9.0] - 2026-10-30
+- feat: add cylindrical elevation sampling parameters to C API, CLI, and documentation
+- feat: add ideal cylindrical elevation angle of view calculation and related documentation
+- feat: update near-field sampling parameters to include step size and scan length, and adjust related documentation
+- feat: rename maximum edge length parameters to longest edge length in near-field calculations and update related documentation
+- feat: update near-field calculations to include probe maximum edge length and adjust related documentation
+- feat: rename aperture cross-section to AUT maximum edge length and update related documentation
+- feat: rename probe separation to measurement distance and update related documentation
+- feat: rename near-field separation distance to measurement distance and update related documentation
+- feat: rename planar angle of view to ideal planar angle of view and update related documentation
+- feat: rename planar scan length to ideal planar scan length and update related documentation
+- feat: rename planar sampling spacing to ideal step size and update related documentation
+- feat: add ideal cylindrical Y step size calculation and update documentation
+- feat: rename cylindrical Y scan length API to ideal cylindrical Y scan length and update related documentation
 
 ## [v0.8.7] - 2026-10-29
 

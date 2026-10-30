@@ -317,7 +317,7 @@ places.
 ### Ideal cylindrical elevation angle of view
 
 `amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg` inverts the
-cylindrical Y scan-length geometry for a centered scan:
+cylindrical Y scan-length geometry for a centered scan. Returns half of the total elevation angle of view:
 
 $$\theta_{\mathrm{el}} = \operatorname{atan2}(L_{\mathrm{y}} - H_{\mathrm{AUT}} - H_{\mathrm{probe}}, 2(R_{\mathrm{probe}} - MRE\cos(\mathrm{Az}_{max})))$$
 
