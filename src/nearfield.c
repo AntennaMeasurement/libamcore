@@ -31,14 +31,15 @@ amcore_status amcore_near_field_separation_distance_m(double frequency_hz,
     return AMCORE_STATUS_SUCCESS;
 }
 
-amcore_status amcore_near_field_planar_sampling_spacing_m(double frequency_hz,
-                                                          double *spacing_m)
+amcore_status amcore_near_field_planar_ideal_step_size_m(
+    double frequency_hz,
+    double *step_size_m)
 {
     double wavelength;
-    double spacing;
+    double step_size;
     amcore_status status;
 
-    if (spacing_m == NULL) {
+    if (step_size_m == NULL) {
         return AMCORE_STATUS_INVALID_ARGUMENT;
     }
 
@@ -47,12 +48,12 @@ amcore_status amcore_near_field_planar_sampling_spacing_m(double frequency_hz,
         return status;
     }
 
-    spacing = 0.5 * wavelength;
-    if (!isfinite(spacing) || spacing <= 0.0) {
+    step_size = 0.5 * wavelength;
+    if (!isfinite(step_size) || step_size <= 0.0) {
         return AMCORE_STATUS_OUT_OF_RANGE;
     }
 
-    *spacing_m = spacing;
+    *step_size_m = step_size;
     return AMCORE_STATUS_SUCCESS;
 }
 
@@ -155,7 +156,7 @@ amcore_status amcore_near_field_planar_sampling_parameters(
         return AMCORE_STATUS_INVALID_ARGUMENT;
     }
 
-    status = amcore_near_field_planar_sampling_spacing_m(frequency_hz,
+    status = amcore_near_field_planar_ideal_step_size_m(frequency_hz,
                                                          &spacing_m);
     if (status != AMCORE_STATUS_SUCCESS) {
         return status;
@@ -246,8 +247,8 @@ amcore_status amcore_near_field_cylindrical_ideal_y_step_size_m(
     double frequency_hz,
     double *step_size_m)
 {
-    return amcore_near_field_planar_sampling_spacing_m(frequency_hz,
-                                                       step_size_m);
+    return amcore_near_field_planar_ideal_step_size_m(frequency_hz,
+                                                      step_size_m);
 }
 
 amcore_status amcore_near_field_spherical_maximum_radius_extent_m(

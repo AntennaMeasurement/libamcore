@@ -166,24 +166,24 @@ amcore_status amcore_near_field_separation_distance_m(
     double *separation_m);
 ```
 
-### Planar sampling spacing
+### Planar ideal step size
 
-`amcore_near_field_planar_sampling_spacing_m` returns half the free-space
-wavelength, $\Delta = \lambda/2$. This spacing follows IEEE Std 149-2021,
+`amcore_near_field_planar_ideal_step_size_m` returns half the free-space
+wavelength, $\Delta = \lambda/2$. This step size follows IEEE Std 149-2021,
 section 12.5, and IEEE Std 1720-2012, section 5.2.5, equation 25.
 
 ```c
-double spacing_m;
+double step_size_m;
 amcore_status status =
-    amcore_near_field_planar_sampling_spacing_m(1.0e9, &spacing_m);
+    amcore_near_field_planar_ideal_step_size_m(1.0e9, &step_size_m);
 ```
 
 Signature:
 
 ```c
-amcore_status amcore_near_field_planar_sampling_spacing_m(
+amcore_status amcore_near_field_planar_ideal_step_size_m(
     double frequency_hz,
-    double *spacing_m);
+    double *step_size_m);
 ```
 
 ### Planar scan length and angle of view

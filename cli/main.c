@@ -33,7 +33,7 @@ static int calculate_line_of_sight(int argc, char **argv);
 static int calculate_radio_horizon(int argc, char **argv);
 static int calculate_path_loss(int argc, char **argv);
 static int calculate_near_field_separation_distance(int argc, char **argv);
-static int calculate_planar_sampling_spacing(int argc, char **argv);
+static int calculate_planar_ideal_step_size(int argc, char **argv);
 static int calculate_planar_scan_length(int argc, char **argv);
 static int calculate_planar_angle_of_view(int argc, char **argv);
 static int calculate_planar_sampling_parameters(int argc, char **argv);
@@ -76,8 +76,8 @@ static const command nearfield_functions[] = {
 };
 
 static const command nearfield_planar_functions[] = {
-    {"sampling-spacing", "Calculate sampling spacing in metres",
-     calculate_planar_sampling_spacing},
+    {"ideal-step-size", "Calculate ideal step size in metres",
+     calculate_planar_ideal_step_size},
     {"scan-length", "Calculate required scan length in metres",
      calculate_planar_scan_length},
     {"angle-of-view", "Calculate angle of view in degrees",
@@ -438,15 +438,15 @@ static int calculate_path_loss(int argc, char **argv)
     return print_result(status, path_loss);
 }
 
-static int calculate_planar_sampling_spacing(int argc, char **argv)
+static int calculate_planar_ideal_step_size(int argc, char **argv)
 {
     double frequency;
     double spacing = 0.0;
     amcore_status status;
 
     if (argc == 1 && is_help(argv[0])) {
-        puts("Usage: amcore nearfield planar sampling-spacing <frequency_hz>");
-        puts("Calculate half-wavelength sampling spacing.");
+        puts("Usage: amcore nearfield planar ideal-step-size <frequency_hz>");
+        puts("Calculate half-wavelength ideal step size.");
         puts("");
         puts("Arguments:");
         puts("  <frequency_hz> Frequency in hertz");
@@ -459,7 +459,7 @@ static int calculate_planar_sampling_spacing(int argc, char **argv)
         return EXIT_SUCCESS;
     }
     if (argc != 1) {
-        fputs("Usage: amcore nearfield planar sampling-spacing "
+        fputs("Usage: amcore nearfield planar ideal-step-size "
               "<frequency_hz>\n", stderr);
         return EXIT_FAILURE;
     }
@@ -469,7 +469,7 @@ static int calculate_planar_sampling_spacing(int argc, char **argv)
     }
 
     status =
-        amcore_near_field_planar_sampling_spacing_m(frequency, &spacing);
+        amcore_near_field_planar_ideal_step_size_m(frequency, &spacing);
     return print_result(status, spacing);
 }
 

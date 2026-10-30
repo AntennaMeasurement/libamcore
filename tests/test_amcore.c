@@ -297,8 +297,8 @@ static int test_near_field_planar(void)
     double scan_length = -1.0;
     double angle = -1.0;
 
-    if (amcore_near_field_planar_sampling_spacing_m(299792458.0,
-                                                     &spacing) !=
+    if (amcore_near_field_planar_ideal_step_size_m(299792458.0,
+                                                   &spacing) !=
             AMCORE_STATUS_SUCCESS ||
         fabs(spacing - 0.5) > 1.0e-12) {
         return 1;
@@ -347,7 +347,7 @@ static int test_near_field_attached_measurement_cases(void)
         fabs(separation - 0.150) > 0.0005) {
         return 1;
     }
-    if (amcore_near_field_planar_sampling_spacing_m(3.0e9, &spacing) !=
+    if (amcore_near_field_planar_ideal_step_size_m(3.0e9, &spacing) !=
             AMCORE_STATUS_SUCCESS ||
         fabs(spacing - 0.050) > 0.0005) {
         return 1;
@@ -421,7 +421,7 @@ static int test_near_field_invalid_arguments(void)
     size_t spacing_mm = 321;
     size_t i;
 
-    if (amcore_near_field_planar_sampling_spacing_m(1.0, NULL) !=
+    if (amcore_near_field_planar_ideal_step_size_m(1.0, NULL) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
         amcore_near_field_separation_distance_m(1.0, NULL) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
@@ -446,7 +446,7 @@ static int test_near_field_invalid_arguments(void)
         return 1;
     }
 
-    if (amcore_near_field_planar_sampling_spacing_m(0.0, &result) !=
+    if (amcore_near_field_planar_ideal_step_size_m(0.0, &result) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
         result != 123.0 ||
         amcore_near_field_separation_distance_m(0.0, &result) !=
@@ -468,8 +468,8 @@ static int test_near_field_invalid_arguments(void)
     }
 
     for (i = 0; i < sizeof(invalid_values) / sizeof(invalid_values[0]); ++i) {
-        if (amcore_near_field_planar_sampling_spacing_m(invalid_values[i],
-                                                        &result) !=
+        if (amcore_near_field_planar_ideal_step_size_m(invalid_values[i],
+                                                       &result) !=
                 AMCORE_STATUS_INVALID_ARGUMENT ||
             result != 123.0) {
             return 1;

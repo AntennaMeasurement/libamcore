@@ -33,20 +33,20 @@ AMCORE_API amcore_status amcore_near_field_separation_distance_m(
     double *separation_m);
 
 /**
- * @brief Calculate the maximum planar near-field sampling spacing.
+ * @brief Calculate the ideal planar near-field step size.
  *
  * Uses half the free-space wavelength.
  *
  * @param frequency_hz Frequency in hertz; must be finite and greater than zero.
- * @param spacing_m Receives the sampling spacing in metres on success.
+ * @param step_size_m Receives the ideal step size in metres on success.
  * @return AMCORE_STATUS_SUCCESS on success, AMCORE_STATUS_INVALID_ARGUMENT
  *         for invalid inputs (including a null output pointer), or
- *         AMCORE_STATUS_OUT_OF_RANGE if the spacing is not representable as a
- *         positive finite double. On error, leaves @p spacing_m unchanged.
+ *         AMCORE_STATUS_OUT_OF_RANGE if the step size is not representable as a
+ *         positive finite double. On error, leaves @p step_size_m unchanged.
  */
-AMCORE_API amcore_status amcore_near_field_planar_sampling_spacing_m(
+AMCORE_API amcore_status amcore_near_field_planar_ideal_step_size_m(
     double frequency_hz,
-    double *spacing_m);
+    double *step_size_m);
 
 /**
  * @brief Calculate the required planar scan length for an angle of view.
