@@ -314,6 +314,39 @@ The NSI2000 reference case with antenna height 0.2 m, probe longest edge
 and elevation 60 degrees produces **11.186 m** when rounded to three decimal
 places.
 
+### Ideal cylindrical elevation angle of view
+
+`amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg` inverts the
+cylindrical Y scan-length geometry for a centered scan:
+
+$$\theta_{\mathrm{el}} = \operatorname{atan2}(L_{\mathrm{y}} - H_{\mathrm{AUT}} - H_{\mathrm{probe}}, 2(R_{\mathrm{probe}} - MRE\cos(\mathrm{Az}_{max})))$$
+
+The result is converted to degrees. Length inputs must be finite and
+non-negative except that scan length must be positive. The probe radius must be
+greater than the maximum radial extent, and azimuth must be in [0, 180]
+degrees. The output remains unchanged on error.
+
+```c
+double angle_of_view_deg;
+amcore_status status =
+    amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg(
+        1.0, 0.2, 2.0, 1.0, 60.0, 5.2, &angle_of_view_deg);
+/* On success: angle_of_view_deg is approximately 53.130 degrees. */
+```
+
+Signature:
+
+```c
+amcore_status amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg(
+    double aut_height_m,
+    double probe_longest_edge_m,
+    double probe_radius_m,
+    double maximum_radial_extent_m,
+    double azimuth_max_deg,
+    double scan_length_m,
+    double *angle_of_view_deg);
+```
+
 ### Spherical maximum radius extent
 
 `amcore_near_field_spherical_maximum_radius_extent_m` calculates the

@@ -45,6 +45,7 @@ const cases = [
     ['amcore_near_field_planar_ideal_scan_length_m', [1, 0.5, 2, 45], 5.5],
     ['amcore_near_field_planar_ideal_angle_of_view_deg', [1, 0.5, 2, 5.5], 45],
     ['amcore_near_field_cylindrical_ideal_y_scan_length_m', [1, 0.5, 2, 1, 0, 45], 3.5],
+    ['amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg', [1, 0.2, 2, 1, 60, 5.2], Math.atan2(4, 3) * (180 / Math.PI)],
     ['amcore_near_field_cylindrical_ideal_y_step_size_m', [1e9], lightSpeed / 2e9],
     ['amcore_near_field_cylindrical_ideal_y_step_size_m', [149896229000], 0.001],
     ['amcore_near_field_cylindrical_ideal_y_step_size_m', [150e9], lightSpeed / 300e9],

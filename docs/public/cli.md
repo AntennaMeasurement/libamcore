@@ -58,8 +58,9 @@ Subcommands:
 Usage: amcore nearfield cylindrical <subcommand> [arguments]
 
 Subcommands:
-  ideal-y-scan-length  Calculate ideal cylindrical Y scan length in metres
-  ideal-y-step-size    Calculate ideal cylindrical Y step size in metres
+  ideal-y-scan-length           Calculate ideal cylindrical Y scan length in metres
+  ideal-y-step-size             Calculate ideal cylindrical Y step size in metres
+  ideal-elevation-angle-of-view Calculate ideal cylindrical elevation angle of view in degrees
 ```
 
 ```
@@ -85,6 +86,7 @@ amcore nearfield planar ideal-angle-of-view 1 0.5 2 5.5
 amcore nearfield planar sampling-parameters 299792458 1
 amcore nearfield cylindrical ideal-y-scan-length 1 0.2 2 1 60 45
 amcore nearfield cylindrical ideal-y-step-size 1e9
+amcore nearfield cylindrical ideal-elevation-angle-of-view 1 0.2 2 1 60 5.2
 amcore nearfield spherical maximum-radius-extent 3 4 12
 ```
 
@@ -117,6 +119,12 @@ half the free-space wavelength without rounding, expressed in metres
 (for example, 0.149896229 m at 1 GHz). Submillimetre steps are supported.
 It reports an out-of-range error if the wavelength or step size cannot be
 represented as a positive finite double.
+`ideal-elevation-angle-of-view` accepts the AUT height, probe longest edge,
+probe radius, and maximum radial extent in metres, followed by maximum azimuth
+in degrees and scan length in metres. Lengths must be non-negative, the probe
+radius must exceed the maximum radial extent, azimuth must be in [0, 180], and
+scan length must be positive. It returns the centered scan's elevation half
+range angle of view in degrees.
 `measurement-distance` accepts frequency in hertz and an optional finite,
 non-negative coefficient, returning the probe-to-aperture distance in metres.
 If the coefficient is omitted or set to zero, the default coefficient 5.0 is

@@ -9,6 +9,10 @@ features that are not present in the current branch.
 
 ### Added
 
+- Add `amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg` to the
+  C API, CLI (`nearfield cylindrical ideal-elevation-angle-of-view`), and
+  WebAssembly exports to calculate the elevation half range angle for a
+  centered cylindrical scan.
 - Add `amcore_near_field_cylindrical_ideal_y_step_size_m` to the C API,
   CLI (`nearfield cylindrical ideal-y-step-size`), and WebAssembly exports.
   It returns half a wavelength in metres without rounding, including

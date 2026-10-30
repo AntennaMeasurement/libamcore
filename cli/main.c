@@ -39,6 +39,8 @@ static int calculate_planar_ideal_angle_of_view(int argc, char **argv);
 static int calculate_planar_sampling_parameters(int argc, char **argv);
 static int calculate_cylindrical_ideal_y_scan_length(int argc, char **argv);
 static int calculate_cylindrical_ideal_y_step_size(int argc, char **argv);
+static int calculate_cylindrical_ideal_elevation_angle_of_view(int argc,
+                                                               char **argv);
 static int calculate_spherical_maximum_radius_extent(int argc, char **argv);
 
 static const command commands[] = {
@@ -96,6 +98,9 @@ static const command nearfield_cylindrical_functions[] = {
      calculate_cylindrical_ideal_y_scan_length},
     {"ideal-y-step-size", "Calculate ideal cylindrical Y step size in metres",
      calculate_cylindrical_ideal_y_step_size},
+    {"ideal-elevation-angle-of-view",
+     "Calculate ideal cylindrical elevation angle of view in degrees",
+     calculate_cylindrical_ideal_elevation_angle_of_view},
 };
 
 static int is_help(const char *argument)
@@ -819,6 +824,70 @@ static int calculate_cylindrical_ideal_y_scan_length(int argc, char **argv)
         antenna_height, probe_longest_edge, probe_radius,
         maximum_radial_extent, azimuth_max, elevation_max, &scan_length);
     return print_result(status, scan_length);
+}
+
+static int calculate_cylindrical_ideal_elevation_angle_of_view(int argc,
+                                                               char **argv)
+{
+    double aut_height;
+    double probe_longest_edge;
+    double probe_radius;
+    double maximum_radial_extent;
+    double azimuth_max;
+    double scan_length;
+    double angle_of_view = 0.0;
+    amcore_status status;
+
+    if (argc == 1 && is_help(argv[0])) {
+        puts("Usage: amcore nearfield cylindrical "
+             "ideal-elevation-angle-of-view <aut_height_m> "
+             "<probe_longest_edge_m> <probe_radius_m> "
+             "<maximum_radial_extent_m> <azimuth_max_deg> <scan_length_m>");
+        puts("");
+        puts("Arguments:");
+        puts("  <aut_height_m>           AUT height in metres");
+        puts("  <probe_longest_edge_m>   Longest edge of the probe in metres");
+        puts("  <probe_radius_m>         Probe radius in metres");
+        puts("  <maximum_radial_extent_m> Maximum radial extent in metres");
+        puts("  <azimuth_max_deg>        Maximum azimuth angle in degrees");
+        puts("  <scan_length_m>          Scan length in metres");
+        puts("");
+        puts("Options:");
+        puts("  -h, --help               Show this help message and exit");
+        puts("");
+        puts("Lengths must be non-negative, probe radius greater than "
+             "maximum radial extent, azimuth in [0, 180], and scan length "
+             "positive; all inputs must be finite.");
+        puts("Output: elevation half range angle of view in degrees.");
+        return EXIT_SUCCESS;
+    }
+    if (argc != 6) {
+        fputs("Usage: amcore nearfield cylindrical "
+              "ideal-elevation-angle-of-view <aut_height_m> "
+              "<probe_longest_edge_m> <probe_radius_m> "
+              "<maximum_radial_extent_m> <azimuth_max_deg> <scan_length_m>\n",
+              stderr);
+        return EXIT_FAILURE;
+    }
+    if (parse_nonnegative_double(argv[0], "aut_height_m", &aut_height) !=
+            EXIT_SUCCESS ||
+        parse_nonnegative_double(argv[1], "probe_longest_edge_m",
+                                 &probe_longest_edge) != EXIT_SUCCESS ||
+        parse_nonnegative_double(argv[2], "probe_radius_m", &probe_radius) !=
+            EXIT_SUCCESS ||
+        parse_nonnegative_double(argv[3], "maximum_radial_extent_m",
+                                 &maximum_radial_extent) != EXIT_SUCCESS ||
+        parse_nonnegative_double(argv[4], "azimuth_max_deg", &azimuth_max) !=
+            EXIT_SUCCESS ||
+        parse_positive_double(argv[5], "scan_length_m", &scan_length) !=
+            EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    status = amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg(
+        aut_height, probe_longest_edge, probe_radius, maximum_radial_extent,
+        azimuth_max, scan_length, &angle_of_view);
+    return print_result(status, angle_of_view);
 }
 
 static int show_help(int argc, char **argv)

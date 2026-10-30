@@ -216,6 +216,14 @@ amcore_status amcore_near_field_planar_sampling_parameters(
     return AMCORE_STATUS_SUCCESS;
 }
 
+amcore_status amcore_near_field_cylindrical_ideal_y_step_size_m(
+    double frequency_hz,
+    double *step_size_m)
+{
+    return amcore_near_field_planar_ideal_step_size_m(frequency_hz,
+                                                      step_size_m);
+}
+
 amcore_status amcore_near_field_cylindrical_ideal_y_scan_length_m(
     double antenna_height_m,
     double probe_longest_edge_m,
@@ -263,12 +271,44 @@ amcore_status amcore_near_field_cylindrical_ideal_y_scan_length_m(
     return AMCORE_STATUS_SUCCESS;
 }
 
-amcore_status amcore_near_field_cylindrical_ideal_y_step_size_m(
-    double frequency_hz,
-    double *step_size_m)
+amcore_status amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg(
+    double aut_height_m,
+    double probe_longest_edge_m,
+    double probe_radius_m,
+    double maximum_radial_extent_m,
+    double azimuth_max_deg,
+    double scan_length_m,
+    double *angle_of_view_deg)
 {
-    return amcore_near_field_planar_ideal_step_size_m(frequency_hz,
-                                                      step_size_m);
+    /* Invert the cylindrical Y scan-length formula. */
+    if (angle_of_view_deg == NULL ||
+        !isfinite(aut_height_m) || aut_height_m < 0.0 ||
+        !isfinite(probe_longest_edge_m) || probe_longest_edge_m < 0.0 ||
+        !isfinite(probe_radius_m) || !isfinite(maximum_radial_extent_m) ||
+        maximum_radial_extent_m < 0.0 ||
+        probe_radius_m <= maximum_radial_extent_m ||
+        !isfinite(azimuth_max_deg) || azimuth_max_deg < 0.0 ||
+        azimuth_max_deg > 180.0 ||
+        !isfinite(scan_length_m) || scan_length_m <= 0.0) {
+        return AMCORE_STATUS_INVALID_ARGUMENT;
+    }
+
+    double radians_per_degree = acos(-1.0) / 180.0;
+
+    double numerator = scan_length_m - aut_height_m - probe_longest_edge_m;
+    double denominator =
+        2.0 * (probe_radius_m -
+               maximum_radial_extent_m *
+                   cos(azimuth_max_deg * radians_per_degree));
+    double angle_of_view_deg_local =
+        atan2(numerator, denominator) * 180.0 / acos(-1.0);
+
+    if (!isfinite(angle_of_view_deg_local)) {
+        return AMCORE_STATUS_OUT_OF_RANGE;
+    }
+
+    *angle_of_view_deg = angle_of_view_deg_local;
+    return AMCORE_STATUS_SUCCESS;
 }
 
 amcore_status amcore_near_field_spherical_maximum_radius_extent_m(

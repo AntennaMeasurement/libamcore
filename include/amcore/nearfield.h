@@ -22,7 +22,6 @@ extern "C" {
  * Uses R = C * lambda. If @p coeff is zero, uses the default coefficient 5.0,
  * following IEEE 1720-2012, section 5.3.1.4. The coefficient must be finite
  * and non-negative.
- *
  * @param frequency_hz Frequency in hertz; must be finite and greater than zero.
  * @param coeff Separation coefficient; zero selects the default value 5.0.
  * @param separation_m Receives the separation distance in metres on success.
@@ -82,7 +81,7 @@ AMCORE_API amcore_status amcore_near_field_planar_ideal_scan_length_m(
     double *scan_length_m);
 
 /**
- * @brief Calculate the ideal planar near-field angle of view.
+ * @brief Calculate the ideal planar near-field half range angle of view.
  *
  * The scan region is assumed to be centered on the antenna. Uses
  * theta = atan2(scan_length - a - p, 2 d), converted to degrees, where a is
@@ -142,6 +141,24 @@ AMCORE_API amcore_status amcore_near_field_planar_sampling_parameters(
     size_t *sample_count);
 
 /**
+ * @brief Calculate the ideal cylindrical near-field Y step size.
+ *
+ * Uses half the free-space wavelength without rounding. The step size is
+ * independent of the scan length.
+ *
+ * @param frequency_hz Frequency in hertz; must be finite and greater than zero.
+ * @param step_size_m Receives the Y step size in metres on success.
+ * @return AMCORE_STATUS_SUCCESS on success, AMCORE_STATUS_INVALID_ARGUMENT
+ *         for invalid inputs (including a null output pointer), or
+ *         AMCORE_STATUS_OUT_OF_RANGE if the wavelength or step size is not
+ *         representable as a positive finite double. On error, leaves
+ *         @p step_size_m unchanged.
+ */
+AMCORE_API amcore_status amcore_near_field_cylindrical_ideal_y_step_size_m(
+    double frequency_hz,
+    double *step_size_m);
+
+/**
  * @brief Calculate the ideal cylindrical near-field Y scan length.
  *
  * Uses L_y = H_AUT + H_Probe + 2 (R_Probe - MRE cos(Az_max)) tan(El_max), with angles converted
@@ -172,23 +189,35 @@ AMCORE_API amcore_status amcore_near_field_cylindrical_ideal_y_scan_length_m(
     double elevation_max_deg,
     double *scan_length_m);
 
+
 /**
- * @brief Calculate the ideal cylindrical near-field Y step size.
+ * @brief Calculate the ideal cylindrical near-field elevation half range
+ *        angle of view.
  *
- * Uses half the free-space wavelength without rounding. The step size is
- * independent of the scan length.
+ * The scan region is assumed to be centered on the antenna. Uses calculations
+ * in amcore_near_field_cylindrical_ideal_y_scan_length_m to determine the
+ * necessary scan length.
  *
- * @param frequency_hz Frequency in hertz; must be finite and greater than zero.
- * @param step_size_m Receives the Y step size in metres on success.
+ * @param aut_height_m AUT height in metres; must be finite and non-negative.
+ * @param probe_longest_edge_m Probe longest edge length in metres; must be finite and non-negative.
+ * @param probe_radius_m Probe radius in metres; must be finite and greater than maximum_radial_extent_m.
+ * @param maximum_radial_extent_m Maximum radial extent in metres; must be finite and non-negative.
+ * @param azimuth_max_deg Maximum azimuth in degrees; must be finite and in [0, 180].
+ * @param scan_length_m Scan length in metres; must be finite and greater than zero.
+ * @param angle_of_view_deg Receives the elevation angle of view in degrees on success.
  * @return AMCORE_STATUS_SUCCESS on success, AMCORE_STATUS_INVALID_ARGUMENT
  *         for invalid inputs (including a null output pointer), or
- *         AMCORE_STATUS_OUT_OF_RANGE if the wavelength or step size is not
- *         representable as a positive finite double. On error, leaves
- *         @p step_size_m unchanged.
+ *         AMCORE_STATUS_OUT_OF_RANGE if the result is not finite. On error,
+ *         leaves @p angle_of_view_deg unchanged.
  */
-AMCORE_API amcore_status amcore_near_field_cylindrical_ideal_y_step_size_m(
-    double frequency_hz,
-    double *step_size_m);
+AMCORE_API amcore_status amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg(
+    double aut_height_m,
+    double probe_longest_edge_m,
+    double probe_radius_m,
+    double maximum_radial_extent_m,
+    double azimuth_max_deg,
+    double scan_length_m,
+    double *angle_of_view_deg);
 
 /**
  * @brief Calculate the spherical near-field maximum radius extent.

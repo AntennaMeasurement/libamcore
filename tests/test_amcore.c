@@ -696,6 +696,91 @@ static int test_near_field_cylindrical_out_of_range(void)
     return 0;
 }
 
+static int test_near_field_cylindrical_ideal_elevation_angle_of_view(void)
+{
+    const struct {
+        double aut_height;
+        double probe_edge;
+        double probe_radius;
+        double maximum_radial_extent;
+        double azimuth;
+        double scan_length;
+        double expected_angle;
+    } cases[] = {
+        {1.0, 0.2, 2.0, 1.0, 0.0, 3.2, 45.0},
+        {1.0, 0.2, 2.0, 1.0, 60.0, 5.2,
+         atan2(4.0, 3.0) * (180.0 / acos(-1.0))},
+        {0.0, 0.0, 1.0, 0.0, 90.0, 2.0, 45.0}
+    };
+    double angle = -1.0;
+    double scan_length;
+    size_t i;
+
+    for (i = 0; i < sizeof(cases) / sizeof(cases[0]); ++i) {
+        if (amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg(
+                cases[i].aut_height, cases[i].probe_edge,
+                cases[i].probe_radius, cases[i].maximum_radial_extent,
+                cases[i].azimuth, cases[i].scan_length, &angle) !=
+                AMCORE_STATUS_SUCCESS ||
+            fabs(angle - cases[i].expected_angle) > 1.0e-12) {
+            return 1;
+        }
+    }
+
+    if (amcore_near_field_cylindrical_ideal_y_scan_length_m(
+            1.0, 0.2, 2.0, 1.0, 60.0, 45.0, &scan_length) !=
+            AMCORE_STATUS_SUCCESS ||
+        amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg(
+            1.0, 0.2, 2.0, 1.0, 60.0, scan_length, &angle) !=
+            AMCORE_STATUS_SUCCESS ||
+        fabs(angle - 45.0) > 1.0e-12) {
+        return 1;
+    }
+    return 0;
+}
+
+static int test_near_field_cylindrical_elevation_angle_invalid_arguments(void)
+{
+    const double invalid_values[] = {-1.0, INFINITY, -INFINITY, NAN};
+    double inputs[] = {1.0, 0.2, 2.0, 1.0, 45.0, 3.2};
+    double angle = 123.0;
+    size_t i;
+    size_t j;
+
+    if (amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg(
+            1.0, 0.2, 2.0, 1.0, 45.0, 3.2, NULL) !=
+        AMCORE_STATUS_INVALID_ARGUMENT) {
+        return 1;
+    }
+    for (i = 0; i < sizeof(inputs) / sizeof(inputs[0]); ++i) {
+        double saved = inputs[i];
+        for (j = 0; j < sizeof(invalid_values) / sizeof(invalid_values[0]);
+             ++j) {
+            inputs[i] = invalid_values[j];
+            if (amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg(
+                    inputs[0], inputs[1], inputs[2], inputs[3], inputs[4],
+                    inputs[5], &angle) != AMCORE_STATUS_INVALID_ARGUMENT ||
+                angle != 123.0) {
+                return 1;
+            }
+        }
+        inputs[i] = saved;
+    }
+    if (amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg(
+            1.0, 0.2, 1.0, 1.0, 45.0, 3.2, &angle) !=
+            AMCORE_STATUS_INVALID_ARGUMENT ||
+        amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg(
+            1.0, 0.2, 2.0, 1.0, 181.0, 3.2, &angle) !=
+            AMCORE_STATUS_INVALID_ARGUMENT ||
+        amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg(
+            1.0, 0.2, 2.0, 1.0, 45.0, 0.0, &angle) !=
+            AMCORE_STATUS_INVALID_ARGUMENT ||
+        angle != 123.0) {
+        return 1;
+    }
+    return 0;
+}
+
 static int test_near_field_cylindrical_ideal_y_step_size(void)
 {
     const struct {
@@ -804,6 +889,8 @@ int main(void)
         TEST_CASE(test_near_field_cylindrical_ideal_y_scan_length),
         TEST_CASE(test_near_field_cylindrical_invalid_arguments),
         TEST_CASE(test_near_field_cylindrical_out_of_range),
+        TEST_CASE(test_near_field_cylindrical_ideal_elevation_angle_of_view),
+        TEST_CASE(test_near_field_cylindrical_elevation_angle_invalid_arguments),
         TEST_CASE(test_near_field_cylindrical_ideal_y_step_size),
         TEST_CASE(test_near_field_cylindrical_step_size_invalid_arguments),
         TEST_CASE(test_near_field_cylindrical_step_size_out_of_range),
