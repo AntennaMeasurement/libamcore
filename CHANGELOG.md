@@ -5,6 +5,9 @@ All notable changes for each release are documented here.
 Entries under released versions are historical release notes and may describe
 features that are not present in the current branch.
 
+## [v0.9.1] - 2026-10-30
+- feat: simplify version retrieval in hooks by reading from VERSION file
+
 ## [v0.9.0] - 2026-10-30
 - feat: add cylindrical elevation sampling parameters to C API, CLI, and documentation
 - feat: add ideal cylindrical elevation angle of view calculation and related documentation
