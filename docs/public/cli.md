@@ -95,10 +95,10 @@ decibels. Frequency and range must be positive; gains may be signed. All inputs
 must be finite; scientific notation is supported.
 
 Planar `ideal-step-size` accepts frequency in hertz. `ideal-scan-length` accepts
-antenna cross-section and probe-to-aperture measurement distance in metres
-followed by an angle in degrees from 0 inclusive to 90 exclusive.
-`ideal-angle-of-view` accepts antenna cross-section, probe-to-aperture
-measurement distance, and scan length in metres.
+the Antenna Under Test (AUT) maximum edge length and probe-to-aperture
+measurement distance in metres, followed by an angle in degrees from 0
+inclusive to 90 exclusive. `ideal-angle-of-view` accepts the AUT maximum edge
+length, probe-to-aperture measurement distance, and scan length in metres.
 `sampling-parameters` accepts frequency in hertz and minimum scan length in
 metres; its one output line contains start position (m), stop position (m),
 sample count, and spacing (mm). Spherical `maximum-radius-extent` accepts

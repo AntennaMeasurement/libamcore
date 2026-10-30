@@ -62,7 +62,7 @@ amcore_status amcore_near_field_planar_ideal_step_size_m(
 }
 
 amcore_status amcore_near_field_planar_ideal_scan_length_m(
-    double aperture_cross_section_m,
+    double aut_max_edge_length_m,
     double measurement_distance_m,
     double angle_of_view_deg,
     double *scan_length_m)
@@ -71,8 +71,8 @@ amcore_status amcore_near_field_planar_ideal_scan_length_m(
     double angle_rad;
     double scan_length;
 
-    if (scan_length_m == NULL || !isfinite(aperture_cross_section_m) ||
-        aperture_cross_section_m < 0.0 || !isfinite(measurement_distance_m) ||
+    if (scan_length_m == NULL || !isfinite(aut_max_edge_length_m) ||
+        aut_max_edge_length_m < 0.0 || !isfinite(measurement_distance_m) ||
         measurement_distance_m <= 0.0 || !isfinite(angle_of_view_deg) ||
         angle_of_view_deg < 0.0 || angle_of_view_deg >= 90.0) {
         return AMCORE_STATUS_INVALID_ARGUMENT;
@@ -81,7 +81,7 @@ amcore_status amcore_near_field_planar_ideal_scan_length_m(
     pi = acos(-1.0);
     angle_rad = angle_of_view_deg * (pi / 180.0);
     scan_length = measurement_distance_m * (2.0 * tan(angle_rad));
-    scan_length += aperture_cross_section_m;
+    scan_length += aut_max_edge_length_m;
     if (!isfinite(scan_length)) {
         return AMCORE_STATUS_OUT_OF_RANGE;
     }
@@ -91,7 +91,7 @@ amcore_status amcore_near_field_planar_ideal_scan_length_m(
 }
 
 amcore_status amcore_near_field_planar_ideal_angle_of_view_deg(
-    double aperture_cross_section_m,
+    double aut_max_edge_length_m,
     double measurement_distance_m,
     double scan_length_m,
     double *angle_of_view_deg)
@@ -99,18 +99,18 @@ amcore_status amcore_near_field_planar_ideal_angle_of_view_deg(
     double angle;
 
     if (angle_of_view_deg == NULL ||
-        !isfinite(aperture_cross_section_m) ||
-        aperture_cross_section_m < 0.0 || !isfinite(measurement_distance_m) ||
+        !isfinite(aut_max_edge_length_m) ||
+        aut_max_edge_length_m < 0.0 || !isfinite(measurement_distance_m) ||
         measurement_distance_m <= 0.0 || !isfinite(scan_length_m) ||
         scan_length_m < 0.0) {
         return AMCORE_STATUS_INVALID_ARGUMENT;
     }
 
     if (measurement_distance_m <= DBL_MAX / 2.0) {
-        angle = atan2(scan_length_m - aperture_cross_section_m,
+        angle = atan2(scan_length_m - aut_max_edge_length_m,
                       2.0 * measurement_distance_m);
     } else {
-        angle = atan2(0.5 * (scan_length_m - aperture_cross_section_m),
+        angle = atan2(0.5 * (scan_length_m - aut_max_edge_length_m),
                       measurement_distance_m);
     }
     angle *= 180.0 / acos(-1.0);
