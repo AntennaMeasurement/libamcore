@@ -552,8 +552,8 @@ static int calculate_near_field_measurement_distance(int argc, char **argv)
 
 static int calculate_planar_ideal_scan_length(int argc, char **argv)
 {
-    double aut_max_edge_length;
-    double probe_max_edge_length;
+    double aut_longest_edge_length;
+    double probe_longest_edge_length;
     double measurement_distance;
     double angle;
     double scan_length = 0.0;
@@ -561,14 +561,14 @@ static int calculate_planar_ideal_scan_length(int argc, char **argv)
 
     if (argc == 1 && is_help(argv[0])) {
         puts("Usage: amcore nearfield planar ideal-scan-length "
-             "<aut_max_edge_length_m> <probe_max_edge_length_m> "
+             "<aut_longest_edge_length_m> <probe_longest_edge_length_m> "
              "<measurement_distance_m> "
              "<angle_of_view_deg>");
         puts("Calculate the required scan length for a desired angle of view.");
         puts("Arguments:");
-        puts("  <aut_max_edge_length_m>    AUT (Antenna Under Test) maximum edge "
-             "length in metres");
-        puts("  <probe_max_edge_length_m>  Probe maximum edge length in metres");
+        puts("  <aut_longest_edge_length_m>    AUT (Antenna Under Test) longest "
+             "edge length in metres");
+        puts("  <probe_longest_edge_length_m>  Probe longest edge length in metres");
         puts("  <measurement_distance_m>   Probe-to-aperture distance in metres");
         puts("  <angle_of_view_deg>        Angle of view in degrees");
         puts("");
@@ -584,15 +584,15 @@ static int calculate_planar_ideal_scan_length(int argc, char **argv)
     }
     if (argc != 4) {
         fputs("Usage: amcore nearfield planar ideal-scan-length "
-              "<aut_max_edge_length_m> <probe_max_edge_length_m> "
+              "<aut_longest_edge_length_m> <probe_longest_edge_length_m> "
               "<measurement_distance_m> "
               "<angle_of_view_deg>\n", stderr);
         return EXIT_FAILURE;
     }
-    if (parse_nonnegative_double(argv[0], "aut_max_edge_length_m",
-                                 &aut_max_edge_length) != EXIT_SUCCESS ||
-        parse_nonnegative_double(argv[1], "probe_max_edge_length_m",
-                                 &probe_max_edge_length) != EXIT_SUCCESS ||
+    if (parse_nonnegative_double(argv[0], "aut_longest_edge_length_m",
+                                 &aut_longest_edge_length) != EXIT_SUCCESS ||
+        parse_nonnegative_double(argv[1], "probe_longest_edge_length_m",
+                                 &probe_longest_edge_length) != EXIT_SUCCESS ||
         parse_positive_double(argv[2], "measurement_distance_m",
                               &measurement_distance) != EXIT_SUCCESS ||
         parse_nonnegative_double(argv[3], "angle_of_view_deg", &angle) !=
@@ -601,15 +601,15 @@ static int calculate_planar_ideal_scan_length(int argc, char **argv)
     }
 
     status = amcore_near_field_planar_ideal_scan_length_m(
-        aut_max_edge_length, probe_max_edge_length, measurement_distance,
+        aut_longest_edge_length, probe_longest_edge_length, measurement_distance,
         angle, &scan_length);
     return print_result(status, scan_length);
 }
 
 static int calculate_planar_ideal_angle_of_view(int argc, char **argv)
 {
-    double aut_max_edge_length;
-    double probe_max_edge_length;
+    double aut_longest_edge_length;
+    double probe_longest_edge_length;
     double measurement_distance;
     double scan_length;
     double angle = 0.0;
@@ -617,14 +617,14 @@ static int calculate_planar_ideal_angle_of_view(int argc, char **argv)
 
     if (argc == 1 && is_help(argv[0])) {
         puts("Usage: amcore nearfield planar ideal-angle-of-view "
-             "<aut_max_edge_length_m> <probe_max_edge_length_m> "
+             "<aut_longest_edge_length_m> <probe_longest_edge_length_m> "
              "<measurement_distance_m> "
              "<scan_length_m>");
         puts("Calculate the ideal angle of view for a centered scan.");
         puts("Arguments:");
-        puts("  <aut_max_edge_length_m>   AUT (Antenna Under Test) maximum edge "
-             "length in metres");
-        puts("  <probe_max_edge_length_m> Probe maximum edge length in metres");
+        puts("  <aut_longest_edge_length_m>   AUT (Antenna Under Test) longest "
+             "edge length in metres");
+        puts("  <probe_longest_edge_length_m> Probe longest edge length in metres");
         puts("  <measurement_distance_m>  Probe-to-aperture distance in metres");
         puts("  <scan_length_m>           Scan length in metres");
         puts("");
@@ -638,15 +638,15 @@ static int calculate_planar_ideal_angle_of_view(int argc, char **argv)
     }
     if (argc != 4) {
         fputs("Usage: amcore nearfield planar ideal-angle-of-view "
-              "<aut_max_edge_length_m> <probe_max_edge_length_m> "
+              "<aut_longest_edge_length_m> <probe_longest_edge_length_m> "
               "<measurement_distance_m> "
               "<scan_length_m>\n", stderr);
         return EXIT_FAILURE;
     }
-    if (parse_nonnegative_double(argv[0], "aut_max_edge_length_m",
-                                 &aut_max_edge_length) != EXIT_SUCCESS ||
-        parse_nonnegative_double(argv[1], "probe_max_edge_length_m",
-                                 &probe_max_edge_length) != EXIT_SUCCESS ||
+    if (parse_nonnegative_double(argv[0], "aut_longest_edge_length_m",
+                                 &aut_longest_edge_length) != EXIT_SUCCESS ||
+        parse_nonnegative_double(argv[1], "probe_longest_edge_length_m",
+                                 &probe_longest_edge_length) != EXIT_SUCCESS ||
         parse_positive_double(argv[2], "measurement_distance_m",
                               &measurement_distance) != EXIT_SUCCESS ||
         parse_nonnegative_double(argv[3], "scan_length_m", &scan_length) !=
@@ -655,7 +655,7 @@ static int calculate_planar_ideal_angle_of_view(int argc, char **argv)
     }
 
     status = amcore_near_field_planar_ideal_angle_of_view_deg(
-        aut_max_edge_length, probe_max_edge_length, measurement_distance,
+        aut_longest_edge_length, probe_longest_edge_length, measurement_distance,
         scan_length, &angle);
     return print_result(status, angle);
 }

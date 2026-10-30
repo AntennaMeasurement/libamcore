@@ -56,13 +56,13 @@ AMCORE_API amcore_status amcore_near_field_planar_ideal_step_size_m(
  * @brief Calculate the ideal planar scan length for an angle of view.
  *
  * Uses L = 2 d tan(theta) + a + p, where a is the AUT (Antenna Under Test)
- * maximum edge length, p is the probe maximum edge length, d is the
+ * longest edge length, p is the probe's longest edge length, d is the
  * probe-to-aperture measurement distance, and theta is the desired angle of
  * view along one side.
  *
- * @param aut_max_edge_length_m Maximum AUT edge length in metres; must be
+ * @param aut_longest_edge_length_m AUT longest edge length in metres; must be
  *        finite and non-negative.
- * @param probe_max_edge_length_m Maximum probe edge length in metres; must be
+ * @param probe_longest_edge_length_m Probe longest edge length in metres; must be
  *        finite and non-negative.
  * @param measurement_distance_m Probe-to-aperture measurement distance in
  *        metres; must be finite and greater than zero.
@@ -75,8 +75,8 @@ AMCORE_API amcore_status amcore_near_field_planar_ideal_step_size_m(
  *         leaves @p scan_length_m unchanged.
  */
 AMCORE_API amcore_status amcore_near_field_planar_ideal_scan_length_m(
-    double aut_max_edge_length_m,
-    double probe_max_edge_length_m,
+    double aut_longest_edge_length_m,
+    double probe_longest_edge_length_m,
     double measurement_distance_m,
     double angle_of_view_deg,
     double *scan_length_m);
@@ -86,12 +86,12 @@ AMCORE_API amcore_status amcore_near_field_planar_ideal_scan_length_m(
  *
  * The scan region is assumed to be centered on the antenna. Uses
  * theta = atan2(scan_length - a - p, 2 d), converted to degrees, where a is
- * the AUT (Antenna Under Test) maximum edge length and p is the probe maximum
- * edge length.
+ * the AUT (Antenna Under Test) longest edge length and p is the probe's
+ * longest edge length.
  *
- * @param aut_max_edge_length_m Maximum Antenna Under Test (AUT) edge length in
+ * @param aut_longest_edge_length_m AUT longest edge length in
  *        metres; must be finite and non-negative.
- * @param probe_max_edge_length_m Maximum probe edge length in metres; must be
+ * @param probe_longest_edge_length_m Probe longest edge length in metres; must be
  *        finite and non-negative.
  * @param measurement_distance_m Probe-to-aperture measurement distance in
  *        metres; must be finite and greater than zero.
@@ -103,8 +103,8 @@ AMCORE_API amcore_status amcore_near_field_planar_ideal_scan_length_m(
  *         leaves @p angle_of_view_deg unchanged.
  */
 AMCORE_API amcore_status amcore_near_field_planar_ideal_angle_of_view_deg(
-    double aut_max_edge_length_m,
-    double probe_max_edge_length_m,
+    double aut_longest_edge_length_m,
+    double probe_longest_edge_length_m,
     double measurement_distance_m,
     double scan_length_m,
     double *angle_of_view_deg);
