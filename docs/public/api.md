@@ -147,22 +147,25 @@ amcore_status amcore_far_field_path_loss_db(
 The near-field module contains planar sampling and scan-geometry calculations,
 cylindrical Y scan geometry, and a spherical near-field extent calculation.
 
-### Recommended separation distance
+### Recommended measurement distance
 
-`amcore_near_field_separation_distance_m` returns five free-space
-wavelengths, following IEEE Std 1720-2012, section 5.3.1.4.
+`amcore_near_field_measurement_distance_m` calculates the distance between the
+probe and antenna aperture using $R = C\lambda$. A coefficient of zero selects
+the default $C=5.0$, following IEEE Std 1720-2012, section 5.3.1.4. Any finite,
+non-negative coefficient may be supplied.
 
 ```c
 double separation_m;
 amcore_status status =
-    amcore_near_field_separation_distance_m(10.0e9, &separation_m);
+    amcore_near_field_measurement_distance_m(10.0e9, 0.0, &separation_m);
 ```
 
 Signature:
 
 ```c
-amcore_status amcore_near_field_separation_distance_m(
+amcore_status amcore_near_field_measurement_distance_m(
     double frequency_hz,
+    double coeff,
     double *separation_m);
 ```
 

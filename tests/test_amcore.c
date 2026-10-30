@@ -342,9 +342,14 @@ static int test_near_field_attached_measurement_cases(void)
     size_t sample_count = 0;
     size_t spacing_mm = 0;
 
-    if (amcore_near_field_separation_distance_m(10.0e9, &separation) !=
+    if (amcore_near_field_measurement_distance_m(10.0e9, 0.0, &separation) !=
             AMCORE_STATUS_SUCCESS ||
         fabs(separation - 0.150) > 0.0005) {
+        return 1;
+    }
+    if (amcore_near_field_measurement_distance_m(10.0e9, 2.0, &separation) !=
+            AMCORE_STATUS_SUCCESS ||
+        fabs(separation - 0.060) > 0.0005) {
         return 1;
     }
     if (amcore_near_field_planar_ideal_step_size_m(3.0e9, &spacing) !=
@@ -423,7 +428,7 @@ static int test_near_field_invalid_arguments(void)
 
     if (amcore_near_field_planar_ideal_step_size_m(1.0, NULL) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
-        amcore_near_field_separation_distance_m(1.0, NULL) !=
+        amcore_near_field_measurement_distance_m(1.0, 0.0, NULL) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
         amcore_near_field_planar_ideal_scan_length_m(1.0, 1.0, 45.0, NULL) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
@@ -449,7 +454,7 @@ static int test_near_field_invalid_arguments(void)
     if (amcore_near_field_planar_ideal_step_size_m(0.0, &result) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
         result != 123.0 ||
-        amcore_near_field_separation_distance_m(0.0, &result) !=
+        amcore_near_field_measurement_distance_m(0.0, 0.0, &result) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
         result != 123.0 ||
         amcore_near_field_planar_ideal_scan_length_m(1.0, 0.0, 45.0, &result) !=
@@ -474,8 +479,14 @@ static int test_near_field_invalid_arguments(void)
             result != 123.0) {
             return 1;
         }
-        if (amcore_near_field_separation_distance_m(invalid_values[i],
-                                                    &result) !=
+        if (amcore_near_field_measurement_distance_m(invalid_values[i], 0.0,
+                                                     &result) !=
+                AMCORE_STATUS_INVALID_ARGUMENT ||
+            result != 123.0) {
+            return 1;
+        }
+        if (amcore_near_field_measurement_distance_m(1.0, invalid_values[i],
+                                                     &result) !=
                 AMCORE_STATUS_INVALID_ARGUMENT ||
             result != 123.0) {
             return 1;
@@ -511,7 +522,7 @@ static int test_near_field_out_of_range(void)
                                                &result) !=
             AMCORE_STATUS_OUT_OF_RANGE ||
         result != 123.0 ||
-        amcore_near_field_separation_distance_m(DBL_MIN, &result) !=
+        amcore_near_field_measurement_distance_m(DBL_MIN, 0.0, &result) !=
             AMCORE_STATUS_OUT_OF_RANGE ||
         result != 123.0 ||
         amcore_near_field_spherical_maximum_radius_extent_m(

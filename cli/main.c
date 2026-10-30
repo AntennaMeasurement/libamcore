@@ -32,7 +32,7 @@ static int calculate_distance(int argc, char **argv);
 static int calculate_line_of_sight(int argc, char **argv);
 static int calculate_radio_horizon(int argc, char **argv);
 static int calculate_path_loss(int argc, char **argv);
-static int calculate_near_field_separation_distance(int argc, char **argv);
+static int calculate_near_field_measurement_distance(int argc, char **argv);
 static int calculate_planar_ideal_step_size(int argc, char **argv);
 static int calculate_planar_ideal_scan_length(int argc, char **argv);
 static int calculate_planar_ideal_angle_of_view(int argc, char **argv);
@@ -66,8 +66,8 @@ static const command farfield_functions[] = {
 };
 
 static const command nearfield_functions[] = {
-    {"separation-distance", "Calculate recommended near-field separation in metres",
-     calculate_near_field_separation_distance},
+    {"measurement-distance", "Calculate recommended near-field measurement distance in metres",
+     calculate_near_field_measurement_distance},
     {"planar", "Planar near-field calculations", run_nearfield_planar},
     {"cylindrical", "Cylindrical near-field calculations",
      run_nearfield_cylindrical},
@@ -508,37 +508,45 @@ static int calculate_cylindrical_ideal_y_step_size(int argc, char **argv)
     return print_result(status, step_size);
 }
 
-static int calculate_near_field_separation_distance(int argc, char **argv)
+static int calculate_near_field_measurement_distance(int argc, char **argv)
 {
     double frequency;
+    double coeff = 0.0;
     double separation = 0.0;
     amcore_status status;
 
     if (argc == 1 && is_help(argv[0])) {
-        puts("Usage: amcore nearfield separation-distance <frequency_hz>");
-        puts("Calculate the recommended five-wavelength measurement separation.");
+        puts("Usage: amcore nearfield measurement-distance "
+             "<frequency_hz> [coeff]");
+        puts("Calculate the recommended near-field measurement distance.");
         puts("Arguments:");
         puts("  <frequency_hz> Frequency in hertz");
+        puts("  [coeff]        Non-negative multiplier; 0 or omitted uses 5.0");
         puts("");
         puts("Options:");
         puts("  -h, --help         Show this help message and exit");
         puts("");
-        puts("Frequency must be positive and finite.");
+        puts("Frequency must be positive and finite; coeff must be "
+             "non-negative and finite.");
         puts("Output: one numeric value in metres.");
         return EXIT_SUCCESS;
     }
-    if (argc != 1) {
-        fputs("Usage: amcore nearfield separation-distance <frequency_hz>\n",
-              stderr);
+    if (argc < 1 || argc > 2) {
+        fputs("Usage: amcore nearfield measurement-distance "
+              "<frequency_hz> [coeff]\n", stderr);
         return EXIT_FAILURE;
     }
     if (parse_positive_double(argv[0], "frequency_hz", &frequency) !=
         EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
+    if (argc == 2 &&
+        parse_nonnegative_double(argv[1], "coeff", &coeff) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
 
-    status =
-        amcore_near_field_separation_distance_m(frequency, &separation);
+    status = amcore_near_field_measurement_distance_m(frequency, coeff,
+                                                      &separation);
     return print_result(status, separation);
 }
 

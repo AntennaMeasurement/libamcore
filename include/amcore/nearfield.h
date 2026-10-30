@@ -16,20 +16,24 @@ extern "C" {
 #endif
 
 /**
- * @brief Calculate the recommended near-field measurement separation.
+ * @brief Calculate the recommended near-field measurement distance between
+ *        the probe and the antenna aperture.
  *
- * Uses five free-space wavelengths, following IEEE 1720-2012, section
- * 5.3.1.4.
+ * Uses R = C * lambda. If @p coeff is zero, uses the default coefficient 5.0,
+ * following IEEE 1720-2012, section 5.3.1.4. The coefficient must be finite
+ * and non-negative.
  *
  * @param frequency_hz Frequency in hertz; must be finite and greater than zero.
+ * @param coeff Separation coefficient; zero selects the default value 5.0.
  * @param separation_m Receives the separation distance in metres on success.
  * @return AMCORE_STATUS_SUCCESS on success, AMCORE_STATUS_INVALID_ARGUMENT
  *         for invalid inputs (including a null output pointer), or
  *         AMCORE_STATUS_OUT_OF_RANGE if the result is not a positive finite
  *         double. On error, leaves @p separation_m unchanged.
  */
-AMCORE_API amcore_status amcore_near_field_separation_distance_m(
+AMCORE_API amcore_status amcore_near_field_measurement_distance_m(
     double frequency_hz,
+    double coeff,
     double *separation_m);
 
 /**

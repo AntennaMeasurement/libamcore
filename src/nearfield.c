@@ -6,23 +6,27 @@
 #include <stddef.h>
 #include <stdint.h>
 
-amcore_status amcore_near_field_separation_distance_m(double frequency_hz,
-                                                      double *separation_m)
+amcore_status amcore_near_field_measurement_distance_m(
+    double frequency_hz,
+    double coeff,
+    double *separation_m)
 {
     double wavelength;
     double separation;
+    double coefficient;
     amcore_status status;
 
-    if (separation_m == NULL) {
+    if (separation_m == NULL || !isfinite(coeff) || coeff < 0.0) {
         return AMCORE_STATUS_INVALID_ARGUMENT;
     }
 
+    coefficient = coeff == 0.0 ? 5.0 : coeff;
     status = amcore_free_space_wavelength_m(frequency_hz, &wavelength);
     if (status != AMCORE_STATUS_SUCCESS) {
         return status;
     }
 
-    separation = 5.0 * wavelength;
+    separation = coefficient * wavelength;
     if (!isfinite(separation) || separation <= 0.0) {
         return AMCORE_STATUS_OUT_OF_RANGE;
     }

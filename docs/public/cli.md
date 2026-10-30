@@ -38,7 +38,7 @@ Subcommands:
 Usage: amcore nearfield <subcommand> [arguments]
 
 Subcommands:
-  separation-distance  Calculate recommended near-field separation in metres
+  measurement-distance  Calculate recommended near-field measurement distance in metres
   planar               Planar near-field calculations
   cylindrical          Cylindrical near-field calculations
   spherical            Spherical near-field calculations
@@ -78,7 +78,8 @@ amcore farfield line-of-sight 100
 amcore farfield radio-horizon 100
 amcore farfield path-loss 100 1 0 0
 amcore nearfield planar ideal-step-size 1e9
-amcore nearfield separation-distance 1e10
+amcore nearfield measurement-distance 1e10
+amcore nearfield measurement-distance 1e10 2.5
 amcore nearfield planar ideal-scan-length 1 2 45
 amcore nearfield planar ideal-angle-of-view 1 2 5
 amcore nearfield planar sampling-parameters 299792458 1
@@ -110,8 +111,10 @@ half the free-space wavelength without rounding, expressed in metres
 (for example, 0.149896229 m at 1 GHz). Submillimetre steps are supported.
 It reports an out-of-range error if the wavelength or step size cannot be
 represented as a positive finite double.
-`separation-distance` accepts frequency in hertz and returns five free-space
-wavelengths in metres.
+`measurement-distance` accepts frequency in hertz and an optional finite,
+non-negative coefficient, returning the probe-to-aperture distance in metres.
+If the coefficient is omitted or set to zero, the default coefficient 5.0 is
+used (for example, `amcore nearfield measurement-distance 1e10`).
 
 On success, a calculation prints only the numeric result in the documented
 unit to standard output. Invalid arguments and out-of-range results print a
