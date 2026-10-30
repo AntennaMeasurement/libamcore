@@ -58,7 +58,7 @@ Subcommands:
 Usage: amcore nearfield cylindrical <subcommand> [arguments]
 
 Subcommands:
-  y-scan-length  Calculate cylindrical Y scan length in metres
+  ideal-y-scan-length  Calculate ideal cylindrical Y scan length in metres
 ```
 
 ```
@@ -81,7 +81,7 @@ amcore nearfield separation-distance 1e10
 amcore nearfield planar scan-length 1 2 45
 amcore nearfield planar angle-of-view 1 2 5
 amcore nearfield planar sampling-parameters 299792458 1
-amcore nearfield cylindrical y-scan-length 1 0.2 2 1 60 45
+amcore nearfield cylindrical ideal-y-scan-length 1 0.2 2 1 60 45
 amcore nearfield spherical maximum-radius-extent 3 4 12
 ```
 
@@ -99,7 +99,7 @@ cross-section, probe separation, and scan length in metres.
 metres; its one output line contains start position (m), stop position (m),
 sample count, and spacing (mm). Spherical `maximum-radius-extent` accepts
 signed x, y, and z maximum displacements in metres. Cylindrical
-`y-scan-length` accepts antenna height, probe longest edge, probe radius, and
+`ideal-y-scan-length` accepts antenna height, probe longest edge, probe radius, and
 maximum radial extent in metres, followed by maximum azimuth and elevation in
 degrees. Lengths must be non-negative, probe radius must exceed maximum radial
 extent, azimuth must be in [0, 180], and elevation in [0, 90).

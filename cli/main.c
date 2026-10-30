@@ -37,7 +37,7 @@ static int calculate_planar_sampling_spacing(int argc, char **argv);
 static int calculate_planar_scan_length(int argc, char **argv);
 static int calculate_planar_angle_of_view(int argc, char **argv);
 static int calculate_planar_sampling_parameters(int argc, char **argv);
-static int calculate_cylindrical_y_scan_length(int argc, char **argv);
+static int calculate_cylindrical_ideal_y_scan_length(int argc, char **argv);
 static int calculate_spherical_maximum_radius_extent(int argc, char **argv);
 
 static const command commands[] = {
@@ -91,8 +91,8 @@ static const command nearfield_spherical_functions[] = {
 };
 
 static const command nearfield_cylindrical_functions[] = {
-    {"y-scan-length", "Calculate cylindrical Y scan length in metres",
-     calculate_cylindrical_y_scan_length},
+    {"ideal-y-scan-length", "Calculate ideal cylindrical Y scan length in metres",
+     calculate_cylindrical_ideal_y_scan_length},
 };
 
 static int is_help(const char *argument)
@@ -691,7 +691,7 @@ static int calculate_spherical_maximum_radius_extent(int argc, char **argv)
     return print_result(status, extent);
 }
 
-static int calculate_cylindrical_y_scan_length(int argc, char **argv)
+static int calculate_cylindrical_ideal_y_scan_length(int argc, char **argv)
 {
     double antenna_height;
     double probe_longest_edge;
@@ -703,7 +703,7 @@ static int calculate_cylindrical_y_scan_length(int argc, char **argv)
     amcore_status status;
 
     if (argc == 1 && is_help(argv[0])) {
-        puts("Usage: amcore nearfield cylindrical y-scan-length "
+        puts("Usage: amcore nearfield cylindrical ideal-y-scan-length "
              "<antenna_height_m> <probe_longest_edge_m> <probe_radius_m> "
              "<maximum_radial_extent_m> <azimuth_max_deg> "
              "<elevation_max_deg>");
@@ -719,7 +719,8 @@ static int calculate_cylindrical_y_scan_length(int argc, char **argv)
         puts("Options:");
         puts("  -h, --help                Show this help message and exit");
         puts("");
-        puts("Calculate cylindrical Y scan length using depicted geometry in NSI2000 manual.");
+        puts("Calculate the ideal cylindrical Y scan length using the "
+             "geometry depicted in the NSI2000 manual.");
         puts("Lengths must be non-negative, probe radius greater than "
              "maximum radial extent, azimuth in [0, 180], and elevation in "
              "[0, 90); all inputs must be finite.");
@@ -727,7 +728,7 @@ static int calculate_cylindrical_y_scan_length(int argc, char **argv)
         return EXIT_SUCCESS;
     }
     if (argc != 6) {
-        fputs("Usage: amcore nearfield cylindrical y-scan-length "
+        fputs("Usage: amcore nearfield cylindrical ideal-y-scan-length "
               "<antenna_height_m> <probe_longest_edge_m> <probe_radius_m> "
               "<maximum_radial_extent_m> <azimuth_max_deg> "
               "<elevation_max_deg>\n", stderr);
@@ -749,7 +750,7 @@ static int calculate_cylindrical_y_scan_length(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    status = amcore_near_field_cylindrical_y_scan_length_m(
+    status = amcore_near_field_cylindrical_ideal_y_scan_length_m(
         antenna_height, probe_longest_edge, probe_radius,
         maximum_radial_extent, azimuth_max, elevation_max, &scan_length);
     return print_result(status, scan_length);

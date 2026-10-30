@@ -7,6 +7,11 @@ features that are not present in the current branch.
 
 ## [v0.8.7] - 2026-10-29
 
+### Changed
+
+- Rename the cylindrical ideal Y scan length API to
+  `amcore_near_field_cylindrical_ideal_y_scan_length_m`.
+
 
 ## [v0.8.6] - 2026-10-29
 - feat: add Emscripten setup and WASM build step for Linux release

@@ -23,7 +23,7 @@ on Linux).
 | `nearfield` | `amcore_near_field_planar_scan_length_m` | Computes planar scan length for a desired angle of view. |
 | `nearfield` | `amcore_near_field_planar_angle_of_view_deg` | Computes planar angle of view for a centered scan. |
 | `nearfield` | `amcore_near_field_planar_sampling_parameters` | Computes centered planar scan endpoints, sample count, and spacing. |
-| `nearfield` | `amcore_near_field_cylindrical_y_scan_length_m` | Computes cylindrical Y scan length. |
+| `nearfield` | `amcore_near_field_cylindrical_ideal_y_scan_length_m` | Computes ideal cylindrical Y scan length. |
 | `nearfield` | `amcore_near_field_spherical_maximum_radius_extent_m` | Computes spherical maximum radius extent. |
 
 All calculations are referenced from the relevant standards and literature. See the [References](#references) section for details.

@@ -233,14 +233,16 @@ amcore_status status = amcore_near_field_planar_sampling_parameters(
     &spacing_mm);
 ```
 
-### Cylindrical Y scan length
+### Ideal cylindrical Y scan length
 
-`amcore_near_field_cylindrical_y_scan_length_m` implements the NSI 2000
-(Near-field Edition), Version 4, Software Operating Manual geometry:
+`amcore_near_field_cylindrical_ideal_y_scan_length_m` calculates the ideal
+cylindrical Y scan length using the NSI 2000 (Near-field Edition), Version 4,
+Software Operating Manual geometry:
 
 $$L_{\mathrm{y}} = H_{\mathrm{AUT}} + H_{\mathrm{probe}} + 2(R_{\mathrm{probe}} - MRE\cos(\mathrm{Az}_{max}))\tan(\mathrm{El}_{max})$$
 
-Here $H_{\mathrm{AUT}}$ is the antenna height, $H_{\mathrm{probe}}$ is the
+This is the ideal geometric scan length described by the manual. Here
+$H_{\mathrm{AUT}}$ is the antenna height, $H_{\mathrm{probe}}$ is the
 probe's longest edge, $R_{\mathrm{probe}}$ is the probe radius, and $MRE$ is
 the maximum radial extent, all in metres. Length inputs must be finite and
 non-negative, and the probe radius must be greater than the maximum radial
@@ -252,7 +254,7 @@ The output pointer is required and the output remains unchanged on error.
 
 ```c
 double scan_length_m;
-amcore_status status = amcore_near_field_cylindrical_y_scan_length_m(
+amcore_status status = amcore_near_field_cylindrical_ideal_y_scan_length_m(
     1.0, 0.2, 2.0, 1.0, 60.0, 45.0,
     &scan_length_m);
 /* On success: scan_length_m is approximately 4.2. */
@@ -261,7 +263,7 @@ amcore_status status = amcore_near_field_cylindrical_y_scan_length_m(
 Signature:
 
 ```c
-amcore_status amcore_near_field_cylindrical_y_scan_length_m(
+amcore_status amcore_near_field_cylindrical_ideal_y_scan_length_m(
     double antenna_height_m,
     double probe_longest_edge_m,
     double probe_radius_m,

@@ -127,7 +127,7 @@ AMCORE_API amcore_status amcore_near_field_planar_sampling_parameters(
     size_t *sampling_spacing_mm);
 
 /**
- * @brief Calculate the cylindrical near-field Y scan length.
+ * @brief Calculate the ideal cylindrical near-field Y scan length.
  *
  * Uses L_y = H_AUT + H_Probe + 2 (R_Probe - MRE cos(Az_max)) tan(El_max), with angles converted
  * from degrees, following the NSI2000 (Near-field Edition), Version 4,
@@ -148,7 +148,7 @@ AMCORE_API amcore_status amcore_near_field_planar_sampling_parameters(
  *         AMCORE_STATUS_OUT_OF_RANGE if the result is not finite.
  *         On error, leaves the output unchanged.
  */
-AMCORE_API amcore_status amcore_near_field_cylindrical_y_scan_length_m(
+AMCORE_API amcore_status amcore_near_field_cylindrical_ideal_y_scan_length_m(
     double antenna_height_m,
     double probe_longest_edge_m,
     double probe_radius_m,

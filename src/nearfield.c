@@ -195,7 +195,7 @@ amcore_status amcore_near_field_planar_sampling_parameters(
     return AMCORE_STATUS_SUCCESS;
 }
 
-amcore_status amcore_near_field_cylindrical_y_scan_length_m(
+amcore_status amcore_near_field_cylindrical_ideal_y_scan_length_m(
     double antenna_height_m,
     double probe_longest_edge_m,
     double probe_radius_m,

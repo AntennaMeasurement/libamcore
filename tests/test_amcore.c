@@ -532,7 +532,7 @@ static int test_near_field_out_of_range(void)
     return 0;
 }
 
-static int test_near_field_cylindrical_y_scan_length(void)
+static int test_near_field_cylindrical_ideal_y_scan_length(void)
 {
     const struct {
         double height;
@@ -561,7 +561,7 @@ static int test_near_field_cylindrical_y_scan_length(void)
     size_t i;
 
     for (i = 0; i < sizeof(cases) / sizeof(cases[0]); ++i) {
-        if (amcore_near_field_cylindrical_y_scan_length_m(
+        if (amcore_near_field_cylindrical_ideal_y_scan_length_m(
                 cases[i].height, cases[i].edge, cases[i].radius,
                 cases[i].extent, cases[i].azimuth, cases[i].elevation,
                 &result) != AMCORE_STATUS_SUCCESS ||
@@ -572,7 +572,7 @@ static int test_near_field_cylindrical_y_scan_length(void)
         }
     }
     /* NSI2000 reference output, rounded to three decimal places. */
-    if (amcore_near_field_cylindrical_y_scan_length_m(
+    if (amcore_near_field_cylindrical_ideal_y_scan_length_m(
             0.2, 0.247, 2.5, 0.6, 180.0, 60.0, &result) !=
             AMCORE_STATUS_SUCCESS ||
         !isfinite(result) || round(result * 1000.0) / 1000.0 != 11.186) {
@@ -592,7 +592,7 @@ static int test_near_field_cylindrical_invalid_arguments(void)
     size_t i;
     size_t j;
 
-    if (amcore_near_field_cylindrical_y_scan_length_m(
+    if (amcore_near_field_cylindrical_ideal_y_scan_length_m(
             1.0, 0.2, 2.0, 1.0, 45.0, 45.0, NULL) !=
             AMCORE_STATUS_INVALID_ARGUMENT) {
         return 1;
@@ -601,7 +601,7 @@ static int test_near_field_cylindrical_invalid_arguments(void)
         double saved = inputs[i];
         for (j = 0; j < sizeof(invalid_values) / sizeof(invalid_values[0]); ++j) {
             inputs[i] = invalid_values[j];
-            if (amcore_near_field_cylindrical_y_scan_length_m(
+            if (amcore_near_field_cylindrical_ideal_y_scan_length_m(
                     inputs[0], inputs[1], inputs[2], inputs[3],
                     inputs[4], inputs[5], &result) !=
                     AMCORE_STATUS_INVALID_ARGUMENT ||
@@ -611,19 +611,19 @@ static int test_near_field_cylindrical_invalid_arguments(void)
         }
         inputs[i] = saved;
     }
-    if (amcore_near_field_cylindrical_y_scan_length_m(
+    if (amcore_near_field_cylindrical_ideal_y_scan_length_m(
             1.0, 0.2, 1.0, 1.0, 45.0, 45.0, &result) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
-        amcore_near_field_cylindrical_y_scan_length_m(
+        amcore_near_field_cylindrical_ideal_y_scan_length_m(
             1.0, 0.2, 0.0, 1.0, 45.0, 45.0, &result) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
-        amcore_near_field_cylindrical_y_scan_length_m(
+        amcore_near_field_cylindrical_ideal_y_scan_length_m(
             1.0, 0.2, 2.0, 1.0, nextafter(180.0, INFINITY), 45.0,
             &result) != AMCORE_STATUS_INVALID_ARGUMENT ||
-        amcore_near_field_cylindrical_y_scan_length_m(
+        amcore_near_field_cylindrical_ideal_y_scan_length_m(
             1.0, 0.2, 2.0, 1.0, 45.0, 90.0, &result) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
-        amcore_near_field_cylindrical_y_scan_length_m(
+        amcore_near_field_cylindrical_ideal_y_scan_length_m(
             1.0, 0.2, 2.0, 1.0, 45.0, 100.0, &result) !=
             AMCORE_STATUS_INVALID_ARGUMENT ||
         result != 123.0) {
@@ -643,7 +643,7 @@ static int test_near_field_cylindrical_out_of_range(void)
     size_t i;
 
     for (i = 0; i < sizeof(cases) / sizeof(cases[0]); ++i) {
-        if (amcore_near_field_cylindrical_y_scan_length_m(
+        if (amcore_near_field_cylindrical_ideal_y_scan_length_m(
                 cases[i][0], cases[i][1], cases[i][2], cases[i][3],
                 cases[i][4], cases[i][5], &result) !=
                 AMCORE_STATUS_OUT_OF_RANGE ||
@@ -689,7 +689,7 @@ int main(void)
         TEST_CASE(test_near_field_sampling_parameters),
         TEST_CASE(test_near_field_invalid_arguments),
         TEST_CASE(test_near_field_out_of_range),
-        TEST_CASE(test_near_field_cylindrical_y_scan_length),
+        TEST_CASE(test_near_field_cylindrical_ideal_y_scan_length),
         TEST_CASE(test_near_field_cylindrical_invalid_arguments),
         TEST_CASE(test_near_field_cylindrical_out_of_range),
         TEST_CASE(test_near_field_spherical)

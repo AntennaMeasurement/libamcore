@@ -79,7 +79,7 @@ if(AMCORE_BUILD_WASM)
     endif()
     target_link_options(amcore_wasm PRIVATE
         "-Wl,--no-entry"
-        "-sEXPORTED_FUNCTIONS=_malloc,_free,_amcore_free_space_wavelength_m,_amcore_far_field_distance,_amcore_far_field_line_of_sight_km,_amcore_far_field_radio_horizon_km,_amcore_far_field_path_loss_db,_amcore_near_field_separation_distance_m,_amcore_near_field_planar_sampling_spacing_m,_amcore_near_field_planar_scan_length_m,_amcore_near_field_planar_angle_of_view_deg,_amcore_near_field_planar_sampling_parameters,_amcore_near_field_cylindrical_y_scan_length_m,_amcore_near_field_spherical_maximum_radius_extent_m"
+        "-sEXPORTED_FUNCTIONS=_malloc,_free,_amcore_free_space_wavelength_m,_amcore_far_field_distance,_amcore_far_field_line_of_sight_km,_amcore_far_field_radio_horizon_km,_amcore_far_field_path_loss_db,_amcore_near_field_separation_distance_m,_amcore_near_field_planar_sampling_spacing_m,_amcore_near_field_planar_scan_length_m,_amcore_near_field_planar_angle_of_view_deg,_amcore_near_field_planar_sampling_parameters,_amcore_near_field_cylindrical_ideal_y_scan_length_m,_amcore_near_field_spherical_maximum_radius_extent_m"
         "-Wl,--export=speed_of_light_m_per_s"
     )
     set_target_properties(amcore_wasm PROPERTIES SUFFIX ".wasm")
