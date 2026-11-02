@@ -88,6 +88,44 @@ close(memory.getFloat64(output + 16, true), -0.5);
 close(memory.getFloat64(output + 24, true), 0.5);
 assert.equal(memory.getUint32(output + 32, true), 3);
 assert.equal(
+    api.amcore_near_field_cylindrical_azimuth_sampling_parameters(
+        lightSpeed, 1, 95, output, output + 8, output + 16,
+        output + 24, output + 32,
+    ),
+    0,
+);
+close(memory.getFloat64(output, true), 10);
+close(memory.getFloat64(output + 8, true), 200);
+close(memory.getFloat64(output + 16, true), -100);
+close(memory.getFloat64(output + 24, true), 100);
+assert.equal(memory.getUint32(output + 32, true), 21);
+assert.equal(
+    api.amcore_near_field_cylindrical_azimuth_sampling_parameters(
+        lightSpeed, 1, 181, output, output + 8, output + 16,
+        output + 24, output + 32,
+    ),
+    1,
+);
+close(memory.getFloat64(output, true), 10);
+close(memory.getFloat64(output + 8, true), 200);
+close(memory.getFloat64(output + 16, true), -100);
+close(memory.getFloat64(output + 24, true), 100);
+assert.equal(memory.getUint32(output + 32, true), 21);
+assert.equal(
+    api.amcore_near_field_cylindrical_azimuth_sampling_parameters(
+        lightSpeed, 114, 90, output, output + 8, output + 16,
+        output + 24, output + 32,
+    ),
+    2,
+);
+assert.equal(
+    api.amcore_near_field_cylindrical_azimuth_sampling_parameters(
+        lightSpeed, 1, 95, 0, output + 8, output + 16,
+        output + 24, output + 32,
+    ),
+    1,
+);
+assert.equal(
     api.amcore_near_field_cylindrical_elevation_sampling_parameters(
         lightSpeed, 1, 0, output + 8, output + 16, output + 24,
         output + 32,

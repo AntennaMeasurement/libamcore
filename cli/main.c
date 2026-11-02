@@ -44,6 +44,8 @@ static int calculate_cylindrical_ideal_elevation_angle_of_view(int argc,
 static int calculate_cylindrical_elevation_sampling_parameters(int argc,
                                                                char **argv);
 static int calculate_cylindrical_ideal_azimuth_step_size(int argc, char **argv);
+static int calculate_cylindrical_azimuth_sampling_parameters(int argc,
+                                                              char **argv);
 static int calculate_spherical_maximum_radius_extent(int argc, char **argv);
 
 static const command commands[] = {
@@ -110,6 +112,9 @@ static const command nearfield_cylindrical_functions[] = {
     {"ideal-azimuth-step-size",
      "Calculate ideal cylindrical azimuth step size in degrees",
      calculate_cylindrical_ideal_azimuth_step_size},
+    {"azimuth-sampling-parameters",
+     "Calculate centered cylindrical azimuth sampling parameters",
+     calculate_cylindrical_azimuth_sampling_parameters},
 };
 
 static int is_help(const char *argument)
@@ -562,6 +567,72 @@ static int calculate_cylindrical_ideal_azimuth_step_size(int argc, char **argv)
     status = amcore_near_field_cylindrical_ideal_azimuth_step_size_deg(
         frequency, maximum_radial_extent, &step_size);
     return print_result(status, step_size);
+}
+
+static int calculate_cylindrical_azimuth_sampling_parameters(int argc,
+                                                              char **argv)
+{
+    double frequency;
+    double maximum_radial_extent;
+    double minimum_azimuth_max = 0.0;
+    double step_size = 0.0;
+    double azimuth_total_range = 0.0;
+    double azimuth_start = 0.0;
+    double azimuth_stop = 0.0;
+    size_t sample_count = 0;
+    amcore_status status;
+
+    if (argc == 1 && is_help(argv[0])) {
+        puts("Usage: amcore nearfield cylindrical "
+             "azimuth-sampling-parameters <frequency_hz> "
+             "<maximum_radial_extent_m> <minimum_azimuth_max_deg>");
+        puts("Calculate centered azimuth step size, range, endpoints, and "
+             "sample count.");
+        puts("");
+        puts("Arguments:");
+        puts("  <frequency_hz>             Frequency in hertz");
+        puts("  <maximum_radial_extent_m>  Maximum radial extent in metres");
+        puts("  <minimum_azimuth_max_deg>  Minimum azimuth half range in degrees");
+        puts("");
+        puts("Options:");
+        puts("  -h, --help         Show this help message and exit");
+        puts("");
+        puts("Frequency must be positive; radial extent must be non-negative; "
+             "azimuth half range must be in [0, 180]. All must be finite.");
+        puts("Output: step size (deg), total azimuth range (deg), start (deg), "
+             "stop (deg), and sample count; angles use 3 decimal places.");
+        return EXIT_SUCCESS;
+    }
+    if (argc != 3) {
+        fputs("Usage: amcore nearfield cylindrical "
+              "azimuth-sampling-parameters <frequency_hz> "
+              "<maximum_radial_extent_m> <minimum_azimuth_max_deg>\n",
+              stderr);
+        return EXIT_FAILURE;
+    }
+    if (parse_positive_double(argv[0], "frequency_hz", &frequency) !=
+            EXIT_SUCCESS ||
+        parse_nonnegative_double(argv[1], "maximum_radial_extent_m",
+                                 &maximum_radial_extent) != EXIT_SUCCESS ||
+        parse_nonnegative_double(argv[2], "minimum_azimuth_max_deg",
+                                 &minimum_azimuth_max) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    if (minimum_azimuth_max > 180.0) {
+        fprintf(stderr,
+                "amcore: minimum_azimuth_max_deg must be at most 180\n");
+        return EXIT_FAILURE;
+    }
+
+    status = amcore_near_field_cylindrical_azimuth_sampling_parameters(
+        frequency, maximum_radial_extent, minimum_azimuth_max, &step_size,
+        &azimuth_total_range, &azimuth_start, &azimuth_stop, &sample_count);
+    if (status != AMCORE_STATUS_SUCCESS) {
+        return print_result(status, 0.0);
+    }
+    printf("%.3f %.3f %.3f %.3f %zu\n", step_size, azimuth_total_range,
+           azimuth_start, azimuth_stop, sample_count);
+    return EXIT_SUCCESS;
 }
 
 static int calculate_near_field_measurement_distance(int argc, char **argv)

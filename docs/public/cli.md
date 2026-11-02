@@ -63,6 +63,7 @@ Subcommands:
   ideal-elevation-angle-of-view Calculate ideal cylindrical elevation angle of view in degrees
   elevation-sampling-parameters Calculate centered cylindrical elevation sampling parameters
   ideal-azimuth-step-size       Calculate ideal cylindrical azimuth step size in degrees
+  azimuth-sampling-parameters   Calculate centered cylindrical azimuth sampling parameters
 ```
 
 ```
@@ -91,6 +92,7 @@ amcore nearfield cylindrical ideal-y-step-size 1e9
 amcore nearfield cylindrical ideal-elevation-angle-of-view 1 0.2 2 1 60 5.2
 amcore nearfield cylindrical elevation-sampling-parameters 299792458 1
 amcore nearfield cylindrical ideal-azimuth-step-size 299792458 1
+amcore nearfield cylindrical azimuth-sampling-parameters 299792458 1 95
 amcore nearfield spherical maximum-radius-extent 3 4 12
 ```
 
@@ -134,6 +136,13 @@ non-negative finite minimum elevation scan length in metres. It returns step
 size in millimetres, calculated centered scan length and endpoints in metres,
 and sample count. Scan length and endpoints are printed to three decimal
 places; step size and sample count are integers.
+`azimuth-sampling-parameters` accepts positive finite frequency in hertz,
+non-negative finite maximum radial extent in metres, and a finite minimum
+azimuth half range in degrees from 0 to 180. It returns the azimuth step size,
+adjusted total range, centered start and stop angles, and sample count. Angles
+are printed to three decimal places. For example, with a 10-degree step and a
+95-degree minimum half range, the output is `10.000 200.000 -100.000 100.000
+21`.
 `measurement-distance` accepts frequency in hertz and an optional finite,
 non-negative coefficient, returning the probe-to-aperture distance in metres.
 If the coefficient is omitted or set to zero, the default coefficient 5.0 is

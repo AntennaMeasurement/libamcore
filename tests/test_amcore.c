@@ -1010,6 +1010,124 @@ static int test_near_field_cylindrical_ideal_azimuth_step_size_out_of_range(void
     return 0;
 }
 
+static int test_near_field_cylindrical_azimuth_sampling_parameters(void)
+{
+    double step_size = -1.0;
+    double azimuth_total_range = -1.0;
+    double azimuth_start = -1.0;
+    double azimuth_stop = -1.0;
+    size_t sample_count = 0;
+
+    if (amcore_near_field_cylindrical_azimuth_sampling_parameters(
+            299792458.0, 1.0, 95.0, &step_size, &azimuth_total_range,
+            &azimuth_start, &azimuth_stop, &sample_count) !=
+            AMCORE_STATUS_SUCCESS ||
+        step_size != 10.0 || azimuth_total_range != 200.0 ||
+        azimuth_start != -100.0 || azimuth_stop != 100.0 ||
+        sample_count != 21) {
+        return 1;
+    }
+
+    if (amcore_near_field_cylindrical_azimuth_sampling_parameters(
+            299792458.0, 1.0, 10.1, &step_size, &azimuth_total_range,
+            &azimuth_start, &azimuth_stop, &sample_count) !=
+            AMCORE_STATUS_SUCCESS ||
+        azimuth_total_range != 40.0 || azimuth_start != -20.0 ||
+        azimuth_stop != 20.0 || sample_count != 5) {
+        return 1;
+    }
+
+    if (amcore_near_field_cylindrical_azimuth_sampling_parameters(
+            299792458.0, 1.0, 180.0, &step_size, &azimuth_total_range,
+            &azimuth_start, &azimuth_stop, &sample_count) !=
+            AMCORE_STATUS_SUCCESS ||
+        azimuth_total_range != 360.0 || azimuth_start != -180.0 ||
+        azimuth_stop != 180.0 || sample_count != 37) {
+        return 1;
+    }
+    return 0;
+}
+
+static int test_near_field_cylindrical_azimuth_sampling_parameters_errors(void)
+{
+    const double invalid_frequencies[] = {0.0, -1.0, INFINITY, NAN};
+    const double invalid_extents[] = {-1.0, INFINITY, NAN};
+    double step_size = 123.0;
+    double azimuth_total_range = 123.0;
+    double azimuth_start = 123.0;
+    double azimuth_stop = 123.0;
+    size_t sample_count = 123;
+    const double invalid_values[] = {-1.0, 181.0, INFINITY, -INFINITY, NAN};
+    size_t i;
+
+    if (amcore_near_field_cylindrical_azimuth_sampling_parameters(
+            299792458.0, 1.0, 0.0, NULL, &azimuth_total_range, &azimuth_start,
+            &azimuth_stop, &sample_count) != AMCORE_STATUS_INVALID_ARGUMENT ||
+        amcore_near_field_cylindrical_azimuth_sampling_parameters(
+            299792458.0, 1.0, 0.0, &step_size, NULL, &azimuth_start,
+            &azimuth_stop, &sample_count) != AMCORE_STATUS_INVALID_ARGUMENT ||
+        amcore_near_field_cylindrical_azimuth_sampling_parameters(
+            299792458.0, 1.0, 0.0, &step_size, &azimuth_total_range, NULL,
+            &azimuth_stop, &sample_count) != AMCORE_STATUS_INVALID_ARGUMENT ||
+        amcore_near_field_cylindrical_azimuth_sampling_parameters(
+            299792458.0, 1.0, 0.0, &step_size, &azimuth_total_range,
+            &azimuth_start, NULL, &sample_count) !=
+            AMCORE_STATUS_INVALID_ARGUMENT ||
+        amcore_near_field_cylindrical_azimuth_sampling_parameters(
+            299792458.0, 1.0, 0.0, &step_size, &azimuth_total_range,
+            &azimuth_start, &azimuth_stop, NULL) !=
+            AMCORE_STATUS_INVALID_ARGUMENT) {
+        return 1;
+    }
+
+    for (i = 0;
+         i < sizeof(invalid_frequencies) / sizeof(invalid_frequencies[0]);
+         ++i) {
+        if (amcore_near_field_cylindrical_azimuth_sampling_parameters(
+                invalid_frequencies[i], 1.0, 90.0, &step_size,
+                &azimuth_total_range, &azimuth_start, &azimuth_stop,
+                &sample_count) != AMCORE_STATUS_INVALID_ARGUMENT ||
+            step_size != 123.0 || azimuth_total_range != 123.0 ||
+            azimuth_start != 123.0 || azimuth_stop != 123.0 ||
+            sample_count != 123) {
+            return 1;
+        }
+    }
+    for (i = 0; i < sizeof(invalid_extents) / sizeof(invalid_extents[0]);
+         ++i) {
+        if (amcore_near_field_cylindrical_azimuth_sampling_parameters(
+                299792458.0, invalid_extents[i], 90.0, &step_size,
+                &azimuth_total_range, &azimuth_start, &azimuth_stop,
+                &sample_count) != AMCORE_STATUS_INVALID_ARGUMENT ||
+            step_size != 123.0 || azimuth_total_range != 123.0 ||
+            azimuth_start != 123.0 || azimuth_stop != 123.0 ||
+            sample_count != 123) {
+            return 1;
+        }
+    }
+    for (i = 0; i < sizeof(invalid_values) / sizeof(invalid_values[0]); ++i) {
+        if (amcore_near_field_cylindrical_azimuth_sampling_parameters(
+                299792458.0, 1.0, invalid_values[i], &step_size,
+                &azimuth_total_range, &azimuth_start, &azimuth_stop,
+                &sample_count) != AMCORE_STATUS_INVALID_ARGUMENT ||
+            step_size != 123.0 || azimuth_total_range != 123.0 ||
+            azimuth_start != 123.0 || azimuth_stop != 123.0 ||
+            sample_count != 123) {
+            return 1;
+        }
+    }
+    if (amcore_near_field_cylindrical_azimuth_sampling_parameters(
+            299792458.0, 114.0, 90.0, &step_size, &azimuth_total_range,
+            &azimuth_start, &azimuth_stop, &sample_count) !=
+            AMCORE_STATUS_OUT_OF_RANGE ||
+        step_size != 123.0 || azimuth_total_range != 123.0 ||
+        azimuth_start != 123.0 || azimuth_stop != 123.0 ||
+        sample_count != 123) {
+        return 1;
+    }
+    return 0;
+}
+
 static int test_near_field_spherical(void)
 {
     double extent = -1.0;
@@ -1058,6 +1176,8 @@ int main(void)
         TEST_CASE(test_near_field_cylindrical_ideal_azimuth_step_size),
         TEST_CASE(test_near_field_cylindrical_ideal_azimuth_step_size_invalid_arguments),
         TEST_CASE(test_near_field_cylindrical_ideal_azimuth_step_size_out_of_range),
+        TEST_CASE(test_near_field_cylindrical_azimuth_sampling_parameters),
+        TEST_CASE(test_near_field_cylindrical_azimuth_sampling_parameters_errors),
         TEST_CASE(test_near_field_spherical)
 #undef TEST_CASE
     };

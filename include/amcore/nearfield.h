@@ -249,7 +249,8 @@ AMCORE_API amcore_status amcore_near_field_cylindrical_elevation_sampling_parame
 /**
  * @brief Calculate the cylindrical near-field ideal azimuth step size.
  *
- * Starts from the minimum azimuth sample count
+ * Starts from the minimum azimuth sample count uses the formula depicted in
+ * the NSI2000 Manual.
  * N = ceil(2 (2 pi MRE / lambda + 10) + 1), rounded up to an odd value, and
  * increases the count by two until the step 360 / (N - 1) degrees is a whole
  * multiple of 0.25 degrees (250 millidegrees), which also guarantees a whole
@@ -269,6 +270,46 @@ AMCORE_API amcore_status amcore_near_field_cylindrical_ideal_azimuth_step_size_d
     double frequency_hz,
     double maximum_radial_extent_m,
     double *step_size_deg);
+
+/**
+ * @brief Calculate the ideal cylindrical near-field azimuth sampling
+ *        parameters.
+ *
+ * Uses the step size from
+ * amcore_near_field_cylindrical_ideal_azimuth_step_size_deg, rounds the
+ * requested minimum azimuth half range up to whole millidegrees, then extends
+ * it to a whole multiple of the step size. The output total range is twice
+ * this adjusted half range. The scan is centered, so the sample count includes
+ * both endpoints at minus and plus the adjusted half range.
+ *
+ * @param frequency_hz Frequency in hertz; must be finite and greater than zero.
+ * @param maximum_radial_extent_m Maximum radial extent MRE in metres; must be
+ *        finite and non-negative.
+ * @param minimum_azimuth_max_deg Minimum azimuth half range in degrees; must
+ *        be finite and in [0, 180].
+ * @param step_size_deg Receives the azimuth step size in degrees on success.
+ * @param azimuth_total_range_deg Receives the total azimuth range in degrees
+ *        on success.
+ * @param azimuth_start_deg Receives the azimuth start angle in degrees on
+ *        success.
+ * @param azimuth_stop_deg Receives the azimuth stop angle in degrees on
+ *        success.
+ * @param sample_count Receives the number of samples on success.
+ * @return AMCORE_STATUS_SUCCESS on success, AMCORE_STATUS_INVALID_ARGUMENT
+ *         for invalid inputs (including a null output pointer), or
+ *         AMCORE_STATUS_OUT_OF_RANGE if no step of at least 0.25 degrees
+ *         satisfies the required sample count. On error, leaves all outputs
+ *         unchanged.
+ */
+AMCORE_API amcore_status amcore_near_field_cylindrical_azimuth_sampling_parameters(
+    double frequency_hz,
+    double maximum_radial_extent_m,
+    double minimum_azimuth_max_deg,
+    double *step_size_deg,
+    double *azimuth_total_range_deg,
+    double *azimuth_start_deg,
+    double *azimuth_stop_deg,
+    size_t *sample_count);
 
 /**
  * @brief Calculate the spherical near-field maximum radius extent.

@@ -422,6 +422,53 @@ amcore_status amcore_near_field_cylindrical_ideal_azimuth_step_size_deg(
     double *step_size_deg);
 ```
 
+### Cylindrical azimuth sampling parameters
+
+`amcore_near_field_cylindrical_azimuth_sampling_parameters` calculates
+centered azimuth sampling parameters. It uses the ideal azimuth step size and
+rounds the requested minimum azimuth half range up to a whole millidegree,
+then to a whole multiple of the step size. 
+$$
+\text{azimuth total range} = 2 \cdot \text{adjusted half range}
+$$
+The output azimuth range is the
+total range, twice the adjusted half range. The outputs are step size, total
+range, negative and positive endpoints, and sample count including both
+endpoints. 
+$$
+\text{sample count} = \frac{\text{azimuth total range}}{\text{step size}} + 1
+$$
+Frequency must be positive and finite, maximum radial extent must
+be finite and non-negative, and the requested half range must be finite and in
+[0, 180] degrees. All outputs remain unchanged on error.
+
+```c
+double step_size_deg;
+double azimuth_total_range_deg;
+double azimuth_start_deg;
+double azimuth_stop_deg;
+size_t sample_count;
+amcore_status status =
+    amcore_near_field_cylindrical_azimuth_sampling_parameters(
+        299792458.0, 1.0, 95.0, &step_size_deg, &azimuth_total_range_deg,
+        &azimuth_start_deg, &azimuth_stop_deg, &sample_count);
+/* On success: 10 degree step, 200 degree total range, -100 to 100, 21 samples. */
+```
+
+Signature:
+
+```c
+amcore_status amcore_near_field_cylindrical_azimuth_sampling_parameters(
+    double frequency_hz,
+    double maximum_radial_extent_m,
+    double minimum_azimuth_max_deg,
+    double *step_size_deg,
+    double *azimuth_total_range_deg,
+    double *azimuth_start_deg,
+    double *azimuth_stop_deg,
+    size_t *sample_count);
+```
+
 ### Spherical maximum radius extent
 
 `amcore_near_field_spherical_maximum_radius_extent_m` calculates the

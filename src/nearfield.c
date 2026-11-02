@@ -379,6 +379,62 @@ amcore_status amcore_near_field_cylindrical_ideal_azimuth_step_size_deg(
     return AMCORE_STATUS_SUCCESS;
 }
 
+amcore_status amcore_near_field_cylindrical_azimuth_sampling_parameters(
+    double frequency_hz,
+    double maximum_radial_extent_m,
+    double minimum_azimuth_max_deg,
+    double *step_size_deg,
+    double *azimuth_total_range_deg,
+    double *azimuth_start_deg,
+    double *azimuth_stop_deg,
+    size_t *sample_count)
+{
+    double step_deg;
+    double azimuth_mdeg_value;
+    size_t step_mdeg;
+    size_t azimuth_mdeg;
+    size_t remainder;
+    size_t half_count;
+    amcore_status status;
+
+    if (step_size_deg == NULL || azimuth_total_range_deg == NULL ||
+        azimuth_start_deg == NULL || azimuth_stop_deg == NULL ||
+        sample_count == NULL ||
+        !isfinite(minimum_azimuth_max_deg) ||
+        minimum_azimuth_max_deg < 0.0 || minimum_azimuth_max_deg > 180.0) {
+        return AMCORE_STATUS_INVALID_ARGUMENT;
+    }
+
+    status = amcore_near_field_cylindrical_ideal_azimuth_step_size_deg(
+        frequency_hz, maximum_radial_extent_m, &step_deg);
+    if (status != AMCORE_STATUS_SUCCESS) {
+        return status;
+    }
+
+    /* The step is a whole multiple of 0.25 degrees, so the millidegree
+       conversion is exact. */
+    step_mdeg = (size_t)(step_deg * 1000.0);
+    azimuth_mdeg_value = ceil(minimum_azimuth_max_deg * 1000.0);
+    if (!double_to_size_t(azimuth_mdeg_value, &azimuth_mdeg)) {
+        return AMCORE_STATUS_OUT_OF_RANGE;
+    }
+
+    /* Extend the half range to a whole multiple of the step size. The step
+       divides 180 degrees, so the result stays at most 180 degrees. */
+    remainder = azimuth_mdeg % step_mdeg;
+    if (remainder != 0) {
+        azimuth_mdeg += step_mdeg - remainder;
+    }
+
+    half_count = azimuth_mdeg / step_mdeg;
+    *step_size_deg = step_deg;
+    *azimuth_total_range_deg = 2 * (double)azimuth_mdeg / 1000.0;
+    *azimuth_start_deg = -((double)azimuth_mdeg / 1000.0);
+    *azimuth_stop_deg = (double)azimuth_mdeg / 1000.0;
+    *sample_count = 2 * half_count + 1;
+    return AMCORE_STATUS_SUCCESS;
+}
+
 amcore_status amcore_near_field_spherical_maximum_radius_extent_m(
     double displacement_x_m,
     double displacement_y_m,

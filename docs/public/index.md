@@ -22,6 +22,8 @@
 | `nearfield` | `amcore_near_field_cylindrical_ideal_y_step_size_m` | Ideal cylindrical Y step size (half wavelength) in metres |
 | `nearfield` | `amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg` | Ideal cylindrical elevation angle of view in degrees |
 | `nearfield` | `amcore_near_field_cylindrical_elevation_sampling_parameters` | Centered cylindrical elevation step size, scan length, endpoints, and sample count |
+| `nearfield` | `amcore_near_field_cylindrical_ideal_azimuth_step_size_deg` | Ideal cylindrical azimuth step size in degrees |
+| `nearfield` | `amcore_near_field_cylindrical_azimuth_sampling_parameters` | Centered cylindrical azimuth step size, total range, endpoints, and sample count |
 | `nearfield` | `amcore_near_field_spherical_maximum_radius_extent_m` | Spherical maximum radius extent in metres |
 
 All calculations are referenced from the relevant standards and literature. See the [References](#references) section for details.
