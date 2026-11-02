@@ -436,7 +436,7 @@ total range, twice the adjusted half range. The outputs are step size, total
 range, negative and positive endpoints, and sample count including both
 endpoints. 
 $$
-\N_{\mathrm{az}} = \frac{\theta_{\mathrm{az}}}{\Delta_{\mathrm{az}}} + 1
+N_{\mathrm{az}} = \frac{\theta_{\mathrm{az}}}{\Delta_{\mathrm{az}}} + 1
 $$
 Frequency must be positive and finite, maximum radial extent must
 be finite and non-negative, and the requested half range must be finite and in
