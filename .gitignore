@@ -1,6 +1,9 @@
 # Last content update tag: v0.1.0
-# Ignore proprietary PDF files under doc/standards
+# Ignore proprietary PDF files under docs
 docs/standards
+docs/web
+docs/manuals
+docs/books
 
 # CMake build output
 /build*
