@@ -5,6 +5,10 @@ All notable changes for each release are documented here.
 Entries under released versions are historical release notes and may describe
 features that are not present in the current branch.
 
+## [v0.10.1] - 2026-11-02
+- feat: add cylindrical azimuth step size and sampling parameters calculations, update CLI and documentation
+- feat: add ideal cylindrical azimuth step size calculation and related CLI and documentation
+
 ## [v0.9.1] - 2026-10-30
 - feat: simplify version retrieval in hooks by reading from VERSION file
 
