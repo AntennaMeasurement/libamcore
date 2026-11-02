@@ -62,6 +62,7 @@ Subcommands:
   ideal-y-step-size             Calculate ideal cylindrical Y step size in metres
   ideal-elevation-angle-of-view Calculate ideal cylindrical elevation angle of view in degrees
   elevation-sampling-parameters Calculate centered cylindrical elevation sampling parameters
+  ideal-azimuth-step-size       Calculate ideal cylindrical azimuth step size in degrees
 ```
 
 ```
@@ -89,6 +90,7 @@ amcore nearfield cylindrical ideal-y-scan-length 1 0.2 2 1 60 45
 amcore nearfield cylindrical ideal-y-step-size 1e9
 amcore nearfield cylindrical ideal-elevation-angle-of-view 1 0.2 2 1 60 5.2
 amcore nearfield cylindrical elevation-sampling-parameters 299792458 1
+amcore nearfield cylindrical ideal-azimuth-step-size 299792458 1
 amcore nearfield spherical maximum-radius-extent 3 4 12
 ```
 

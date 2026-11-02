@@ -330,6 +330,55 @@ amcore_status amcore_near_field_cylindrical_elevation_sampling_parameters(
         sample_count);
 }
 
+amcore_status amcore_near_field_cylindrical_ideal_azimuth_step_size_deg(
+    double frequency_hz,
+    double maximum_radial_extent_m,
+    double *step_size_deg)
+{
+    double wavelength;
+    double initial_count;
+    unsigned int sample_count;
+    unsigned int interval_count;
+    amcore_status status;
+
+    if (step_size_deg == NULL || !isfinite(maximum_radial_extent_m) ||
+        maximum_radial_extent_m < 0.0) {
+        return AMCORE_STATUS_INVALID_ARGUMENT;
+    }
+
+    status = amcore_free_space_wavelength_m(frequency_hz, &wavelength);
+    if (status != AMCORE_STATUS_SUCCESS) {
+        return status;
+    }
+
+    initial_count = ceil(
+        2.0 * (2.0 * acos(-1.0) * maximum_radial_extent_m / wavelength +
+               10.0) +
+        1.0);
+    /* The coarsest valid step of 0.25 degrees uses 1440 intervals, so an
+       odd sample count above 1441 cannot be satisfied. */
+    if (!isfinite(initial_count) || initial_count > 1441.0) {
+        return AMCORE_STATUS_OUT_OF_RANGE;
+    }
+
+    sample_count = (unsigned int)initial_count;
+    if (sample_count % 2 == 0) {
+        sample_count += 1;
+    }
+
+    /* The step 360 / interval_count degrees is a whole multiple of 0.25
+       degrees (250 millidegrees, hence also whole millidegrees) exactly
+       when interval_count divides 1440. interval_count stays even and at
+       most 1440, so the loop terminates. */
+    interval_count = sample_count - 1;
+    while (1440 % interval_count != 0) {
+        interval_count += 2;
+    }
+
+    *step_size_deg = 360.0 / (double)interval_count;
+    return AMCORE_STATUS_SUCCESS;
+}
+
 amcore_status amcore_near_field_spherical_maximum_radius_extent_m(
     double displacement_x_m,
     double displacement_y_m,

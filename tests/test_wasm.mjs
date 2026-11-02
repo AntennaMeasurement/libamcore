@@ -49,6 +49,10 @@ const cases = [
     ['amcore_near_field_cylindrical_ideal_y_step_size_m', [1e9], lightSpeed / 2e9],
     ['amcore_near_field_cylindrical_ideal_y_step_size_m', [149896229000], 0.001],
     ['amcore_near_field_cylindrical_ideal_y_step_size_m', [150e9], lightSpeed / 300e9],
+    ['amcore_near_field_cylindrical_ideal_azimuth_step_size_deg', [lightSpeed, 0], 18],
+    ['amcore_near_field_cylindrical_ideal_azimuth_step_size_deg', [lightSpeed, 1], 10],
+    ['amcore_near_field_cylindrical_ideal_azimuth_step_size_deg', [1e9, 1], 5],
+    ['amcore_near_field_cylindrical_ideal_azimuth_step_size_deg', [lightSpeed, 112], 0.25],
     ['amcore_near_field_spherical_maximum_radius_extent_m', [3, 4, 12], 13],
 ];
 
@@ -114,6 +118,13 @@ for (const frequency of [Number.MIN_VALUE]) {
     assert.equal(api.amcore_near_field_cylindrical_ideal_y_step_size_m(frequency, output), 2);
     assert.equal(memory.getFloat64(output, true), 123);
 }
+
+for (const extent of [-1, NaN, Infinity]) {
+    assert.equal(api.amcore_near_field_cylindrical_ideal_azimuth_step_size_deg(lightSpeed, extent, output), 1);
+    assert.equal(memory.getFloat64(output, true), 123);
+}
+assert.equal(api.amcore_near_field_cylindrical_ideal_azimuth_step_size_deg(lightSpeed, 114, output), 2);
+assert.equal(memory.getFloat64(output, true), 123);
 
 api.free(output);
 console.log('PASS: standalone WASM library exports, calculations, and error handling');

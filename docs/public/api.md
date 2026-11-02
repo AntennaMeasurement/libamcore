@@ -385,6 +385,43 @@ amcore_status amcore_near_field_cylindrical_elevation_sampling_parameters(
     size_t *sample_count);
 ```
 
+### Ideal cylindrical azimuth step size
+
+`amcore_near_field_cylindrical_ideal_azimuth_step_size_deg` calculates the
+ideal azimuth step size for a cylindrical scan. It starts from the minimum
+azimuth sample count
+
+$$N_{\mathrm{az},0} = \left\lceil 2\left(\frac{2\pi \cdot MRE}{\lambda} + 10\right) + 1 \right\rceil$$
+
+rounded up to an odd value, then increases the count by two until the step
+$\Delta_{\mathrm{az}} = 360/(N_{\mathrm{az}} - 1)$ degrees is a whole multiple
+of 0.25 degrees (250 millidegrees), which also guarantees a whole number of
+millidegrees. Here $MRE$ is the maximum radial extent in metres and
+$\lambda$ is the free-space wavelength.
+
+Frequency must be finite and positive; the maximum radial extent must be
+finite and non-negative. The API returns `AMCORE_STATUS_OUT_OF_RANGE` when no
+step of at least 0.25 degrees satisfies the required sample count, which
+happens when the maximum radial extent exceeds roughly 113 wavelengths. The
+output is unchanged on error.
+
+```c
+double step_size_deg;
+amcore_status status =
+    amcore_near_field_cylindrical_ideal_azimuth_step_size_deg(
+        299792458.0, 1.0, &step_size_deg);
+/* On success: step_size_deg is 10 degrees (36 intervals, 37 samples). */
+```
+
+Signature:
+
+```c
+amcore_status amcore_near_field_cylindrical_ideal_azimuth_step_size_deg(
+    double frequency_hz,
+    double maximum_radial_extent_m,
+    double *step_size_deg);
+```
+
 ### Spherical maximum radius extent
 
 `amcore_near_field_spherical_maximum_radius_extent_m` calculates the

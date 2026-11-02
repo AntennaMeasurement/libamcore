@@ -247,6 +247,30 @@ AMCORE_API amcore_status amcore_near_field_cylindrical_elevation_sampling_parame
     size_t *sample_count);
 
 /**
+ * @brief Calculate the cylindrical near-field ideal azimuth step size.
+ *
+ * Starts from the minimum azimuth sample count
+ * N = ceil(2 (2 pi MRE / lambda + 10) + 1), rounded up to an odd value, and
+ * increases the count by two until the step 360 / (N - 1) degrees is a whole
+ * multiple of 0.25 degrees (250 millidegrees), which also guarantees a whole
+ * number of millidegrees.
+ *
+ * @param frequency_hz Frequency in hertz; must be finite and greater than zero.
+ * @param maximum_radial_extent_m Maximum radial extent MRE in metres; must be
+ *        finite and non-negative.
+ * @param step_size_deg Receives the azimuth step size in degrees on success.
+ * @return AMCORE_STATUS_SUCCESS on success, AMCORE_STATUS_INVALID_ARGUMENT
+ *         for invalid inputs (including a null output pointer), or
+ *         AMCORE_STATUS_OUT_OF_RANGE if no step of at least 0.25 degrees
+ *         satisfies the required sample count. On error, leaves
+ *         @p step_size_deg unchanged.
+ */
+AMCORE_API amcore_status amcore_near_field_cylindrical_ideal_azimuth_step_size_deg(
+    double frequency_hz,
+    double maximum_radial_extent_m,
+    double *step_size_deg);
+
+/**
  * @brief Calculate the spherical near-field maximum radius extent.
  *
  * Uses the Euclidean norm of the maximum displacements along the three axes.

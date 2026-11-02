@@ -43,6 +43,7 @@ static int calculate_cylindrical_ideal_elevation_angle_of_view(int argc,
                                                                char **argv);
 static int calculate_cylindrical_elevation_sampling_parameters(int argc,
                                                                char **argv);
+static int calculate_cylindrical_ideal_azimuth_step_size(int argc, char **argv);
 static int calculate_spherical_maximum_radius_extent(int argc, char **argv);
 
 static const command commands[] = {
@@ -106,6 +107,9 @@ static const command nearfield_cylindrical_functions[] = {
     {"elevation-sampling-parameters",
      "Calculate centered cylindrical elevation sampling parameters",
      calculate_cylindrical_elevation_sampling_parameters},
+    {"ideal-azimuth-step-size",
+     "Calculate ideal cylindrical azimuth step size in degrees",
+     calculate_cylindrical_ideal_azimuth_step_size},
 };
 
 static int is_help(const char *argument)
@@ -515,6 +519,48 @@ static int calculate_cylindrical_ideal_y_step_size(int argc, char **argv)
 
     status = amcore_near_field_cylindrical_ideal_y_step_size_m(
         frequency, &step_size);
+    return print_result(status, step_size);
+}
+
+static int calculate_cylindrical_ideal_azimuth_step_size(int argc, char **argv)
+{
+    double frequency;
+    double maximum_radial_extent;
+    double step_size = 0.0;
+    amcore_status status;
+
+    if (argc == 1 && is_help(argv[0])) {
+        puts("Usage: amcore nearfield cylindrical ideal-azimuth-step-size "
+             "<frequency_hz> <maximum_radial_extent_m>");
+        puts("Calculate the ideal cylindrical azimuth step size in degrees.");
+        puts("");
+        puts("Arguments:");
+        puts("  <frequency_hz>            Frequency in hertz");
+        puts("  <maximum_radial_extent_m> Maximum radial extent in metres");
+        puts("");
+        puts("Options:");
+        puts("  -h, --help         Show this help message and exit");
+        puts("");
+        puts("Frequency must be positive and finite; the maximum radial "
+             "extent must be non-negative and finite.");
+        puts("The step is a whole multiple of 0.25 degrees.");
+        puts("Output: one numeric value in degrees.");
+        return EXIT_SUCCESS;
+    }
+    if (argc != 2) {
+        fputs("Usage: amcore nearfield cylindrical ideal-azimuth-step-size "
+              "<frequency_hz> <maximum_radial_extent_m>\n", stderr);
+        return EXIT_FAILURE;
+    }
+    if (parse_positive_double(argv[0], "frequency_hz", &frequency) !=
+            EXIT_SUCCESS ||
+        parse_nonnegative_double(argv[1], "maximum_radial_extent_m",
+                                 &maximum_radial_extent) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    status = amcore_near_field_cylindrical_ideal_azimuth_step_size_deg(
+        frequency, maximum_radial_extent, &step_size);
     return print_result(status, step_size);
 }
 

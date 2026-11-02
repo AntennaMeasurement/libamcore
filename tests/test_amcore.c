@@ -928,6 +928,88 @@ static int test_near_field_cylindrical_step_size_out_of_range(void)
     return 0;
 }
 
+static int test_near_field_cylindrical_ideal_azimuth_step_size(void)
+{
+    const struct {
+        double frequency_hz;
+        double maximum_radial_extent_m;
+        double expected_deg;
+    } cases[] = {
+        /* MRE 0 gives N = 21, 20 intervals, 18 degrees. */
+        {299792458.0, 0.0, 18.0},
+        /* frequency = 0.7 GHz, MRE = 0.25 m gives 30 intervals, 12 degrees. */
+        {7.0e8, 0.25, 12.0},
+        /* frequency = 1.1 GHz, MRE = 0.25 m gives 32 intervals, 11.25 degrees. */
+        {1.1e9, 0.25, 11.25},
+        /* frequency = 6.0 GHz, MRE = 0.25 m gives 90 intervals, 4 degrees. */
+        {6.0e9, 0.25, 4.0},
+        /* Near the limit: settles on 1440 intervals, 0.25 degrees. */
+        {299792458.0, 112.0, 0.25}
+    };
+    double step_size = -1.0;
+    size_t i;
+
+    for (i = 0; i < sizeof(cases) / sizeof(cases[0]); ++i) {
+        if (amcore_near_field_cylindrical_ideal_azimuth_step_size_deg(
+                cases[i].frequency_hz, cases[i].maximum_radial_extent_m,
+                &step_size) != AMCORE_STATUS_SUCCESS ||
+            step_size != cases[i].expected_deg) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int test_near_field_cylindrical_ideal_azimuth_step_size_invalid_arguments(void)
+{
+    const double invalid_frequencies[] = {0.0, -1.0, INFINITY, -INFINITY, NAN};
+    const double invalid_extents[] = {-1.0, INFINITY, -INFINITY, NAN};
+    double step_size = 123.0;
+    size_t i;
+
+    if (amcore_near_field_cylindrical_ideal_azimuth_step_size_deg(
+            1.0e9, 1.0, NULL) != AMCORE_STATUS_INVALID_ARGUMENT) {
+        return 1;
+    }
+    for (i = 0; i < sizeof(invalid_frequencies) / sizeof(invalid_frequencies[0]);
+         ++i) {
+        if (amcore_near_field_cylindrical_ideal_azimuth_step_size_deg(
+                invalid_frequencies[i], 1.0, &step_size) !=
+                AMCORE_STATUS_INVALID_ARGUMENT ||
+            step_size != 123.0) {
+            return 1;
+        }
+    }
+    for (i = 0; i < sizeof(invalid_extents) / sizeof(invalid_extents[0]); ++i) {
+        if (amcore_near_field_cylindrical_ideal_azimuth_step_size_deg(
+                1.0e9, invalid_extents[i], &step_size) !=
+                AMCORE_STATUS_INVALID_ARGUMENT ||
+            step_size != 123.0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int test_near_field_cylindrical_ideal_azimuth_step_size_out_of_range(void)
+{
+    double step_size = 123.0;
+
+    /* MRE = 114 m at lambda = 1 m needs more than 1440 intervals. */
+    if (amcore_near_field_cylindrical_ideal_azimuth_step_size_deg(
+            299792458.0, 114.0, &step_size) != AMCORE_STATUS_OUT_OF_RANGE ||
+        step_size != 123.0) {
+        return 1;
+    }
+    /* A huge extent-to-wavelength ratio must not loop or overflow. */
+    if (amcore_near_field_cylindrical_ideal_azimuth_step_size_deg(
+            1.0e12, DBL_MAX, &step_size) != AMCORE_STATUS_OUT_OF_RANGE ||
+        step_size != 123.0) {
+        return 1;
+    }
+    return 0;
+}
+
 static int test_near_field_spherical(void)
 {
     double extent = -1.0;
@@ -973,6 +1055,9 @@ int main(void)
         TEST_CASE(test_near_field_cylindrical_ideal_y_step_size),
         TEST_CASE(test_near_field_cylindrical_step_size_invalid_arguments),
         TEST_CASE(test_near_field_cylindrical_step_size_out_of_range),
+        TEST_CASE(test_near_field_cylindrical_ideal_azimuth_step_size),
+        TEST_CASE(test_near_field_cylindrical_ideal_azimuth_step_size_invalid_arguments),
+        TEST_CASE(test_near_field_cylindrical_ideal_azimuth_step_size_out_of_range),
         TEST_CASE(test_near_field_spherical)
 #undef TEST_CASE
     };
