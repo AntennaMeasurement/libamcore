@@ -169,7 +169,7 @@ amcore_status amcore_near_field_measurement_distance_m(
     double *separation_m);
 ```
 
-### Planar ideal step size
+### Planar, ideal step size
 
 `amcore_near_field_planar_ideal_step_size_m` returns half the free-space
 wavelength, $\Delta = \lambda/2$. This step size follows IEEE Std 149-2021,
@@ -189,7 +189,7 @@ amcore_status amcore_near_field_planar_ideal_step_size_m(
     double *step_size_m);
 ```
 
-### Planar ideal scan length and angle of view
+### Planar, ideal scan length and angle of view
 
 `amcore_near_field_planar_ideal_scan_length_m` calculates
 $L = 2d\tan(\theta)+a+p$, where AUT means Antenna Under Test, `a` is its
@@ -241,7 +241,7 @@ amcore_status status = amcore_near_field_planar_sampling_parameters(
     &scan_stop_m, &sample_count);
 ```
 
-### Ideal cylindrical Y step size
+### Cylindrical, ideal Y step size
 
 `amcore_near_field_cylindrical_ideal_y_step_size_m` returns half the free-space
 wavelength without rounding, expressed in metres:
@@ -269,7 +269,7 @@ amcore_status amcore_near_field_cylindrical_ideal_y_step_size_m(
     double *step_size_m);
 ```
 
-### Ideal cylindrical Y scan length
+### Cylindrical, ideal Y scan length
 
 `amcore_near_field_cylindrical_ideal_y_scan_length_m` calculates the ideal
 cylindrical Y scan length using the NSI 2000 (Near-field Edition), Version 4,
@@ -314,7 +314,7 @@ The NSI2000 reference case with antenna height 0.2 m, probe longest edge
 and elevation 60 degrees produces **11.186 m** when rounded to three decimal
 places.
 
-### Ideal cylindrical elevation angle of view
+### Cylindrical, ideal elevation angle of view
 
 `amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg` inverts the
 cylindrical Y scan-length geometry for a centered scan. Returns half of the total elevation angle of view:
@@ -347,7 +347,7 @@ amcore_status amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg(
     double *angle_of_view_deg);
 ```
 
-### Cylindrical elevation sampling parameters
+### Cylindrical, elevation sampling parameters
 
 `amcore_near_field_cylindrical_elevation_sampling_parameters` calculates
 centered elevation sampling parameters using half-wavelength spacing rounded
@@ -385,7 +385,7 @@ amcore_status amcore_near_field_cylindrical_elevation_sampling_parameters(
     size_t *sample_count);
 ```
 
-### Ideal cylindrical azimuth step size
+### Cylindrical, ideal azimuth step size
 
 `amcore_near_field_cylindrical_ideal_azimuth_step_size_deg` calculates the
 ideal azimuth step size for a cylindrical scan. It starts from the minimum
@@ -422,21 +422,21 @@ amcore_status amcore_near_field_cylindrical_ideal_azimuth_step_size_deg(
     double *step_size_deg);
 ```
 
-### Cylindrical azimuth sampling parameters
+### Cylindrical, azimuth sampling parameters
 
 `amcore_near_field_cylindrical_azimuth_sampling_parameters` calculates
 centered azimuth sampling parameters. It uses the ideal azimuth step size and
 rounds the requested minimum azimuth half range up to a whole millidegree,
 then to a whole multiple of the step size. 
 $$
-\text{azimuth total range} = 2 \cdot \text{adjusted half range}
+\theta_{\mathrm{az}} = 2 \cdot \theta_{\mathrm{az},\mathrm{half}}
 $$
 The output azimuth range is the
 total range, twice the adjusted half range. The outputs are step size, total
 range, negative and positive endpoints, and sample count including both
 endpoints. 
 $$
-\text{sample count} = \frac{\text{azimuth total range}}{\text{step size}} + 1
+\N_{\mathrm{az}} = \frac{\theta_{\mathrm{az}}}{\Delta_{\mathrm{az}}} + 1
 $$
 Frequency must be positive and finite, maximum radial extent must
 be finite and non-negative, and the requested half range must be finite and in
