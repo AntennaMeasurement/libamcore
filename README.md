@@ -4,10 +4,11 @@
 `libamcore` is a portable C library for core antenna-measurement calculations.
 Project contains the calculation API and the `amcore` command-line tool.
 
-The public API is available through `<amcore/amcore.h>`. It uses C99, supports
-C++ consumers, and does not require nonstandard runtime dependencies. CMake
-links the system math library where it is provided separately (such as `libm`
-on Linux).
+The public API is available through `<amcore/amcore.h>`. Call
+`amcore_version()` to get the library version as a static string. The API uses
+C99, supports C++ consumers, and does not require nonstandard runtime
+dependencies. CMake links the system math library where it is provided
+separately (such as `libm` on Linux).
 
 ## Calculations
 

@@ -33,7 +33,17 @@ include(CTest)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-add_library(amcore src/utility.c src/farfield.c src/nearfield.c)
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/generated")
+configure_file(src/version.h.in generated/amcore_version.h @ONLY)
+
+set(AMCORE_SOURCES
+    src/utility.c
+    src/farfield.c
+    src/nearfield.c
+    src/version.c
+)
+
+add_library(amcore ${AMCORE_SOURCES})
 add_library(amcore::amcore ALIAS amcore)
 set_target_properties(amcore PROPERTIES
     VERSION ${PROJECT_VERSION}
@@ -55,6 +65,8 @@ target_include_directories(amcore
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    PRIVATE
+        "${CMAKE_CURRENT_BINARY_DIR}/generated"
 )
 if(UNIX OR EMSCRIPTEN)
     target_link_libraries(amcore PUBLIC m)
@@ -66,20 +78,22 @@ if(AMCORE_BUILD_WASM)
             "AMCORE_BUILD_WASM requires configuring with the Emscripten toolchain")
     endif()
 
-    add_executable(amcore_wasm src/utility.c src/farfield.c src/nearfield.c)
+    add_executable(amcore_wasm ${AMCORE_SOURCES})
     set_target_properties(amcore_wasm PROPERTIES
         OUTPUT_NAME amcore
     )
     target_compile_features(amcore_wasm PRIVATE c_std_99)
     target_include_directories(amcore_wasm
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+        PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/include
+            "${CMAKE_CURRENT_BINARY_DIR}/generated"
     )
     if(UNIX OR EMSCRIPTEN)
         target_link_libraries(amcore_wasm PRIVATE m)
     endif()
     target_link_options(amcore_wasm PRIVATE
         "-Wl,--no-entry"
-        "-sEXPORTED_FUNCTIONS=_malloc,_free,_amcore_free_space_wavelength_m,_amcore_far_field_distance,_amcore_far_field_line_of_sight_km,_amcore_far_field_radio_horizon_km,_amcore_far_field_path_loss_db,_amcore_near_field_measurement_distance_m,_amcore_near_field_planar_ideal_step_size_m,_amcore_near_field_planar_ideal_scan_length_m,_amcore_near_field_planar_ideal_angle_of_view_deg,_amcore_near_field_planar_sampling_parameters,_amcore_near_field_cylindrical_ideal_y_scan_length_m,_amcore_near_field_cylindrical_ideal_y_step_size_m,_amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg,_amcore_near_field_cylindrical_elevation_sampling_parameters,_amcore_near_field_cylindrical_ideal_azimuth_step_size_deg,_amcore_near_field_cylindrical_azimuth_sampling_parameters,_amcore_near_field_spherical_maximum_radius_extent_m"
+        "-sEXPORTED_FUNCTIONS=_malloc,_free,_amcore_version,_amcore_free_space_wavelength_m,_amcore_far_field_distance,_amcore_far_field_line_of_sight_km,_amcore_far_field_radio_horizon_km,_amcore_far_field_path_loss_db,_amcore_near_field_measurement_distance_m,_amcore_near_field_planar_ideal_step_size_m,_amcore_near_field_planar_ideal_scan_length_m,_amcore_near_field_planar_ideal_angle_of_view_deg,_amcore_near_field_planar_sampling_parameters,_amcore_near_field_cylindrical_ideal_y_scan_length_m,_amcore_near_field_cylindrical_ideal_y_step_size_m,_amcore_near_field_cylindrical_ideal_elevation_angle_of_view_deg,_amcore_near_field_cylindrical_elevation_sampling_parameters,_amcore_near_field_cylindrical_ideal_azimuth_step_size_deg,_amcore_near_field_cylindrical_azimuth_sampling_parameters,_amcore_near_field_spherical_maximum_radius_extent_m"
         "-Wl,--export=speed_of_light_m_per_s"
     )
     set_target_properties(amcore_wasm PROPERTIES SUFFIX ".wasm")
@@ -139,6 +153,8 @@ install(FILES
 
 if(BUILD_TESTING)
     add_executable(amcore_tests tests/test_amcore.c)
+    target_compile_definitions(amcore_tests PRIVATE
+        AMCORE_TEST_VERSION="${PROJECT_VERSION}")
     target_link_libraries(amcore_tests PRIVATE amcore::amcore)
     add_test(NAME amcore_tests COMMAND $<TARGET_FILE:amcore_tests>)
 

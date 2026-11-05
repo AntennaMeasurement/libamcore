@@ -5,6 +5,14 @@
 #include <math.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <string.h>
+
+static int test_version(void)
+{
+    const char *version = amcore_version();
+
+    return version == NULL || strcmp(version, AMCORE_TEST_VERSION) != 0;
+}
 
 static int test_wavelength(void)
 {
@@ -1147,6 +1155,7 @@ int main(void)
         int (*run)(void);
     } tests[] = {
 #define TEST_CASE(function) {#function, function}
+        TEST_CASE(test_version),
         TEST_CASE(test_wavelength),
         TEST_CASE(test_invalid_arguments),
         TEST_CASE(test_out_of_range),
